@@ -1,0 +1,26 @@
+#// Vim stuff.
+*swp
+
+#// Eclipse project.
+.classpath*
+.project*
+
+#// Intell-J
+out/
+.idea
+.settings
+*.iml
+
+#// Phabricator stuff.
+.arcconfig
+
+#// The build output.
+output
+
+#// Mac
+.DS_Store
+
+/target
+.iml
+/.idea/
+dependency-reduced-pom.xml
