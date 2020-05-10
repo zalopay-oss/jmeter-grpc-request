@@ -1,7 +1,7 @@
-package custom.jmeter.grpc.testbean;
+package vn.zalopay.benchmark.testbean;
 
 import com.google.protobuf.DynamicMessage;
-import custom.jmeter.grpc.core.ClientCaller;
+import vn.zalopay.benchmark.core.ClientCaller;
 import io.grpc.StatusRuntimeException;
 import lombok.Getter;
 import lombok.Setter;

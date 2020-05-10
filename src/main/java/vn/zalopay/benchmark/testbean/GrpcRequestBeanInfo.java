@@ -1,4 +1,4 @@
-package custom.jmeter.grpc.testbean;
+package vn.zalopay.benchmark.testbean;
 
 import org.apache.jmeter.testbeans.BeanInfoSupport;
 import org.apache.jmeter.testbeans.gui.TypeEditor;

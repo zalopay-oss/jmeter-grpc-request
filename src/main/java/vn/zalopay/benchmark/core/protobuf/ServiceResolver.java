@@ -1,4 +1,4 @@
-package custom.jmeter.grpc.core.protobuf;
+package vn.zalopay.benchmark.core.protobuf;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -6,16 +6,15 @@ import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 
-/** A locator used to read proto file descriptors and extract method definitions. */
+/**
+ * A locator used to read proto file descriptors and extract method definitions.
+ */
 public class ServiceResolver {
-  private static final Logger logger = LoggerFactory.getLogger(ServiceResolver.class);
-  private final ImmutableList<FileDescriptor> fileDescriptors;
+    private final ImmutableList<FileDescriptor> fileDescriptors;
 
     /**
      * Creates a resolver which searches the supplied {@link FileDescriptorSet}.

@@ -1,4 +1,4 @@
-package custom.jmeter.grpc.core.protobuf;
+package vn.zalopay.benchmark.core.protobuf;
 
 import com.google.common.base.Joiner;
 

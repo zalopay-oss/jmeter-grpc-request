@@ -1,4 +1,4 @@
-package custom.jmeter.grpc.core.grpc;
+package vn.zalopay.benchmark.core.grpc;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -8,11 +8,8 @@ import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.MethodDescriptor.MethodType;
 import io.grpc.stub.ClientCalls;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class DynamicGrpcClient {
-    private static final Logger logger = LoggerFactory.getLogger(DynamicGrpcClient.class);
     private final MethodDescriptor protoMethodDescriptor;
     private final Channel channel;
 
@@ -58,8 +55,8 @@ public class DynamicGrpcClient {
             return MethodType.SERVER_STREAMING;
         } else if (clientStreaming && !serverStreaming) {
             return MethodType.CLIENT_STREAMING;
-        } else {
-            return MethodType.BIDI_STREAMING;
         }
+
+        return MethodType.BIDI_STREAMING;
     }
 }

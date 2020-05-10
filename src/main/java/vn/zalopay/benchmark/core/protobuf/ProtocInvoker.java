@@ -1,4 +1,4 @@
-package custom.jmeter.grpc.core.protobuf;
+package vn.zalopay.benchmark.core.protobuf;
 
 import com.github.os72.protocjar.Protoc;
 import com.google.common.collect.ImmutableList;

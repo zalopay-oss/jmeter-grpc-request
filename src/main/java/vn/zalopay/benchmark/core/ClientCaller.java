@@ -1,4 +1,4 @@
-package custom.jmeter.grpc.core;
+package vn.zalopay.benchmark.core;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.HostAndPort;
@@ -6,12 +6,12 @@ import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.util.JsonFormat;
-import custom.jmeter.grpc.core.grpc.ChannelFactory;
-import custom.jmeter.grpc.core.grpc.DynamicGrpcClient;
-import custom.jmeter.grpc.core.io.MessageReader;
-import custom.jmeter.grpc.core.protobuf.ProtoMethodName;
-import custom.jmeter.grpc.core.protobuf.ProtocInvoker;
-import custom.jmeter.grpc.core.protobuf.ServiceResolver;
+import vn.zalopay.benchmark.core.grpc.ChannelFactory;
+import vn.zalopay.benchmark.core.grpc.DynamicGrpcClient;
+import vn.zalopay.benchmark.core.io.MessageReader;
+import vn.zalopay.benchmark.core.protobuf.ProtoMethodName;
+import vn.zalopay.benchmark.core.protobuf.ProtocInvoker;
+import vn.zalopay.benchmark.core.protobuf.ServiceResolver;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 

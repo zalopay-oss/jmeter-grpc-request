@@ -1,4 +1,4 @@
-package custom.jmeter.grpc.core.grpc;
+package vn.zalopay.benchmark.core.grpc;
 
 import com.google.common.net.HostAndPort;
 import io.grpc.*;

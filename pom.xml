@@ -4,10 +4,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.jmeter-grpc-request</groupId>
+    <groupId>vn.zalopay.benchmark</groupId>
     <artifactId>jmeter-grpc-request</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
@@ -25,11 +26,9 @@
         <os72.protoc.version>3.10.1</os72.protoc.version>
         <jcommander.version>1.48</jcommander.version>
         <opencensus.version>0.21.0</opencensus.version>
-
     </properties>
 
     <dependencies>
-
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
@@ -153,13 +152,12 @@
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
         </dependency>
-
     </dependencies>
 
     <build>
         <defaultGoal>clean generate-sources compile install</defaultGoal>
-        <plugins>
 
+        <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -198,7 +196,6 @@
                     </execution>
                 </executions>
             </plugin>
-
         </plugins>
     </build>
 </project>

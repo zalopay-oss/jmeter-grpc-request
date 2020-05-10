@@ -1,4 +1,4 @@
-package custom.jmeter.grpc.core.io;
+package vn.zalopay.benchmark.core.io;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
