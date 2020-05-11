@@ -34,7 +34,7 @@ Same as JMeter HTTP Request but for gRPC. Copy only once file jar to lib/ext of 
 
 ## Usage
 
-<p align="center"><img src="./dist/asset/jmeter-create-testscript-grpc.gif" width="820px" alt="jmeter-create-testscript-grpc" /></p>
+<p align="center"><img src="./dist/asset/jmeter-grpc-create-testscript.gif" width="820px" alt="jmeter-create-testscript-grpc" /></p>
 
 ### Requirements
 
