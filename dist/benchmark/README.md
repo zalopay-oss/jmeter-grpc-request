@@ -67,7 +67,7 @@ static class SegmentServicesImpl extends SegmentServicesGrpc.SegmentServicesImpl
 Deploy information:
 
 - Call via IP, port.
-- Only 1 instance, run with command `java -cp "./segment-server-1.0-SNAPSHOT.jar" server.SegmentServe`.
+- Only 1 instance, run with command `java -cp "./gprc-server-1.0-SNAPSHOT.jar" server.SegmentServer`.
 - Very simple, no gateway no load balance.
 
 ## 3. Execute load test
