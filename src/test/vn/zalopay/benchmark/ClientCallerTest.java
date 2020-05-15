@@ -21,6 +21,7 @@ public class ClientCallerTest {
             "dist", "benchmark", "grpc-server", "src", "main", "resources", "requests", "request-seguser.json");
     private static String REQUEST_JSON = "";
     private static String FULL_METHOD = "data_services_seg.SegmentServices/checkSeg";
+    private static boolean TLS = Boolean.FALSE;
 
 
     private ClientCaller clientCaller;
@@ -28,7 +29,7 @@ public class ClientCallerTest {
     @Before
     public void setup() {
         logger.info("Setup test");
-        clientCaller = new ClientCaller(HOST_PORT, PROTO_FOLDER.toString(), FULL_METHOD);
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_FOLDER.toString(), FULL_METHOD, TLS);
     }
 
     @Ignore

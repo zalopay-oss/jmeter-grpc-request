@@ -19,12 +19,18 @@ public class ChannelFactory {
     public ChannelFactory() {
     }
 
-    public Channel createChannel(HostAndPort endpoint) {
-        NettyChannelBuilder nettyChannelBuilder = createChannelBuilder(endpoint);
+    public Channel createChannel(HostAndPort endpoint, boolean tls) {
+        NettyChannelBuilder nettyChannelBuilder = createChannelBuilder(endpoint, tls);
         return nettyChannelBuilder.build();
     }
 
-    private NettyChannelBuilder createChannelBuilder(HostAndPort endpoint) {
+    private NettyChannelBuilder createChannelBuilder(HostAndPort endpoint, boolean tls) {
+        if (tls) {
+            return NettyChannelBuilder.forAddress(endpoint.getHost(), endpoint.getPort())
+                    .negotiationType(NegotiationType.TLS)
+                    .intercept(metadataInterceptor());
+        }
+        
         return NettyChannelBuilder.forAddress(endpoint.getHost(), endpoint.getPort())
                 .negotiationType(NegotiationType.PLAINTEXT)
                 .intercept(metadataInterceptor());

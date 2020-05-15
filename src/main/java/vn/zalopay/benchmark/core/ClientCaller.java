@@ -26,11 +26,11 @@ public class ClientCaller {
     private DynamicGrpcClient dynamicClient;
     private ImmutableList<DynamicMessage> requestMessages;
 
-    public ClientCaller(String HOST_PORT, String TEST_PROTO_FILES, String FULL_METHOD) {
-        this.init(HOST_PORT, TEST_PROTO_FILES, FULL_METHOD);
+    public ClientCaller(String HOST_PORT, String TEST_PROTO_FILES, String FULL_METHOD, boolean TLS) {
+        this.init(HOST_PORT, TEST_PROTO_FILES, FULL_METHOD, TLS);
     }
 
-    private void init(String HOST_PORT, String TEST_PROTO_FILES, String FULL_METHOD) {
+    private void init(String HOST_PORT, String TEST_PROTO_FILES, String FULL_METHOD, boolean tls) {
         hostAndPort = HostAndPort.fromString(HOST_PORT);
         ProtoMethodName grpcMethodName =
                 ProtoMethodName.parseFullGrpcMethodName(FULL_METHOD);
@@ -38,7 +38,7 @@ public class ClientCaller {
         ChannelFactory channelFactory = ChannelFactory.create();
 
         Channel channel;
-        channel = channelFactory.createChannel(hostAndPort);
+        channel = channelFactory.createChannel(hostAndPort, tls);
 
         // Fetch the appropriate file descriptors for the service.
         final DescriptorProtos.FileDescriptorSet fileDescriptorSet;
