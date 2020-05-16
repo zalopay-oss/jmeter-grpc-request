@@ -29,7 +29,7 @@ Same as JMeter HTTP Request but for gRPC. Copy only once file jar to lib/ext of 
 
 *Todo:*
 
-- [ ] *Supports TLS connections.*
+- [x] *Supports TLS connections.*
 - [ ] *Supports authentication.*
 
 ## Usage
