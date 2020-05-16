@@ -41,6 +41,7 @@
   &quot;client&quot;: 1,
   &quot;reqdate&quot;: ${__time()}
 }</stringProp>
+            <boolProp name="TLS">false</boolProp>
           </vn.zalopay.benchmark.testbean.GrpcRequest>
           <hashTree/>
         </hashTree>
