@@ -46,8 +46,8 @@ public class ChannelFactory {
                     protected void checkedStart(Listener<RespT> responseListener, Metadata headers)
                             throws StatusException {
                         for (String entry : new LinkedList<>(Collections.singletonList("a"))) {
-                            Metadata.Key<String> key = Metadata.Key.of("x", Metadata.ASCII_STRING_MARSHALLER);
-                            headers.put(key, "abc");
+                            Metadata.Key<String> key = Metadata.Key.of("Authorization", Metadata.ASCII_STRING_MARSHALLER);
+                            headers.put(key, "Bearer UM_TOKEN");
                         }
                         delegate().start(responseListener, headers);
                     }

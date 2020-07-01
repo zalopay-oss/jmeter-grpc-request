@@ -6,18 +6,17 @@ import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.util.JsonFormat;
+import io.grpc.CallOptions;
+import io.grpc.Channel;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.concurrent.TimeUnit;
 import vn.zalopay.benchmark.core.grpc.ChannelFactory;
 import vn.zalopay.benchmark.core.grpc.DynamicGrpcClient;
 import vn.zalopay.benchmark.core.io.MessageReader;
 import vn.zalopay.benchmark.core.protobuf.ProtoMethodName;
 import vn.zalopay.benchmark.core.protobuf.ProtocInvoker;
 import vn.zalopay.benchmark.core.protobuf.ServiceResolver;
-import io.grpc.CallOptions;
-import io.grpc.Channel;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.concurrent.TimeUnit;
 
 public class ClientCaller {
     private Descriptors.MethodDescriptor methodDescriptor;
@@ -26,11 +25,11 @@ public class ClientCaller {
     private DynamicGrpcClient dynamicClient;
     private ImmutableList<DynamicMessage> requestMessages;
 
-    public ClientCaller(String HOST_PORT, String TEST_PROTO_FILES, String FULL_METHOD, boolean TLS) {
-        this.init(HOST_PORT, TEST_PROTO_FILES, FULL_METHOD, TLS);
+    public ClientCaller(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean TLS) {
+        this.init(HOST_PORT, TEST_PROTO_FILES, LIB_FOLDER, FULL_METHOD, TLS);
     }
 
-    private void init(String HOST_PORT, String TEST_PROTO_FILES, String FULL_METHOD, boolean tls) {
+    private void init(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean tls) {
         hostAndPort = HostAndPort.fromString(HOST_PORT);
         ProtoMethodName grpcMethodName =
                 ProtoMethodName.parseFullGrpcMethodName(FULL_METHOD);
@@ -44,7 +43,7 @@ public class ClientCaller {
         final DescriptorProtos.FileDescriptorSet fileDescriptorSet;
 
         try {
-            fileDescriptorSet = ProtocInvoker.forConfig(TEST_PROTO_FILES).invoke();
+            fileDescriptorSet = ProtocInvoker.forConfig(TEST_PROTO_FILES, LIB_FOLDER).invoke();
         } catch (Throwable t) {
             throw new RuntimeException("Unable to resolve service by invoking protoc", t);
         }
