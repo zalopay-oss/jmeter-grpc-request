@@ -1,5 +1,7 @@
 package vn.zalopay.benchmark.core;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.HostAndPort;
 import com.google.protobuf.DescriptorProtos;
@@ -10,6 +12,8 @@ import io.grpc.CallOptions;
 import io.grpc.Channel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import vn.zalopay.benchmark.core.grpc.ChannelFactory;
 import vn.zalopay.benchmark.core.grpc.DynamicGrpcClient;
@@ -24,20 +28,22 @@ public class ClientCaller {
     private HostAndPort hostAndPort;
     private DynamicGrpcClient dynamicClient;
     private ImmutableList<DynamicMessage> requestMessages;
+    private Map<String, String> metadataMap;
 
-    public ClientCaller(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean TLS) {
-        this.init(HOST_PORT, TEST_PROTO_FILES, LIB_FOLDER, FULL_METHOD, TLS);
+    public ClientCaller(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean TLS, String METADATA) {
+        this.init(HOST_PORT, TEST_PROTO_FILES, LIB_FOLDER, FULL_METHOD, TLS, METADATA);
     }
 
-    private void init(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean tls) {
+    private void init(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean tls, String metadata) {
         hostAndPort = HostAndPort.fromString(HOST_PORT);
         ProtoMethodName grpcMethodName =
                 ProtoMethodName.parseFullGrpcMethodName(FULL_METHOD);
 
         ChannelFactory channelFactory = ChannelFactory.create();
+        metadataMap = buildHashMetadata(metadata);
 
         Channel channel;
-        channel = channelFactory.createChannel(hostAndPort, tls);
+        channel = channelFactory.createChannel(hostAndPort, tls, metadataMap);
 
         // Fetch the appropriate file descriptors for the service.
         final DescriptorProtos.FileDescriptorSet fileDescriptorSet;
@@ -58,6 +64,25 @@ public class ClientCaller {
         registry = JsonFormat.TypeRegistry.newBuilder()
                 .add(serviceResolver.listMessageTypes())
                 .build();
+    }
+
+    private Map<String, String> buildHashMetadata(String metadata) {
+        Map<String, String> metadataHash = new LinkedHashMap<>();
+
+        if(Strings.isNullOrEmpty(metadata))
+            return metadataHash;
+
+        String[] keyValue;
+        for (String part : metadata.split(",")){
+            keyValue = part.split(":", 2);
+
+            Preconditions.checkArgument(keyValue.length == 2,
+                "Metadata entry must be defined in key1:value1,key2:value2 format: " + metadata);
+
+            metadataHash.put(keyValue[0], keyValue[1]);
+        }
+
+        return metadataHash;
     }
 
     public String buildRequest(String pathReq, String jsonData) {

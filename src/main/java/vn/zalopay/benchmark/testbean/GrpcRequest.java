@@ -25,7 +25,7 @@ public class GrpcRequest extends AbstractSampler implements TestBean {
     private ClientCaller clientCaller = null;
 
     private void init() {
-        clientCaller = new ClientCaller(HOST_PORT, PROTO_FOLDER, LIB_FOLDER, FULL_METHOD, TLS);
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_FOLDER, LIB_FOLDER, FULL_METHOD, TLS, METADATA);
     }
 
     @Override
@@ -63,6 +63,9 @@ public class GrpcRequest extends AbstractSampler implements TestBean {
         return APPLIABLE_CONFIG_CLASSES.contains(guiClass);
     }
 
+    @Getter
+    @Setter
+    private String METADATA = "";
     @Getter
     @Setter
     private String LIB_FOLDER = "";

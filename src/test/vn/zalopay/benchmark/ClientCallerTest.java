@@ -32,6 +32,7 @@ public class ClientCallerTest {
     private static String REQUEST_JSON = "";
     private static String FULL_METHOD = "protobuf.AccountService/accountQuery";
     private static boolean TLS = Boolean.FALSE;
+    private static String METADATA = "Authorization:Bearer USER_TOKEN";
 
 
     private ClientCaller clientCaller;
@@ -39,7 +40,7 @@ public class ClientCallerTest {
     @Before
     public void setup() {
         logger.info("Setup test");
-        clientCaller = new ClientCaller(HOST_PORT, PROTO_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, TLS);
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, TLS, METADATA);
     }
 
     @Ignore

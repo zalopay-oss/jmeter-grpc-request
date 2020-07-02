@@ -1,12 +1,15 @@
 package vn.zalopay.benchmark.core.grpc;
 
 import com.google.common.net.HostAndPort;
-import io.grpc.*;
+import io.grpc.CallOptions;
+import io.grpc.Channel;
+import io.grpc.ClientCall;
+import io.grpc.ClientInterceptor;
+import io.grpc.ClientInterceptors;
+import io.grpc.Metadata;
 import io.grpc.netty.NegotiationType;
 import io.grpc.netty.NettyChannelBuilder;
-
-import java.util.Collections;
-import java.util.LinkedList;
+import java.util.Map;
 
 /**
  * Knows how to construct grpc channels.
@@ -19,35 +22,34 @@ public class ChannelFactory {
     public ChannelFactory() {
     }
 
-    public Channel createChannel(HostAndPort endpoint, boolean tls) {
-        NettyChannelBuilder nettyChannelBuilder = createChannelBuilder(endpoint, tls);
+    public Channel createChannel(HostAndPort endpoint, boolean tls, Map<String, String> metadataHash) {
+        NettyChannelBuilder nettyChannelBuilder = createChannelBuilder(endpoint, tls, metadataHash);
         return nettyChannelBuilder.build();
     }
 
-    private NettyChannelBuilder createChannelBuilder(HostAndPort endpoint, boolean tls) {
+    private NettyChannelBuilder createChannelBuilder(HostAndPort endpoint, boolean tls, Map<String, String> metadataHash) {
         if (tls) {
             return NettyChannelBuilder.forAddress(endpoint.getHost(), endpoint.getPort())
                     .negotiationType(NegotiationType.TLS)
-                    .intercept(metadataInterceptor());
+                    .intercept(metadataInterceptor(metadataHash));
         }
-        
+
         return NettyChannelBuilder.forAddress(endpoint.getHost(), endpoint.getPort())
                 .negotiationType(NegotiationType.PLAINTEXT)
-                .intercept(metadataInterceptor());
+                .intercept(metadataInterceptor(metadataHash));
     }
 
-    private ClientInterceptor metadataInterceptor() {
+    private ClientInterceptor metadataInterceptor(Map<String, String> metadataHash) {
         ClientInterceptor interceptor = new ClientInterceptor() {
             @Override
             public <ReqT, RespT> ClientCall<ReqT, RespT> interceptCall(
                     final io.grpc.MethodDescriptor<ReqT, RespT> method, CallOptions callOptions, final Channel next) {
                 return new ClientInterceptors.CheckedForwardingClientCall<ReqT, RespT>(next.newCall(method, callOptions)) {
                     @Override
-                    protected void checkedStart(Listener<RespT> responseListener, Metadata headers)
-                            throws StatusException {
-                        for (String entry : new LinkedList<>(Collections.singletonList("a"))) {
-                            Metadata.Key<String> key = Metadata.Key.of("Authorization", Metadata.ASCII_STRING_MARSHALLER);
-                            headers.put(key, "Bearer UM_TOKEN");
+                    protected void checkedStart(Listener<RespT> responseListener, Metadata headers) {
+                        for (Map.Entry<String, String> entry : metadataHash.entrySet()) {
+                            Metadata.Key<String> key = Metadata.Key.of(entry.getKey(), Metadata.ASCII_STRING_MARSHALLER);
+                            headers.put(key, entry.getValue());
                         }
                         delegate().start(responseListener, headers);
                     }
