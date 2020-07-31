@@ -58,6 +58,11 @@ public class GrpcRequest extends AbstractSampler implements TestBean {
     }
 
     @Override
+    public void clear() {
+        super.clear();
+    }
+
+    @Override
     public boolean applies(ConfigTestElement configElement) {
         String guiClass = configElement.getProperty(TestElement.GUI_CLASS).getStringValue();
         return APPLIABLE_CONFIG_CLASSES.contains(guiClass);
