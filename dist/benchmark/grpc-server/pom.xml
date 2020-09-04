@@ -16,10 +16,7 @@
 
         <grpc.version>1.20.0</grpc.version>
         <protobuf.version>3.7.1</protobuf.version>
-        <vertx.grpc.version>3.7.0</vertx.grpc.version>
-        <lombok.version>1.18.10</lombok.version>
-        <jmeter.core.version>5.1.1</jmeter.core.version>
-        <spotless-maven-plugin.version>1.20.0</spotless-maven-plugin.version>
+        <dir_proto>protos</dir_proto>
     </properties>
 
     <dependencies>
@@ -28,26 +25,31 @@
             <artifactId>protobuf-java</artifactId>
             <version>3.6.1</version>
         </dependency>
+
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-netty</artifactId>
             <version>1.23.0</version>
         </dependency>
+
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-netty-shaded</artifactId>
             <version>1.23.0</version>
         </dependency>
+
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-protobuf</artifactId>
             <version>1.23.0</version>
         </dependency>
+
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-stub</artifactId>
             <version>1.23.0</version>
         </dependency>
+
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
@@ -58,20 +60,6 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <version>1.7.26</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.11</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>1.10.19</version>
             <scope>test</scope>
         </dependency>
 
@@ -88,65 +76,15 @@
         </dependency>
 
         <dependency>
-            <groupId>com.beust</groupId>
-            <artifactId>jcommander</artifactId>
-            <version>1.48</version>
-        </dependency>
-
-        <dependency>
             <groupId>com.github.os72</groupId>
             <artifactId>protoc-jar-maven-plugin</artifactId>
             <version>3.10.1</version>
         </dependency>
 
         <dependency>
-            <groupId>org.apache.jmeter</groupId>
-            <artifactId>ApacheJMeter_core</artifactId>
-            <version>${jmeter.core.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.sun</groupId>
-                    <artifactId>tools</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>io.opencensus</groupId>
-            <artifactId>opencensus-api</artifactId>
-            <version>0.21.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>28.2-jre</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.jmeter</groupId>
-            <artifactId>ApacheJMeter_java</artifactId>
-            <version>${jmeter.core.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.sun</groupId>
-                    <artifactId>tools</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version>
+            <groupId>com.google.api.grpc</groupId>
+            <artifactId>googleapis-common-protos</artifactId>
+            <version>0.0.3</version>
         </dependency>
     </dependencies>
 
@@ -169,10 +107,10 @@
                             <protocArtifact>com.google.protobuf:protoc:3.0.0</protocArtifact>
                             <includeMavenTypes>direct</includeMavenTypes>
                             <inputDirectories>
-                                <include>src/test/java/resources/protos</include>
+                                <include>src/main/resources/${dir_proto}</include>
                             </inputDirectories>
                             <includeDirectories>
-                                <include>src/test/java/resources/protos</include>
+                                <include>src/main/resources/${dir_proto}</include>
                             </includeDirectories>
                             <outputTargets>
                                 <outputTarget>
@@ -210,20 +148,6 @@
                         <goals>
                             <goal>shade</goal>
                         </goals>
-                        <configuration>
-                            <artifactSet>
-                                <includes>
-                                    <include>io.grpc</include>
-                                    <include>io.opencensus</include>
-                                    <include>com.google.guava</include>
-                                    <include>io.perfmark</include>
-                                    <include>com.google.protobuf</include>
-                                    <include>io.netty</include>
-                                    <include>com.fasterxml.jackson.core</include>
-                                    <include>com.google.code.gson</include>
-                                </includes>
-                            </artifactSet>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>

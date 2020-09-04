@@ -7,9 +7,10 @@ import com.google.common.net.HostAndPort;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
 import io.grpc.CallOptions;
-import io.grpc.Channel;
+import io.grpc.ManagedChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedHashMap;
@@ -25,24 +26,21 @@ import vn.zalopay.benchmark.core.protobuf.ServiceResolver;
 public class ClientCaller {
     private Descriptors.MethodDescriptor methodDescriptor;
     private JsonFormat.TypeRegistry registry;
-    private HostAndPort hostAndPort;
     private DynamicGrpcClient dynamicClient;
     private ImmutableList<DynamicMessage> requestMessages;
-    private Map<String, String> metadataMap;
+    private ManagedChannel channel;
 
     public ClientCaller(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean TLS, String METADATA) {
         this.init(HOST_PORT, TEST_PROTO_FILES, LIB_FOLDER, FULL_METHOD, TLS, METADATA);
     }
 
     private void init(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean tls, String metadata) {
-        hostAndPort = HostAndPort.fromString(HOST_PORT);
+        HostAndPort hostAndPort = HostAndPort.fromString(HOST_PORT);
         ProtoMethodName grpcMethodName =
                 ProtoMethodName.parseFullGrpcMethodName(FULL_METHOD);
 
         ChannelFactory channelFactory = ChannelFactory.create();
-        metadataMap = buildHashMetadata(metadata);
-
-        Channel channel;
+        Map<String, String> metadataMap = buildHashMetadata(metadata);
         channel = channelFactory.createChannel(hostAndPort, tls, metadataMap);
 
         // Fetch the appropriate file descriptors for the service.
@@ -90,7 +88,12 @@ public class ClientCaller {
 
         requestMessages =
                 MessageReader.forFile(REQUEST_FILE, methodDescriptor.getInputType(), registry, jsonData).read();
-        return requestMessages.get(0).toString();
+
+        try {
+            return JsonFormat.printer().print(requestMessages.get(0));
+        } catch (InvalidProtocolBufferException e) {
+            throw new RuntimeException("Caught exception while parsing request for rpc", e);
+        }
     }
 
     public DynamicMessage call(long deadlineMs) {
@@ -109,6 +112,16 @@ public class ClientCaller {
             result = result.withDeadlineAfter(deadlineMs, TimeUnit.MILLISECONDS);
         }
         return result;
+    }
+
+    public void shutdown(){
+
+        try {
+            if (channel != null)
+                channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Caught exception while shutting down channel", e);
+        }
     }
 
 }

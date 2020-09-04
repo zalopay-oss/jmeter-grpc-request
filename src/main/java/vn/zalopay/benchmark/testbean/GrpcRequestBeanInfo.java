@@ -1,38 +1,61 @@
 package vn.zalopay.benchmark.testbean;
 
+import java.beans.PropertyDescriptor;
 import org.apache.jmeter.testbeans.BeanInfoSupport;
 import org.apache.jmeter.testbeans.gui.TypeEditor;
-
-import java.beans.PropertyDescriptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GrpcRequestBeanInfo extends BeanInfoSupport {
-
-    private void setProp(PropertyDescriptor property, String name, Object obj) {
-        property = property(name);
-        property.setValue(NOT_UNDEFINED, Boolean.TRUE);
-        property.setValue(DEFAULT, obj);
-    }
+    private static final Logger log = LoggerFactory.getLogger(GrpcRequestBeanInfo.class);
 
     public GrpcRequestBeanInfo() {
         super(GrpcRequest.class);
+        log.info("Entered access log sampler bean info");
 
-        createPropertyGroup("serverInfoGroup", new String[]{"HOST_PORT", "FULL_METHOD", "TLS"});
-        createPropertyGroup("requestInfoGroup", new String[]{"PROTO_FOLDER", "LIB_FOLDER", "REQUEST_FILE", "DEADLINE", "METADATA","REQUEST_JSON"});
+        PropertyDescriptor p;
 
-        PropertyDescriptor props = property("REQUEST_JSON", TypeEditor.TextAreaEditor);
-        props.setValue(NOT_UNDEFINED, Boolean.FALSE);
-        props.setValue(DEFAULT, "");
-        props.setValue(NOT_EXPRESSION, Boolean.TRUE);
-        props.setValue(TEXT_LANGUAGE, "javascript");
+        createPropertyGroup("serverInfoGroup", new String[]{"hostPort", "fullMethod", "tls"});
+        p = property("hostPort");
+        p.setValue(NOT_UNDEFINED, Boolean.TRUE);
+        p.setValue(DEFAULT, "");
 
-        setProp(props, "HOST_PORT", "");
-        setProp(props, "FULL_METHOD", "");
-        setProp(props, "TLS", Boolean.FALSE);
-        setProp(props, "PROTO_FOLDER", "");
-        setProp(props, "LIB_FOLDER", "");
-        setProp(props, "REQUEST_FILE", "");
-        setProp(props, "DEADLINE", 0L);
-        setProp(props, "METADATA", "");
+        p = property("fullMethod");
+        p.setValue(NOT_UNDEFINED, Boolean.TRUE);
+        p.setValue(DEFAULT, "");
+
+        p = property("tls");
+        p.setValue(NOT_UNDEFINED, Boolean.TRUE);
+        p.setValue(DEFAULT, Boolean.FALSE);
+
+        createPropertyGroup("requestInfoGroup", new String[]{"protoFolder", "libFolder", "requestFile", "deadline", "metadata","requestJson"});
+        p = property("protoFolder");
+        p.setValue(NOT_UNDEFINED, Boolean.TRUE);
+        p.setValue(DEFAULT, "");
+
+        p = property("libFolder");
+        p.setValue(NOT_UNDEFINED, Boolean.TRUE);
+        p.setValue(DEFAULT, "");
+
+        p = property("requestFile");
+        p.setValue(NOT_UNDEFINED, Boolean.TRUE);
+        p.setValue(DEFAULT, "");
+
+        p = property("deadline");
+        p.setValue(NOT_UNDEFINED, Boolean.TRUE);
+        p.setValue(DEFAULT, 0L);
+
+        p = property("metadata");
+        p.setValue(NOT_UNDEFINED, Boolean.TRUE);
+        p.setValue(DEFAULT, "");
+
+        p = property("requestJson", TypeEditor.TextAreaEditor);
+        p.setValue(NOT_UNDEFINED, Boolean.FALSE);
+        p.setValue(DEFAULT, "");
+        p.setValue(NOT_EXPRESSION, Boolean.TRUE);
+        p.setValue(TEXT_LANGUAGE, "javascript");
+
+        log.info("Got to end of access log sampler bean info init");
     }
 
 }

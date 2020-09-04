@@ -6,6 +6,8 @@ import io.grpc.Channel;
 import io.grpc.ClientCall;
 import io.grpc.ClientInterceptor;
 import io.grpc.ClientInterceptors;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
 import io.grpc.Metadata;
 import io.grpc.netty.NegotiationType;
 import io.grpc.netty.NettyChannelBuilder;
@@ -19,15 +21,15 @@ public class ChannelFactory {
         return new ChannelFactory();
     }
 
-    public ChannelFactory() {
+    private ChannelFactory() {
     }
 
-    public Channel createChannel(HostAndPort endpoint, boolean tls, Map<String, String> metadataHash) {
-        NettyChannelBuilder nettyChannelBuilder = createChannelBuilder(endpoint, tls, metadataHash);
-        return nettyChannelBuilder.build();
+    public ManagedChannel createChannel(HostAndPort endpoint, boolean tls, Map<String, String> metadataHash) {
+        ManagedChannelBuilder managedChannelBuilder = createChannelBuilder(endpoint, tls, metadataHash);
+        return managedChannelBuilder.build();
     }
 
-    private NettyChannelBuilder createChannelBuilder(HostAndPort endpoint, boolean tls, Map<String, String> metadataHash) {
+    private ManagedChannelBuilder createChannelBuilder(HostAndPort endpoint, boolean tls, Map<String, String> metadataHash) {
         if (tls) {
             return NettyChannelBuilder.forAddress(endpoint.getHost(), endpoint.getPort())
                     .negotiationType(NegotiationType.TLS)
@@ -40,7 +42,7 @@ public class ChannelFactory {
     }
 
     private ClientInterceptor metadataInterceptor(Map<String, String> metadataHash) {
-        ClientInterceptor interceptor = new ClientInterceptor() {
+        return new ClientInterceptor() {
             @Override
             public <ReqT, RespT> ClientCall<ReqT, RespT> interceptCall(
                     final io.grpc.MethodDescriptor<ReqT, RespT> method, CallOptions callOptions, final Channel next) {
@@ -56,8 +58,6 @@ public class ChannelFactory {
                 };
             }
         };
-
-        return interceptor;
     }
 
 }

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.1.1 r1855137">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Test Plan" enabled="true">
+      <stringProp name="TestPlan.comments"></stringProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.tearDown_on_shutdown">true</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+        <collectionProp name="Arguments.arguments"/>
+      </elementProp>
+      <stringProp name="TestPlan.user_define_classpath"></stringProp>
+    </TestPlan>
+    <hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Thread Group" enabled="true">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <intProp name="LoopController.loops">-1</intProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">4</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.duration">10</stringProp>
+        <stringProp name="ThreadGroup.delay"></stringProp>
+      </ThreadGroup>
+      <hashTree>
+        <vn.zalopay.benchmark.testbean.GrpcRequest guiclass="TestBeanGUI" testclass="vn.zalopay.benchmark.testbean.GrpcRequest" testname="bookstore/ListShelves" enabled="true">
+          <longProp name="deadline">10000</longProp>
+          <stringProp name="fullMethod">bookstore.Bookstore/ListShelves</stringProp>
+          <stringProp name="hostPort">localhost:8005</stringProp>
+          <stringProp name="libFolder">/Users/lap13227/Desktop/request-proto/googleapis-master</stringProp>
+          <stringProp name="metadata"></stringProp>
+          <stringProp name="protoFolder">/Users/lap13227/workspace/work/zalopay-oss/jmeter-grpc-request/dist/benchmark/grpc-server/src/main/resources/protos-v2</stringProp>
+          <stringProp name="requestFile"></stringProp>
+          <boolProp name="tls">false</boolProp>
+          <stringProp name="requestJson">{}</stringProp>
+        </vn.zalopay.benchmark.testbean.GrpcRequest>
+        <hashTree>
+          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="JSR223 PostProcessor" enabled="true">
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="filename"></stringProp>
+            <stringProp name="parameters"></stringProp>
+            <stringProp name="script">log.info(&quot;Result: &quot; + prev.getResponseDataAsString());
+</stringProp>
+            <stringProp name="scriptLanguage">javascript</stringProp>
+          </JSR223PostProcessor>
+          <hashTree/>
+        </hashTree>
+        <vn.zalopay.benchmark.testbean.GrpcRequest guiclass="TestBeanGUI" testclass="vn.zalopay.benchmark.testbean.GrpcRequest" testname="bookstore/CreateShelf" enabled="true">
+          <longProp name="deadline">1</longProp>
+          <stringProp name="fullMethod">bookstore.Bookstore/CreateShelf</stringProp>
+          <stringProp name="hostPort">localhost:8005</stringProp>
+          <stringProp name="libFolder">/Users/lap13227/Desktop/request-proto/googleapis-master</stringProp>
+          <stringProp name="metadata"></stringProp>
+          <stringProp name="protoFolder">/Users/lap13227/workspace/work/zalopay-oss/jmeter-grpc-request/dist/benchmark/grpc-server/src/main/resources/protos-v2</stringProp>
+          <stringProp name="requestFile"></stringProp>
+          <boolProp name="tls">false</boolProp>
+          <stringProp name="requestJson">{
+  &quot;shelf&quot;: {
+    &quot;id&quot;: 1599156420811,
+    &quot;theme&quot;: &quot;Hello server!!&quot;
+  }
+}</stringProp>
+        </vn.zalopay.benchmark.testbean.GrpcRequest>
+        <hashTree>
+          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="JSR223 PostProcessor" enabled="true">
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="filename"></stringProp>
+            <stringProp name="parameters"></stringProp>
+            <stringProp name="script">log.info(&quot;Result: &quot; + prev.getResponseDataAsString());
+</stringProp>
+            <stringProp name="scriptLanguage">javascript</stringProp>
+          </JSR223PostProcessor>
+          <hashTree/>
+        </hashTree>
+      </hashTree>
+      <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report" enabled="true">
+        <boolProp name="ResultCollector.error_logging">false</boolProp>
+        <objProp>
+          <name>saveConfig</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</time>
+            <latency>true</latency>
+            <timestamp>true</timestamp>
+            <success>true</success>
+            <label>true</label>
+            <code>true</code>
+            <message>true</message>
+            <threadName>true</threadName>
+            <dataType>true</dataType>
+            <encoding>false</encoding>
+            <assertions>true</assertions>
+            <subresults>true</subresults>
+            <responseData>false</responseData>
+            <samplerData>false</samplerData>
+            <xml>false</xml>
+            <fieldNames>true</fieldNames>
+            <responseHeaders>false</responseHeaders>
+            <requestHeaders>false</requestHeaders>
+            <responseDataOnError>false</responseDataOnError>
+            <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+            <assertionsResultsToSave>0</assertionsResultsToSave>
+            <bytes>true</bytes>
+            <sentBytes>true</sentBytes>
+            <url>true</url>
+            <threadCounts>true</threadCounts>
+            <idleTime>true</idleTime>
+            <connectTime>true</connectTime>
+          </value>
+        </objProp>
+        <stringProp name="filename"></stringProp>
+      </ResultCollector>
+      <hashTree/>
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
+        <boolProp name="ResultCollector.error_logging">false</boolProp>
+        <objProp>
+          <name>saveConfig</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</time>
+            <latency>true</latency>
+            <timestamp>true</timestamp>
+            <success>true</success>
+            <label>true</label>
+            <code>true</code>
+            <message>true</message>
+            <threadName>true</threadName>
+            <dataType>true</dataType>
+            <encoding>false</encoding>
+            <assertions>true</assertions>
+            <subresults>true</subresults>
+            <responseData>false</responseData>
+            <samplerData>false</samplerData>
+            <xml>false</xml>
+            <fieldNames>true</fieldNames>
+            <responseHeaders>false</responseHeaders>
+            <requestHeaders>false</requestHeaders>
+            <responseDataOnError>false</responseDataOnError>
+            <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+            <assertionsResultsToSave>0</assertionsResultsToSave>
+            <bytes>true</bytes>
+            <sentBytes>true</sentBytes>
+            <url>true</url>
+            <threadCounts>true</threadCounts>
+            <idleTime>true</idleTime>
+            <connectTime>true</connectTime>
+          </value>
+        </objProp>
+        <stringProp name="filename"></stringProp>
+      </ResultCollector>
+      <hashTree/>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

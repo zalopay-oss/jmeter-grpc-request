@@ -1,6 +1,9 @@
 package vn.zalopay.benchmark;
 
+import com.google.gson.Gson;
 import com.google.protobuf.DynamicMessage;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.util.JsonFormat;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -25,15 +28,15 @@ public class ClientCallerTest {
 //    private static String FULL_METHOD = "data_services_seg.SegmentServices/checkSeg";
 //    private static boolean TLS = Boolean.FALSE;
 
-    private static final Path PROTO_FOLDER = Paths.get("/Users/lap13227/Desktop/request-proto/apis");
+    private static final Path PROTO_FOLDER = Paths.get("dist/benchmark/grpc-server/src/main/resources/protos-v2");
+    /* Download at https://github.com/googleapis/googleapis */
     private static final Path LIB_FOLDER = Paths.get("/Users/lap13227/Desktop/request-proto/googleapis-master");
-    private static String HOST_PORT = "10.10.10.10:8110";
-    private static Path REQUEST_FILE = Paths.get("/Users/lap13227/Desktop/request-proto/request.json");
+    private static String HOST_PORT = "localhost:8005";
+    private static Path REQUEST_FILE = Paths.get("dist/benchmark/grpc-server/src/main/resources/requests/request-2.json");
     private static String REQUEST_JSON = "";
-    private static String FULL_METHOD = "protobuf.AccountService/accountQuery";
+    private static String FULL_METHOD = "bookstore.Bookstore/CreateShelf";
     private static boolean TLS = Boolean.FALSE;
-    private static String METADATA = "Authorization:Bearer USER_TOKEN";
-
+    private static String METADATA = "";
 
     private ClientCaller clientCaller;
 
@@ -43,14 +46,19 @@ public class ClientCallerTest {
         clientCaller = new ClientCaller(HOST_PORT, PROTO_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, TLS, METADATA);
     }
 
-    @Ignore
+//    @Ignore
     @Test
     public void test() {
         logger.info("Main test");
         clientCaller.buildRequest(REQUEST_FILE.toString(), REQUEST_JSON);
         DynamicMessage resp = clientCaller.call(10000);
+        clientCaller.shutdown();
 
-        logger.info(String.format("At ClientCaller response data= %s", resp));
+        try {
+            logger.info(JsonFormat.printer().print(resp));
+        } catch (InvalidProtocolBufferException e) {
+            logger.error("Exception when parsing to JSON" , e);
+        }
     }
 
     private static Path getWorkspaceRoot() {
