@@ -1,9 +1,10 @@
 package vn.zalopay.benchmark;
 
-import com.google.gson.Gson;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -11,9 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vn.zalopay.benchmark.core.ClientCaller;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
+@Ignore
 public class ClientCallerTest {
     private static final Logger logger = LoggerFactory.getLogger(ClientCallerTest.class);
 
@@ -46,7 +45,6 @@ public class ClientCallerTest {
         clientCaller = new ClientCaller(HOST_PORT, PROTO_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, TLS, METADATA);
     }
 
-//    @Ignore
     @Test
     public void test() {
         logger.info("Main test");

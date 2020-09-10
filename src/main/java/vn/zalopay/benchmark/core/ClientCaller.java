@@ -41,7 +41,11 @@ public class ClientCaller {
 
         ChannelFactory channelFactory = ChannelFactory.create();
         Map<String, String> metadataMap = buildHashMetadata(metadata);
-        channel = channelFactory.createChannel(hostAndPort, tls, metadataMap);
+        try {
+            channel = channelFactory.createChannel(hostAndPort, tls, metadataMap);
+        }catch (IllegalStateException e){
+            throw new RuntimeException("Unable to create channel grpc by invoking tls", e);
+        }
 
         // Fetch the appropriate file descriptors for the service.
         final DescriptorProtos.FileDescriptorSet fileDescriptorSet;
