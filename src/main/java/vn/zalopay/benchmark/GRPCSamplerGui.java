@@ -4,37 +4,45 @@ import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import kg.apc.jmeter.JMeterPluginsUtils;
 import kg.apc.jmeter.gui.BrowseAction;
 import kg.apc.jmeter.gui.GuiBuilderHelper;
+import org.apache.jmeter.gui.util.HorizontalPanel;
+import org.apache.jmeter.gui.util.JSyntaxTextArea;
+import org.apache.jmeter.gui.util.JTextScrollPane;
 import org.apache.jmeter.samplers.gui.AbstractSamplerGui;
 import org.apache.jmeter.testelement.TestElement;
+import org.apache.jorphan.gui.JLabeledTextField;
+import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 
 public class GRPCSamplerGui extends AbstractSamplerGui {
 
   private static final long serialVersionUID = 240L;
-  public static final String WIKIPAGE = "GRPCSampler";
+  private static final String WIKIPAGE = "GRPCSampler";
 
   private JTextField protoFolderField;
-  private JButton browseButton;
+  private JButton protoBrowseButton;
 
   private JTextField libFolderField;
-  private JTextField metadataField;
-  private JTextField hostPortField;
-  private JTextField requestFileField;
+  private JButton libBrowseButton;
+
   private JTextField fullMethodField;
-  private JTextField deadlineField;
+  private JLabeledTextField metadataField;
+  private JLabeledTextField hostField;
+  private JLabeledTextField portField;
+  private JLabeledTextField deadlineField;
 
   private JCheckBox isTLSCheckBox;
 
-  private JTextArea requestJsonArea;
+  private JSyntaxTextArea requestJsonArea;
 
   public GRPCSamplerGui() {
     super();
@@ -69,10 +77,10 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
       sampler.setProtoFolder(this.protoFolderField.getText());
       sampler.setLibFolder(this.libFolderField.getText());
       sampler.setMetadata(this.metadataField.getText());
-      sampler.setHostPort(this.hostPortField.getText());
-      sampler.setRequestFile(this.requestFileField.getText());
+      sampler.setHost(this.hostField.getText());
+      sampler.setPort(this.portField.getText());
       sampler.setFullMethod(this.fullMethodField.getText());
-      sampler.setDeadline(Long.parseLong(this.deadlineField.getText()));
+      sampler.setDeadline(this.deadlineField.getText());
       sampler.setTls(this.isTLSCheckBox.isSelected());
       sampler.setRequestJson(this.requestJsonArea.getText());
     }
@@ -88,10 +96,10 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
       protoFolderField.setText(sampler.getProtoFolder());
       libFolderField.setText(sampler.getLibFolder());
       metadataField.setText(sampler.getMetadata());
-      hostPortField.setText(sampler.getHostPort());
-      requestFileField.setText(sampler.getRequestFile());
+      hostField.setText(sampler.getHost());
+      portField.setText(sampler.getPort());
       fullMethodField.setText(sampler.getFullMethod());
-      deadlineField.setText(String.valueOf(sampler.getDeadline()));
+      deadlineField.setText(sampler.getDeadline());
       isTLSCheckBox.setSelected(sampler.isTls());
       requestJsonArea.setText(sampler.getRequestJson());
     }
@@ -103,21 +111,40 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     initGuiValues();
   }
 
-  /**
-   * Helper function
-   */
-
   private void initGuiValues() {
     protoFolderField.setText("");
     libFolderField.setText("");
     metadataField.setText("");
-    hostPortField.setText("");
-    requestFileField.setText("");
+    hostField.setText("");
+    portField.setText("");
     fullMethodField.setText("");
     deadlineField.setText("0");
     isTLSCheckBox.setSelected(false);
     requestJsonArea.setText("");
   }
+
+  private void initGui() {
+    setLayout(new BorderLayout(0, 5));
+    setBorder(makeBorder());
+
+    // TOP panel
+    Container topPanel = makeTitlePanel();
+    add(JMeterPluginsUtils.addHelpLinkToPanel(topPanel, WIKIPAGE), BorderLayout.NORTH);
+    add(topPanel, BorderLayout.NORTH);
+
+    // MAIN panel
+    JPanel mainPanel = new JPanel();
+    mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+    mainPanel.add(getWebServerPanel());
+    mainPanel.add(getGRPCRequestPanel());
+    mainPanel.add(getOptionConfigPanel());
+    mainPanel.add(getRequestJSONPanel());
+    add(mainPanel, BorderLayout.CENTER);
+  }
+
+  /**
+   * Helper function
+   */
 
   private void addToPanel(JPanel panel, GridBagConstraints constraints, int col, int row,
       JComponent component) {
@@ -126,16 +153,35 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     panel.add(component, constraints);
   }
 
-  private void initGui() {
-    setLayout(new BorderLayout(0, 5));
-    setBorder(makeBorder());
+  private JPanel getRequestJSONPanel() {
+    requestJsonArea = JSyntaxTextArea.getInstance(30, 50);// $NON-NLS-1$
+    requestJsonArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JSON);
 
-    Container topPanel = makeTitlePanel();
+    JPanel webServerPanel = new JPanel(new BorderLayout());
+    webServerPanel.setBorder(BorderFactory.createCompoundBorder(
+        BorderFactory.createEmptyBorder(9, 0, 0, 0),
+        BorderFactory.createTitledBorder("Send JSON Format With the Request")
+    ));
+    webServerPanel.add(JTextScrollPane.getInstance(requestJsonArea));
+    return webServerPanel;
+  }
 
-    add(JMeterPluginsUtils.addHelpLinkToPanel(topPanel, WIKIPAGE), BorderLayout.NORTH);
-    add(topPanel, BorderLayout.NORTH);
+  private JPanel getOptionConfigPanel() {
+    metadataField = new JLabeledTextField("Metadata:", 32); // $NON-NLS-1$
+    deadlineField = new JLabeledTextField("Deadline:", 7); // $NON-NLS-1$
 
-    JPanel mainPanel = new JPanel(new GridBagLayout());
+    JPanel webServerPanel = new HorizontalPanel();
+    webServerPanel.setBorder(BorderFactory.createCompoundBorder(
+        BorderFactory.createEmptyBorder(9, 0, 0, 0),
+        BorderFactory.createTitledBorder("Optional Configuration")
+    ));
+    webServerPanel.add(metadataField);
+    webServerPanel.add(deadlineField);
+    return webServerPanel;
+  }
+
+  private JPanel getGRPCRequestPanel() {
+    JPanel requestPanel = new JPanel(new GridBagLayout());
 
     GridBagConstraints labelConstraints = new GridBagConstraints();
     labelConstraints.anchor = GridBagConstraints.FIRST_LINE_END;
@@ -147,68 +193,56 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
 
     // Proto folder
     int row = 0;
-    addToPanel(mainPanel, labelConstraints, 0, row, new JLabel("Proto Folder: ", JLabel.RIGHT));
-    addToPanel(mainPanel, editConstraints, 1, row, protoFolderField = new JTextField(20));
-    addToPanel(mainPanel, labelConstraints, 2, row, browseButton = new JButton("Browse..."));
+    addToPanel(requestPanel, labelConstraints, 0, row,
+        new JLabel("Proto Root Directory: ", JLabel.RIGHT));
+    addToPanel(requestPanel, editConstraints, 1, row, protoFolderField = new JTextField(20));
+    addToPanel(requestPanel, labelConstraints, 2, row,
+        protoBrowseButton = new JButton("Browse..."));
     row++;
-    GuiBuilderHelper.strechItemToComponent(protoFolderField, browseButton);
+    GuiBuilderHelper.strechItemToComponent(protoFolderField, protoBrowseButton);
 
     editConstraints.insets = new java.awt.Insets(2, 0, 0, 0);
     labelConstraints.insets = new java.awt.Insets(2, 0, 0, 0);
 
-    browseButton.addActionListener(new BrowseAction(protoFolderField, true));
-
-    // Host port
-    addToPanel(mainPanel, labelConstraints, 0, row, new JLabel("Host Port: ", JLabel.RIGHT));
-    addToPanel(mainPanel, editConstraints, 1, row, hostPortField = new JTextField(20));
-    row++;
-
-    // Full method
-    addToPanel(mainPanel, labelConstraints, 0, row, new JLabel("Full Method: ", JLabel.RIGHT));
-    addToPanel(mainPanel, editConstraints, 1, row, fullMethodField = new JTextField(20));
-    row++;
+    protoBrowseButton.addActionListener(new BrowseAction(protoFolderField, true));
 
     // Lib folder
-    addToPanel(mainPanel, labelConstraints, 0, row, new JLabel("Lib Folder: ", JLabel.RIGHT));
-    addToPanel(mainPanel, editConstraints, 1, row, libFolderField = new JTextField(20));
+    addToPanel(requestPanel, labelConstraints, 0, row,
+        new JLabel("Library Directory (Optional): ", JLabel.RIGHT));
+    addToPanel(requestPanel, editConstraints, 1, row, libFolderField = new JTextField(20));
+    addToPanel(requestPanel, labelConstraints, 2, row, libBrowseButton = new JButton("Browse..."));
     row++;
+    GuiBuilderHelper.strechItemToComponent(libFolderField, libBrowseButton);
 
-    // Request file
-    addToPanel(mainPanel, labelConstraints, 0, row, new JLabel("Request File: ", JLabel.RIGHT));
-    addToPanel(mainPanel, editConstraints, 1, row, requestFileField = new JTextField(20));
-    row++;
+    editConstraints.insets = new java.awt.Insets(2, 0, 0, 0);
+    labelConstraints.insets = new java.awt.Insets(2, 0, 0, 0);
 
-    // Metadata
-    addToPanel(mainPanel, labelConstraints, 0, row, new JLabel("Metadata: ", JLabel.RIGHT));
-    addToPanel(mainPanel, editConstraints, 1, row, metadataField = new JTextField(20));
-    row++;
+    libBrowseButton.addActionListener(new BrowseAction(libFolderField, true));
 
-    // Deadline
-    addToPanel(mainPanel, labelConstraints, 0, row, new JLabel("Deadline: ", JLabel.RIGHT));
-    addToPanel(mainPanel, editConstraints, 1, row, deadlineField = new JTextField(20));
-    row++;
-
-    // TLS
-    addToPanel(mainPanel, labelConstraints, 0, row, new JLabel("TLS: ", JLabel.RIGHT));
-    addToPanel(mainPanel, editConstraints, 1, row, isTLSCheckBox = new JCheckBox());
-    row++;
-
-    editConstraints.insets = new java.awt.Insets(4, 0, 0, 0);
-    labelConstraints.insets = new java.awt.Insets(4, 0, 0, 2);
-
-    editConstraints.insets = new java.awt.Insets(4, 0, 0, 0);
-    labelConstraints.insets = new java.awt.Insets(4, 0, 0, 2);
-
-    addToPanel(mainPanel, labelConstraints, 0, row, new JLabel("Request JSON: ", JLabel.RIGHT));
-
-    labelConstraints.insets = new java.awt.Insets(4, 0, 0, 0);
-
-    requestJsonArea = new JTextArea();
-    addToPanel(mainPanel, editConstraints, 1, row,
-        GuiBuilderHelper.getTextAreaScrollPaneContainer(requestJsonArea, 10));
+    // Full method
+    addToPanel(requestPanel, labelConstraints, 0, row, new JLabel("Full Method: ", JLabel.RIGHT));
+    addToPanel(requestPanel, editConstraints, 1, row, fullMethodField = new JTextField(20));
 
     JPanel container = new JPanel(new BorderLayout());
-    container.add(mainPanel, BorderLayout.NORTH);
-    add(container, BorderLayout.CENTER);
+    container.setBorder(BorderFactory.createCompoundBorder(
+        BorderFactory.createEmptyBorder(9, 0, 0, 0),
+        BorderFactory.createTitledBorder("GRPC Request")
+    ));
+    container.add(requestPanel, BorderLayout.NORTH);
+    return container;
   }
+
+  private JPanel getWebServerPanel() {
+    portField = new JLabeledTextField("Port Number:", 7); // $NON-NLS-1$
+    hostField = new JLabeledTextField("Server Name or IP:", 32); // $NON-NLS-1$
+    isTLSCheckBox = new JCheckBox("SSL/TLS");
+
+    JPanel webServerPanel = new HorizontalPanel();
+    webServerPanel.setBorder(BorderFactory.createTitledBorder("Web Server")); // $NON-NLS-1$
+    webServerPanel.add(hostField);
+    webServerPanel.add(portField);
+    webServerPanel.add(isTLSCheckBox);
+    return webServerPanel;
+  }
+
 }

@@ -11,8 +11,6 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
 import io.grpc.CallOptions;
 import io.grpc.ManagedChannel;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -87,11 +85,9 @@ public class ClientCaller {
         return metadataHash;
     }
 
-    public String buildRequest(String pathReq, String jsonData) {
-        Path REQUEST_FILE = Paths.get(pathReq);
-
+    public String buildRequest(String jsonData) {
         requestMessages =
-                MessageReader.forFile(REQUEST_FILE, methodDescriptor.getInputType(), registry, jsonData).read();
+                MessageReader.forJSON(methodDescriptor.getInputType(), registry, jsonData).read();
 
         try {
             return JsonFormat.printer().print(requestMessages.get(0));
@@ -100,10 +96,17 @@ public class ClientCaller {
         }
     }
 
-    public DynamicMessage call(long deadlineMs) {
+    public DynamicMessage call(String deadlineMs) {
+        long deadline;
+        try {
+            deadline = Long.parseLong(deadlineMs);
+        }catch (Exception e){
+            throw new RuntimeException("Caught exception while parsing deadline to long", e);
+        }
+
         DynamicMessage resp;
         try {
-            resp = dynamicClient.blockingUnaryCall(requestMessages, callOptions(deadlineMs));
+            resp = dynamicClient.blockingUnaryCall(requestMessages, callOptions(deadline));
         } catch (Throwable t) {
             throw new RuntimeException("Caught exception while waiting for rpc", t);
         }

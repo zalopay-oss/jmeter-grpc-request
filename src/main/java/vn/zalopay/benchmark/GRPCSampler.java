@@ -21,8 +21,8 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
   public static final String METADATA = "GRPCSampler.metadata";
   public static final String LIB_FOLDER = "GRPCSampler.libFolder";
   public static final String PROTO_FOLDER = "GRPCSampler.protoFolder";
-  public static final String HOST_PORT = "GRPCSampler.hostPort";
-  public static final String REQUEST_FILE = "GRPCSampler.requestFile";
+  public static final String HOST = "GRPCSampler.host";
+  public static final String PORT = "GRPCSampler.port";
   public static final String FULL_METHOD = "GRPCSampler.fullMethod";
   public static final String REQUEST_JSON = "GRPCSampler.requestJson";
   public static final String DEADLINE = "GRPCSampler.deadline";
@@ -66,7 +66,7 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
     SampleResult res = new SampleResult();
     res.setSampleLabel(getName());
 
-    String req = clientCaller.buildRequest(getRequestFile(), getRequestJson());
+    String req = clientCaller.buildRequest(getRequestJson());
     res.setSamplerData(req);
     res.sampleStart();
 
@@ -158,22 +158,6 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
     setProperty(PROTO_FOLDER, protoFolder);
   }
 
-  public String getHostPort() {
-    return getPropertyAsString(HOST_PORT);
-  }
-
-  public void setHostPort(String hostPort) {
-    setProperty(HOST_PORT, hostPort);
-  }
-
-  public String getRequestFile() {
-    return getPropertyAsString(REQUEST_FILE);
-  }
-
-  public void setRequestFile(String requestFile) {
-    setProperty(REQUEST_FILE, requestFile);
-  }
-
   public String getFullMethod() {
     return getPropertyAsString(FULL_METHOD);
   }
@@ -190,11 +174,11 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
     setProperty(REQUEST_JSON, requestJson);
   }
 
-  public long getDeadline() {
-    return getPropertyAsLong(DEADLINE);
+  public String getDeadline() {
+    return getPropertyAsString(DEADLINE);
   }
 
-  public void setDeadline(long deadline) {
+  public void setDeadline(String deadline) {
     setProperty(DEADLINE, deadline);
   }
 
@@ -204,5 +188,25 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
 
   public void setTls(boolean tls) {
     setProperty(TLS, tls);
+  }
+
+  public String getHost() {
+    return getPropertyAsString(HOST);
+  }
+
+  public void setHost(String host) {
+    setProperty(HOST, host);
+  }
+
+  public String getPort() {
+    return getPropertyAsString(PORT);
+  }
+
+  public void setPort(String port) {
+    setProperty(PORT, port);
+  }
+
+  private String getHostPort() {
+    return getHost() + ":" + getPort();
   }
 }

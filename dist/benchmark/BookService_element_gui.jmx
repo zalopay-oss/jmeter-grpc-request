@@ -16,11 +16,11 @@
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
-          <stringProp name="LoopController.loops">1</stringProp>
+          <intProp name="LoopController.loops">-1</intProp>
         </elementProp>
-        <stringProp name="ThreadGroup.num_threads">1</stringProp>
+        <stringProp name="ThreadGroup.num_threads">3</stringProp>
         <stringProp name="ThreadGroup.ramp_time">1</stringProp>
-        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
         <stringProp name="ThreadGroup.duration">3</stringProp>
         <stringProp name="ThreadGroup.delay"></stringProp>
       </ThreadGroup>
@@ -29,10 +29,10 @@
           <stringProp name="GRPCSampler.protoFolder">/Users/lap13227/workspace/work/zalopay-oss/jmeter-grpc-request/dist/benchmark/grpc-server/src/main/resources/protos-v2</stringProp>
           <stringProp name="GRPCSampler.libFolder">/Users/lap13227/Desktop/request-proto/googleapis-master</stringProp>
           <stringProp name="GRPCSampler.metadata"></stringProp>
-          <stringProp name="GRPCSampler.hostPort">localhost:8005</stringProp>
-          <stringProp name="GRPCSampler.requestFile"></stringProp>
+          <stringProp name="GRPCSampler.host">localhost</stringProp>
+          <stringProp name="GRPCSampler.port">8005</stringProp>
           <stringProp name="GRPCSampler.fullMethod">bookstore.Bookstore/CreateShelf</stringProp>
-          <longProp name="GRPCSampler.deadline">100</longProp>
+          <stringProp name="GRPCSampler.deadline">10</stringProp>
           <boolProp name="GRPCSampler.tls">false</boolProp>
           <stringProp name="GRPCSampler.requestJson">{
   &quot;shelf&quot;: {
@@ -53,11 +53,12 @@ vars.put(&quot;TIME&quot;, time);</stringProp>
             <stringProp name="scriptLanguage">javascript</stringProp>
           </JSR223PreProcessor>
           <hashTree/>
-          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="JSR223 PostProcessor" enabled="false">
+          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="JSR223 PostProcessor" enabled="true">
             <stringProp name="cacheKey">true</stringProp>
             <stringProp name="filename"></stringProp>
             <stringProp name="parameters"></stringProp>
-            <stringProp name="script">log.info(&quot;Result: &quot; + prev.getResponseDataAsString());</stringProp>
+            <stringProp name="script">log.info(&quot;Result: &quot; + prev.getResponseDataAsString());
+</stringProp>
             <stringProp name="scriptLanguage">javascript</stringProp>
           </JSR223PostProcessor>
           <hashTree/>
