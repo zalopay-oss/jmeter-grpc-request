@@ -43,6 +43,7 @@ public class ClientCallerTest {
 
         try {
             logger.info(JsonFormat.printer().print(resp));
+            System.out.println(JsonFormat.printer().print(resp));
         } catch (InvalidProtocolBufferException e) {
             logger.error("Exception when parsing to JSON" , e);
         }

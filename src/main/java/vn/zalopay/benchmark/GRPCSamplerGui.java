@@ -1,13 +1,19 @@
 package vn.zalopay.benchmark;
 
+import com.google.common.base.Strings;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -22,9 +28,13 @@ import org.apache.jmeter.samplers.gui.AbstractSamplerGui;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jorphan.gui.JLabeledTextField;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import vn.zalopay.benchmark.core.ClientList;
 
 public class GRPCSamplerGui extends AbstractSamplerGui {
 
+  private static final Logger log = LoggerFactory.getLogger(GRPCSamplerGui.class);
   private static final long serialVersionUID = 240L;
   private static final String WIKIPAGE = "GRPCSampler";
 
@@ -34,7 +44,9 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
   private JTextField libFolderField;
   private JButton libBrowseButton;
 
-  private JTextField fullMethodField;
+  private JComboBox<String> fullMethodField;
+  private JButton fullMethodButton;
+
   private JLabeledTextField metadataField;
   private JLabeledTextField hostField;
   private JLabeledTextField portField;
@@ -79,7 +91,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
       sampler.setMetadata(this.metadataField.getText());
       sampler.setHost(this.hostField.getText());
       sampler.setPort(this.portField.getText());
-      sampler.setFullMethod(this.fullMethodField.getText());
+      sampler.setFullMethod(this.fullMethodField.getSelectedItem().toString());
       sampler.setDeadline(this.deadlineField.getText());
       sampler.setTls(this.isTLSCheckBox.isSelected());
       sampler.setRequestJson(this.requestJsonArea.getText());
@@ -98,7 +110,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
       metadataField.setText(sampler.getMetadata());
       hostField.setText(sampler.getHost());
       portField.setText(sampler.getPort());
-      fullMethodField.setText(sampler.getFullMethod());
+      fullMethodField.setSelectedItem(sampler.getFullMethod());
       deadlineField.setText(sampler.getDeadline());
       isTLSCheckBox.setSelected(sampler.isTls());
       requestJsonArea.setText(sampler.getRequestJson());
@@ -117,8 +129,8 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     metadataField.setText("");
     hostField.setText("");
     portField.setText("");
-    fullMethodField.setText("");
-    deadlineField.setText("0");
+    fullMethodField.setSelectedItem("");
+    deadlineField.setText("1000");
     isTLSCheckBox.setSelected(false);
     requestJsonArea.setText("");
   }
@@ -221,8 +233,19 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
 
     // Full method
     addToPanel(requestPanel, labelConstraints, 0, row, new JLabel("Full Method: ", JLabel.RIGHT));
-    addToPanel(requestPanel, editConstraints, 1, row, fullMethodField = new JTextField(20));
+    addToPanel(requestPanel, editConstraints, 1, row, fullMethodField = new JComboBox<>());
+    fullMethodField.setEditable(true);
+    addToPanel(requestPanel, labelConstraints, 2, row,
+        fullMethodButton = new JButton("Listing..."));
 
+    fullMethodButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        getMethods(fullMethodField);
+      }
+    });
+
+    // Container
     JPanel container = new JPanel(new BorderLayout());
     container.setBorder(BorderFactory.createCompoundBorder(
         BorderFactory.createEmptyBorder(9, 0, 0, 0),
@@ -243,6 +266,20 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     webServerPanel.add(portField);
     webServerPanel.add(isTLSCheckBox);
     return webServerPanel;
+  }
+
+  private void getMethods(JComboBox<String> fullMethodField) {
+    if (!Strings.isNullOrEmpty(protoFolderField.getText())) {
+      List<String> methods =
+          ClientList.listServices(protoFolderField.getText(), libFolderField.getText());
+
+      log.info("Full Methods: " + methods.toString());
+      String[] methodsArr = new String[methods.size()];
+      methods.toArray(methodsArr);
+
+      fullMethodField.setModel(new DefaultComboBoxModel<>(methodsArr));
+      fullMethodField.setSelectedIndex(0);
+    }
   }
 
 }
