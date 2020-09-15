@@ -7,11 +7,7 @@ import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.util.JsonFormat;
 import com.google.protobuf.util.JsonFormat.TypeRegistry;
-
 import java.io.BufferedReader;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Objects;
 
 public class MessageReader {
@@ -21,23 +17,12 @@ public class MessageReader {
     private final String source;
     private final String jsonData;
 
-    public static MessageReader forFile(Path path, Descriptor descriptor, TypeRegistry registry, String jsonData) {
-        if (!Strings.isNullOrEmpty(jsonData))
-            return new MessageReader(
-                    JsonFormat.parser().usingTypeRegistry(registry),
-                    descriptor,
-                    jsonData);
-
-        try {
-            return new MessageReader(
-                    JsonFormat.parser().usingTypeRegistry(registry),
-                    descriptor,
-                    Files.newBufferedReader(path),
-                    path.toString(),
-                    jsonData);
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Unable to read file: " + path.toString(), e);
-        }
+    public static MessageReader forJSON(Descriptor descriptor, TypeRegistry registry, String jsonData) {
+        return new MessageReader(
+            JsonFormat.parser().usingTypeRegistry(registry),
+            descriptor,
+            jsonData
+        );
     }
 
     @VisibleForTesting

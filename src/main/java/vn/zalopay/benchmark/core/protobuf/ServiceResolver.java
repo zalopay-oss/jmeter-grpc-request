@@ -7,6 +7,7 @@ import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,6 +34,14 @@ public class ServiceResolver {
             }
         }
         return new ServiceResolver(result.build());
+    }
+
+    public Iterable<ServiceDescriptor> listServices() {
+        ArrayList<ServiceDescriptor> serviceDescriptors = new ArrayList<ServiceDescriptor>();
+        for (FileDescriptor fileDescriptor: fileDescriptors) {
+            serviceDescriptors.addAll(fileDescriptor.getServices());
+        }
+        return serviceDescriptors;
     }
 
     /**

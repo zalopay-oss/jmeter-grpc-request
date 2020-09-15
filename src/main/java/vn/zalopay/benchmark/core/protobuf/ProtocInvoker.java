@@ -1,9 +1,14 @@
 package vn.zalopay.benchmark.core.protobuf;
 
 import com.github.os72.protocjar.Protoc;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,10 +34,36 @@ public class ProtocInvoker {
     /**
      * Creates a new {@link ProtocInvoker} with the supplied configuration.
      */
-    public static ProtocInvoker forConfig(String protoDiscoveryRoot) {
+    public static ProtocInvoker forConfig(String protoDiscoveryRoot, String libFolder) {
         Path discoveryRootPath = Paths.get(protoDiscoveryRoot);
         ImmutableList.Builder<Path> includePaths = ImmutableList.builder();
+
+        List<String> includePathsList = getProtocIncludes(libFolder);
+
+        for (String includePathString : includePathsList) {
+            Path path = Paths.get(includePathString);
+            Preconditions.checkArgument(Files.exists(path), "Invalid proto include path: " + path);
+            includePaths.add(path.toAbsolutePath());
+        }
+
         return new ProtocInvoker(discoveryRootPath, includePaths.build());
+    }
+
+    /**
+     * Get paths lib protoc
+     */
+    private static List<String> getProtocIncludes(String libFolder) {
+        if(Objects.isNull(libFolder))
+            return Collections.emptyList();
+
+        List<String> protocIncludes = new LinkedList<>();
+        for (String pathString : libFolder.split(",")) {
+            Path includePath = Paths.get(pathString);
+            Preconditions.checkArgument(Files.exists(includePath), "Invalid include: " + includePath);
+            protocIncludes.add(includePath.toString());
+        }
+
+        return protocIncludes;
     }
 
     /**

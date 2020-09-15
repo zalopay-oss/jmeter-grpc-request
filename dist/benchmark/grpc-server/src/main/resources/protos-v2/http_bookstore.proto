@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package bookstore;
+
+option java_multiple_files = true;
+option java_outer_classname = "BookstoreProto";
+option java_package = "generated.com.google.endpoints.examples.bookstore";
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "shelf.proto";
+
+// A simple Bookstore API.
+//
+// The API manages shelves and books resources. Shelves contain books.
+service Bookstore {
+  // Returns a list of all shelves in the bookstore.
+  rpc ListShelves (google.protobuf.Empty) returns (ListShelvesResponse) {
+    // Define HTTP mapping.
+    // Client example (Assuming your service is hosted at the given 'DOMAIN_NAME'):
+    //   curl http://DOMAIN_NAME/v1/shelves
+    option (google.api.http) = { get: "/v1/shelves" };
+  }
+  // Creates a new shelf in the bookstore.
+  rpc CreateShelf (CreateShelfRequest) returns (Shelf) {
+    // Client example:
+    //   curl -d '{"theme":"Music"}' http://DOMAIN_NAME/v1/shelves
+    option (google.api.http) = {
+      post: "/v1/shelves"
+      body: "shelf"
+    };
+  }
+}
+
+// Response to ListShelves call.
+message ListShelvesResponse {
+  // Shelves in the bookstore.
+  repeated Shelf shelves = 1;
+}
+
+// Request message for CreateShelf method.
+message CreateShelfRequest {
+  // The shelf resource to create.
+  Shelf shelf = 1;
+}

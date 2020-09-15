@@ -6,7 +6,7 @@
 
     <groupId>vn.zalopay.benchmark</groupId>
     <artifactId>jmeter-grpc-request</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.1.0</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -26,9 +26,24 @@
         <os72.protoc.version>3.10.1</os72.protoc.version>
         <jcommander.version>1.48</jcommander.version>
         <opencensus.version>0.21.0</opencensus.version>
+        <cmn.jmeter.version>0.3</cmn.jmeter.version>
+        <emulators.jmeter.version>0.4</emulators.jmeter.version>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>kg.apc</groupId>
+            <artifactId>jmeter-plugins-cmn-jmeter</artifactId>
+            <version>${cmn.jmeter.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>kg.apc</groupId>
+            <artifactId>jmeter-plugins-emulators</artifactId>
+            <version>${emulators.jmeter.version}</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
@@ -92,12 +107,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.beust</groupId>
-            <artifactId>jcommander</artifactId>
-            <version>${jcommander.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>com.github.os72</groupId>
             <artifactId>protoc-jar-maven-plugin</artifactId>
             <version>${os72.protoc.version}</version>
@@ -147,15 +156,17 @@
             </exclusions>
         </dependency>
 
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version>
-        </dependency>
     </dependencies>
 
     <build>
         <defaultGoal>clean generate-sources compile install</defaultGoal>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
 
         <plugins>
             <plugin>
@@ -190,6 +201,7 @@
                                     <include>com.fasterxml.jackson.core</include>
                                     <include>com.google.code.gson</include>
                                     <include>com.github.os72</include>
+                                    <include>kg.apc</include>
                                 </includes>
                             </artifactSet>
                         </configuration>

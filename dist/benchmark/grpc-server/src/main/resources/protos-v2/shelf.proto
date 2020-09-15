@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package bookstore;
+
+option java_outer_classname = "ShelfProto";
+option java_package = "generated.com.google.endpoints.examples.bookstore";
+
+// A shelf resource.
+message Shelf {
+  // A unique shelf id.
+  int64 id = 1;
+  // A theme of the shelf (fiction, poetry, etc).
+  string theme = 2;
+}

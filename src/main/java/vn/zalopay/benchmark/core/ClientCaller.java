@@ -1,50 +1,55 @@
 package vn.zalopay.benchmark.core;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.HostAndPort;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
+import io.grpc.CallOptions;
+import io.grpc.ManagedChannel;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import vn.zalopay.benchmark.core.grpc.ChannelFactory;
 import vn.zalopay.benchmark.core.grpc.DynamicGrpcClient;
 import vn.zalopay.benchmark.core.io.MessageReader;
 import vn.zalopay.benchmark.core.protobuf.ProtoMethodName;
 import vn.zalopay.benchmark.core.protobuf.ProtocInvoker;
 import vn.zalopay.benchmark.core.protobuf.ServiceResolver;
-import io.grpc.CallOptions;
-import io.grpc.Channel;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.concurrent.TimeUnit;
 
 public class ClientCaller {
     private Descriptors.MethodDescriptor methodDescriptor;
     private JsonFormat.TypeRegistry registry;
-    private HostAndPort hostAndPort;
     private DynamicGrpcClient dynamicClient;
     private ImmutableList<DynamicMessage> requestMessages;
+    private ManagedChannel channel;
 
-    public ClientCaller(String HOST_PORT, String TEST_PROTO_FILES, String FULL_METHOD, boolean TLS) {
-        this.init(HOST_PORT, TEST_PROTO_FILES, FULL_METHOD, TLS);
+    public ClientCaller(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean TLS, String METADATA) {
+        this.init(HOST_PORT, TEST_PROTO_FILES, LIB_FOLDER, FULL_METHOD, TLS, METADATA);
     }
 
-    private void init(String HOST_PORT, String TEST_PROTO_FILES, String FULL_METHOD, boolean tls) {
-        hostAndPort = HostAndPort.fromString(HOST_PORT);
+    private void init(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean tls, String metadata) {
+        HostAndPort hostAndPort = HostAndPort.fromString(HOST_PORT);
         ProtoMethodName grpcMethodName =
                 ProtoMethodName.parseFullGrpcMethodName(FULL_METHOD);
 
         ChannelFactory channelFactory = ChannelFactory.create();
-
-        Channel channel;
-        channel = channelFactory.createChannel(hostAndPort, tls);
+        Map<String, String> metadataMap = buildHashMetadata(metadata);
+        try {
+            channel = channelFactory.createChannel(hostAndPort, tls, metadataMap);
+        }catch (IllegalStateException e){
+            throw new RuntimeException("Unable to create channel grpc by invoking tls", e);
+        }
 
         // Fetch the appropriate file descriptors for the service.
         final DescriptorProtos.FileDescriptorSet fileDescriptorSet;
 
         try {
-            fileDescriptorSet = ProtocInvoker.forConfig(TEST_PROTO_FILES).invoke();
+            fileDescriptorSet = ProtocInvoker.forConfig(TEST_PROTO_FILES, LIB_FOLDER).invoke();
         } catch (Throwable t) {
             throw new RuntimeException("Unable to resolve service by invoking protoc", t);
         }
@@ -61,18 +66,47 @@ public class ClientCaller {
                 .build();
     }
 
-    public String buildRequest(String pathReq, String jsonData) {
-        Path REQUEST_FILE = Paths.get(pathReq);
+    private Map<String, String> buildHashMetadata(String metadata) {
+        Map<String, String> metadataHash = new LinkedHashMap<>();
 
-        requestMessages =
-                MessageReader.forFile(REQUEST_FILE, methodDescriptor.getInputType(), registry, jsonData).read();
-        return requestMessages.get(0).toString();
+        if(Strings.isNullOrEmpty(metadata))
+            return metadataHash;
+
+        String[] keyValue;
+        for (String part : metadata.split(",")){
+            keyValue = part.split(":", 2);
+
+            Preconditions.checkArgument(keyValue.length == 2,
+                "Metadata entry must be defined in key1:value1,key2:value2 format: " + metadata);
+
+            metadataHash.put(keyValue[0], keyValue[1]);
+        }
+
+        return metadataHash;
     }
 
-    public DynamicMessage call(long deadlineMs) {
+    public String buildRequest(String jsonData) {
+        requestMessages =
+                MessageReader.forJSON(methodDescriptor.getInputType(), registry, jsonData).read();
+
+        try {
+            return JsonFormat.printer().print(requestMessages.get(0));
+        } catch (InvalidProtocolBufferException e) {
+            throw new RuntimeException("Caught exception while parsing request for rpc", e);
+        }
+    }
+
+    public DynamicMessage call(String deadlineMs) {
+        long deadline;
+        try {
+            deadline = Long.parseLong(deadlineMs);
+        }catch (Exception e){
+            throw new RuntimeException("Caught exception while parsing deadline to long", e);
+        }
+
         DynamicMessage resp;
         try {
-            resp = dynamicClient.blockingUnaryCall(requestMessages, callOptions(deadlineMs));
+            resp = dynamicClient.blockingUnaryCall(requestMessages, callOptions(deadline));
         } catch (Throwable t) {
             throw new RuntimeException("Caught exception while waiting for rpc", t);
         }
@@ -85,6 +119,16 @@ public class ClientCaller {
             result = result.withDeadlineAfter(deadlineMs, TimeUnit.MILLISECONDS);
         }
         return result;
+    }
+
+    public void shutdown(){
+
+        try {
+            if (channel != null)
+                channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Caught exception while shutting down channel", e);
+        }
     }
 
 }
