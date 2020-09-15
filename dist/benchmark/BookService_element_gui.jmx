@@ -16,33 +16,33 @@
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
-          <intProp name="LoopController.loops">-1</intProp>
+          <stringProp name="LoopController.loops">1</stringProp>
         </elementProp>
-        <stringProp name="ThreadGroup.num_threads">3</stringProp>
+        <stringProp name="ThreadGroup.num_threads">1</stringProp>
         <stringProp name="ThreadGroup.ramp_time">1</stringProp>
-        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
         <stringProp name="ThreadGroup.duration">3</stringProp>
         <stringProp name="ThreadGroup.delay"></stringProp>
       </ThreadGroup>
       <hashTree>
-        <vn.zalopay.benchmark.GRPCSampler guiclass="vn.zalopay.benchmark.GRPCSamplerGui" testclass="vn.zalopay.benchmark.GRPCSampler" testname="GRPC Request" enabled="true">
-          <stringProp name="GRPCSampler.protoFolder">/Users/lap13227/workspace/work/zalopay-oss/jmeter-grpc-request/dist/benchmark/grpc-server/src/main/resources/protos-v2</stringProp>
-          <stringProp name="GRPCSampler.libFolder">/Users/lap13227/Desktop/request-proto/googleapis-master</stringProp>
+        <vn.zalopay.benchmark.GRPCSampler guiclass="vn.zalopay.benchmark.GRPCSamplerGui" testclass="vn.zalopay.benchmark.GRPCSampler" testname="bookstore.Bookstore/CreateShelf" enabled="true">
+          <stringProp name="GRPCSampler.protoFolder">dist/benchmark/grpc-server/src/main/resources/protos-v2</stringProp>
+          <stringProp name="GRPCSampler.libFolder">/Desktop/request-proto/googleapis-master</stringProp>
           <stringProp name="GRPCSampler.metadata"></stringProp>
           <stringProp name="GRPCSampler.host">localhost</stringProp>
           <stringProp name="GRPCSampler.port">8005</stringProp>
           <stringProp name="GRPCSampler.fullMethod">bookstore.Bookstore/CreateShelf</stringProp>
-          <stringProp name="GRPCSampler.deadline">1000</stringProp>
+          <stringProp name="GRPCSampler.deadline">10000</stringProp>
           <boolProp name="GRPCSampler.tls">false</boolProp>
           <stringProp name="GRPCSampler.requestJson">{
   &quot;shelf&quot;: {
-    &quot;id&quot;: ${TIME},
+    &quot;id&quot;: ${__time()},
     &quot;theme&quot;: &quot;Hello server!!&quot;
   }
 }</stringProp>
         </vn.zalopay.benchmark.GRPCSampler>
         <hashTree>
-          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor" enabled="true">
+          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor" enabled="false">
             <stringProp name="cacheKey">true</stringProp>
             <stringProp name="filename"></stringProp>
             <stringProp name="parameters"></stringProp>
@@ -53,7 +53,7 @@ vars.put(&quot;TIME&quot;, time);</stringProp>
             <stringProp name="scriptLanguage">javascript</stringProp>
           </JSR223PreProcessor>
           <hashTree/>
-          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="JSR223 PostProcessor" enabled="true">
+          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="JSR223 PostProcessor" enabled="false">
             <stringProp name="cacheKey">true</stringProp>
             <stringProp name="filename"></stringProp>
             <stringProp name="parameters"></stringProp>
@@ -64,7 +64,7 @@ vars.put(&quot;TIME&quot;, time);</stringProp>
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="false">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
           <name>saveConfig</name>
@@ -101,7 +101,7 @@ vars.put(&quot;TIME&quot;, time);</stringProp>
         <stringProp name="filename"></stringProp>
       </ResultCollector>
       <hashTree/>
-      <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report" enabled="true">
+      <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report" enabled="false">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
           <name>saveConfig</name>

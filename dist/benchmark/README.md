@@ -21,60 +21,116 @@ Apply JMeter's distributed testing model running in non-GUI mode. Using 4 server
 
 Proto file information:
 
+1. shelf.proto
+
 ```java
 syntax = "proto3";
 
+package bookstore;
+
+option java_outer_classname = "ShelfProto";
+option java_package = "generated.com.google.endpoints.examples.bookstore";
+
+// A shelf resource.
+message Shelf {
+  // A unique shelf id.
+  int64 id = 1;
+  // A theme of the shelf (fiction, poetry, etc).
+  string theme = 2;
+}
+```
+
+2. http_bookstore.proto
+
+```java
+syntax = "proto3";
+
+package bookstore;
+
 option java_multiple_files = true;
-option java_package = "generated.xn.services.ex.api.grpcstream.protos";
-option java_outer_classname = "SegmentProtos";
-package data_services_seg;
+option java_outer_classname = "BookstoreProto";
+option java_package = "generated.com.google.endpoints.examples.bookstore";
 
-service SegmentServices {
-    rpc checkSeg (SegmentReq) returns (SegmentResp) {
-    }
-}
-message SegmentReq {
-    string id = 1;
-    int32 segment = 2;
-    string mac = 3;
-    int32 client = 4;
-    int64 reqdate = 5;
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "shelf.proto";
+
+// A simple Bookstore API.
+//
+// The API manages shelves and books resources. Shelves contain books.
+service Bookstore {
+  // Returns a list of all shelves in the bookstore.
+  rpc ListShelves (google.protobuf.Empty) returns (ListShelvesResponse) {
+    // Define HTTP mapping.
+    // Client example (Assuming your service is hosted at the given 'DOMAIN_NAME'):
+    //   curl http://DOMAIN_NAME/v1/shelves
+    option (google.api.http) = { get: "/v1/shelves" };
+  }
+  // Creates a new shelf in the bookstore.
+  rpc CreateShelf (CreateShelfRequest) returns (Shelf) {
+    // Client example:
+    //   curl -d '{"theme":"Music"}' http://DOMAIN_NAME/v1/shelves
+    option (google.api.http) = {
+      post: "/v1/shelves"
+      body: "shelf"
+    };
+  }
 }
 
-message SegmentResp {
-    string result = 1;
+// Response to ListShelves call.
+message ListShelvesResponse {
+  // Shelves in the bookstore.
+  repeated Shelf shelves = 1;
+}
+
+// Request message for CreateShelf method.
+message CreateShelfRequest {
+  // The shelf resource to create.
+  Shelf shelf = 1;
 }
 ```
 
 The code override for the gRPC server:
 
 ```java
-static class SegmentServicesImpl extends SegmentServicesGrpc.SegmentServicesImplBase {
+private static class BookstoreServicesImpl extends BookstoreGrpc.BookstoreImplBase {
 
     @Override
-    public void checkSeg(SegmentReq request, StreamObserver<SegmentResp> responseObserver) {
-        String result = request.toString();
-        SegmentResp ruleResponse = SegmentResp.newBuilder()
-                .setResult("okay-" + System.currentTimeMillis() + " " + result)
-                .build();
+    public void createShelf(CreateShelfRequest request, StreamObserver<Shelf> responseObserver) {
+      String messageServer = "SERVER";
+
+      try {
+        String theme = request.getShelf().getTheme();
+        long id = request.getShelf().getId();
+
+        Shelf shelf = Shelf.newBuilder()
+            .setId(id)
+            .setTheme(theme + "_" + new Random().nextInt(10000) + "_" + messageServer)
+            .build();
+
         logger.info(request.toString());
-        responseObserver.onNext(ruleResponse);
+        responseObserver.onNext(shelf);
         responseObserver.onCompleted();
+
+      } catch (Exception e) {
+        logger.info(e.getMessage());
+      }
+
     }
-}
+  }
 ```
 
 Deploy information:
 
 - Call via IP, port.
-- Only 1 instance, run with command `java -cp "./gprc-server-1.0-SNAPSHOT.jar" server.SegmentServer`.
+- Only 1 instance, run with command `java -cp "./gprc-server-1.0-SNAPSHOT.jar" server.BookStoreServer`.
 - Very simple, no gateway no load balance.
 
 ## 3. Execute load test
 
 <img src="../asset/benchmark-testscript-grpc.jpg" width="720px" style="padding-bottom: 20px"/>
 
-Execute JMeter in non-GUI mode and combine with *jmter-grpc-request* sampler. With test script here [SegmentService_checkSeg.jmx](./SegmentService_checkSeg.jmx).
+Execute JMeter in non-GUI mode and combine with *jmter-grpc-request* sampler. With test script here [BookService_element_gui.jmx](./BookService_element_gui.jmx).
 
 ## 4. Reports
 
