@@ -6,7 +6,7 @@
 
     <groupId>vn.zalopay.benchmark</groupId>
     <artifactId>jmeter-grpc-request</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -21,6 +21,7 @@
         <lombok.version>1.18.10</lombok.version>
         <jmeter.core.version>5.1.1</jmeter.core.version>
         <netty.version>4.1.42.Final</netty.version>
+        <netty.ssl.version>2.0.34.Final</netty.ssl.version>
         <slf4j.version>1.7.26</slf4j.version>
         <junit.version>4.11</junit.version>
         <os72.protoc.version>3.10.1</os72.protoc.version>
@@ -154,6 +155,12 @@
                     <artifactId>commons-logging-api</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-tcnative-boringssl-static</artifactId>
+            <version>${netty.ssl.version}</version>
         </dependency>
 
     </dependencies>
