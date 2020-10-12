@@ -256,7 +256,8 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
            {
              
              log.info("Select Method : " + e.getItem().toString());
-             setBaseRequest(fullMethodField);
+             if(!fullMethodField.getSelectedItem().toString().isEmpty())
+             {setBaseRequest(fullMethodField);}
            }
       }
     });
@@ -295,9 +296,12 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
 
       fullMethodField.setModel(new DefaultComboBoxModel<>(methodsArr));
       fullMethodField.setSelectedIndex(0);
+      setBaseRequest(fullMethodField);
     }
   }
-
+    /**
+     * Setting Base Request in textarea when Item Changed
+     */
   private void setBaseRequest(JComboBox<String> fullMethodField){
     if (!Strings.isNullOrEmpty(fullMethodField.getSelectedItem().toString())) {
 
