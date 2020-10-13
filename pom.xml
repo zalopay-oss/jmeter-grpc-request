@@ -23,7 +23,7 @@
         <netty.version>4.1.42.Final</netty.version>
         <netty.ssl.version>2.0.34.Final</netty.ssl.version>
         <slf4j.version>1.7.26</slf4j.version>
-        <junit.version>4.11</junit.version>
+        <junit.version>4.13.1</junit.version>
         <os72.protoc.version>3.10.1</os72.protoc.version>
         <jcommander.version>1.48</jcommander.version>
         <opencensus.version>0.21.0</opencensus.version>
