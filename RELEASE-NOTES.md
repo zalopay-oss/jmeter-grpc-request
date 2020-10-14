@@ -8,6 +8,14 @@ Quick links:
 
 * Notes go here.
 
+## v1.1.2
+
+* Shorten the exception message show on the report.
+
+## v1.1.1
+
+* Fix could not find TLS ALPN provide.
+
 ## v1.1.0
 
 * Change GUI.
