@@ -12,6 +12,7 @@ import org.apache.jmeter.testelement.ThreadListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vn.zalopay.benchmark.core.ClientCaller;
+import vn.zalopay.benchmark.exception.ShortExceptionName;
 
 public class GRPCSampler extends AbstractSampler implements ThreadListener {
 
@@ -124,7 +125,7 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
   private void errorResult(SampleResult res, Exception e) {
     res.sampleEnd();
     res.setSuccessful(false);
-    res.setResponseMessage("Exception: " + e.getCause());
+    res.setResponseMessage("Exception: " + ShortExceptionName.shortest(e.getCause().getMessage()));
     res.setResponseData(e.getMessage().getBytes());
     res.setDataType(SampleResult.TEXT);
     res.setResponseCode("500");
