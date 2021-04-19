@@ -9,7 +9,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import vn.zalopay.benchmark.core.ClientList;
 
-@Ignore
+//@Ignore
 public class ClientListTest {
 
   private static final Path PROTO_FOLDER =
