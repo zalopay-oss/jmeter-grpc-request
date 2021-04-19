@@ -6,5 +6,10 @@ jdk:
   - oraclejdk9
   - openjdk8
 
+branches:
+  only:
+    - master
+    - feature/ci
+
 script:
   - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
