@@ -19,6 +19,8 @@ This is a simpler of JMeter used to test for any gRPC server, it is not necessar
 
 Same as JMeter HTTP Request but for gRPC. Copy only once file jar to lib/ext of JMeter, select your protobuf folder and start making requests! No extra steps.
 
+*The JMeter gRPC Request is available at JMeter Plugins Manager, we can find here https://jmeter-plugins.org/?search=jmeter-grpc-request*
+
 ## Features
 
 - Supports Blocking Unary Calls.
