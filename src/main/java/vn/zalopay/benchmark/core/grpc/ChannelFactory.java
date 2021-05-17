@@ -33,18 +33,22 @@ public class ChannelFactory {
     private ChannelFactory() {
     }
 
-    public ManagedChannel createChannel(HostAndPort endpoint, boolean tls, Map<String, String> metadataHash) {
-        ManagedChannelBuilder managedChannelBuilder = createChannelBuilder(endpoint, tls, metadataHash);
+    public ManagedChannel createChannel(HostAndPort endpoint, boolean tls, boolean tlsDisableVerification, Map<String, String> metadataHash) {
+        ManagedChannelBuilder managedChannelBuilder = createChannelBuilder(endpoint, tls, tlsDisableVerification, metadataHash);
         return managedChannelBuilder.build();
     }
 
-    private ManagedChannelBuilder createChannelBuilder(HostAndPort endpoint, boolean tls, Map<String, String> metadataHash) {
+    private ManagedChannelBuilder createChannelBuilder(HostAndPort endpoint, boolean tls, boolean tlsDisableVerification, Map<String, String> metadataHash) {
         if (tls) {
             try {
+                io.netty.handler.ssl.SslContextBuilder grpcSslContexts = GrpcSslContexts.forClient();
+                if(tlsDisableVerification){
+                    grpcSslContexts.trustManager(InsecureTrustManagerFactory.INSTANCE);
+                }
+
                 return NettyChannelBuilder.forAddress(endpoint.getHost(), endpoint.getPort())
                         .negotiationType(NegotiationType.TLS)
-                        .sslContext(GrpcSslContexts.forClient()
-                            .trustManager(InsecureTrustManagerFactory.INSTANCE) //disable SSL verification
+                        .sslContext(grpcSslContexts
                             //force HTTP2 w/ ALPN support
                             .applicationProtocolConfig(
                                 new ApplicationProtocolConfig(Protocol.ALPN, SelectorFailureBehavior.NO_ADVERTISE,

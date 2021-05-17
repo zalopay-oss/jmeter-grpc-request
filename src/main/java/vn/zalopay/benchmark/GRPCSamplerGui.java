@@ -53,6 +53,8 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
   private JLabeledTextField deadlineField;
 
   private JCheckBox isTLSCheckBox;
+  private JCheckBox isTLSDisableVerificationCheckBox;
+
 
   private JSyntaxTextArea requestJsonArea;
 
@@ -94,6 +96,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
       sampler.setFullMethod(this.fullMethodField.getSelectedItem().toString());
       sampler.setDeadline(this.deadlineField.getText());
       sampler.setTls(this.isTLSCheckBox.isSelected());
+      sampler.setTlsDisableVerification(this.isTLSDisableVerificationCheckBox.isSelected());
       sampler.setRequestJson(this.requestJsonArea.getText());
     }
   }
@@ -113,6 +116,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
       fullMethodField.setSelectedItem(sampler.getFullMethod());
       deadlineField.setText(sampler.getDeadline());
       isTLSCheckBox.setSelected(sampler.isTls());
+      isTLSDisableVerificationCheckBox.setSelected(sampler.isTlsDisableVerification());
       requestJsonArea.setText(sampler.getRequestJson());
     }
   }
@@ -132,6 +136,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     fullMethodField.setSelectedItem("");
     deadlineField.setText("1000");
     isTLSCheckBox.setSelected(false);
+    isTLSDisableVerificationCheckBox.setSelected(false);
     requestJsonArea.setText("");
   }
 
@@ -259,12 +264,14 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     portField = new JLabeledTextField("Port Number:", 7); // $NON-NLS-1$
     hostField = new JLabeledTextField("Server Name or IP:", 32); // $NON-NLS-1$
     isTLSCheckBox = new JCheckBox("SSL/TLS");
+    isTLSDisableVerificationCheckBox = new JCheckBox("Disable SSL/TLS Cert Verification");
 
     JPanel webServerPanel = new HorizontalPanel();
     webServerPanel.setBorder(BorderFactory.createTitledBorder("Web Server")); // $NON-NLS-1$
     webServerPanel.add(hostField);
     webServerPanel.add(portField);
     webServerPanel.add(isTLSCheckBox);
+    webServerPanel.add(isTLSDisableVerificationCheckBox);
     return webServerPanel;
   }
 

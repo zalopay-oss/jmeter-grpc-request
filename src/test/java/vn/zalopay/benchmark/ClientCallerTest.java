@@ -24,6 +24,7 @@ public class ClientCallerTest {
     private static String REQUEST_JSON = "{\"shelf\":{\"id\":1599156420811,\"theme\":\"Hello server!!\"}}";
     private static String FULL_METHOD = "bookstore.Bookstore/CreateShelf";
     private static boolean TLS = Boolean.FALSE;
+    private static boolean TLS_DISABLE_VERIFICATION = Boolean.FALSE;
     private static String METADATA = "";
 
     private ClientCaller clientCaller;
@@ -31,7 +32,7 @@ public class ClientCallerTest {
     @Before
     public void setup() {
         logger.info("Setup test");
-        clientCaller = new ClientCaller(HOST_PORT, PROTO_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, TLS, METADATA);
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, TLS,TLS_DISABLE_VERIFICATION, METADATA);
     }
 
     @Test
