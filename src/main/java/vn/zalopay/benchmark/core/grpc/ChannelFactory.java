@@ -9,9 +9,18 @@ import io.grpc.ClientInterceptors;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Metadata;
+import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NegotiationType;
 import io.grpc.netty.NettyChannelBuilder;
+import io.netty.handler.ssl.ApplicationProtocolConfig;
+import io.netty.handler.ssl.ApplicationProtocolNames;
+import io.netty.handler.ssl.ApplicationProtocolConfig.Protocol;
+import io.netty.handler.ssl.ApplicationProtocolConfig.SelectedListenerFailureBehavior;
+import io.netty.handler.ssl.ApplicationProtocolConfig.SelectorFailureBehavior;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import java.util.Map;
+import javax.net.ssl.SSLException;
+
 
 /**
  * Knows how to construct grpc channels.
@@ -31,15 +40,28 @@ public class ChannelFactory {
 
     private ManagedChannelBuilder createChannelBuilder(HostAndPort endpoint, boolean tls, Map<String, String> metadataHash) {
         if (tls) {
-            return NettyChannelBuilder.forAddress(endpoint.getHost(), endpoint.getPort())
-                    .negotiationType(NegotiationType.TLS)
-                    .intercept(metadataInterceptor(metadataHash));
+            try {
+                return NettyChannelBuilder.forAddress(endpoint.getHost(), endpoint.getPort())
+                        .negotiationType(NegotiationType.TLS)
+                        .sslContext(GrpcSslContexts.forClient()
+                            .trustManager(InsecureTrustManagerFactory.INSTANCE) //disable SSL verification
+                            //force HTTP2 w/ ALPN support
+                            .applicationProtocolConfig(
+                                new ApplicationProtocolConfig(Protocol.ALPN, SelectorFailureBehavior.NO_ADVERTISE,
+                                SelectedListenerFailureBehavior.ACCEPT, ApplicationProtocolNames.HTTP_2))
+                            .build())
+                        .intercept(metadataInterceptor(metadataHash));
+            } catch (SSLException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
 
         return NettyChannelBuilder.forAddress(endpoint.getHost(), endpoint.getPort())
                 .negotiationType(NegotiationType.PLAINTEXT)
                 .intercept(metadataInterceptor(metadataHash));
     }
+
 
     private ClientInterceptor metadataInterceptor(Map<String, String> metadataHash) {
         return new ClientInterceptor() {
