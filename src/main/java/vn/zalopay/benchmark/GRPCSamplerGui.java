@@ -32,6 +32,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vn.zalopay.benchmark.core.ClientList;
 
+import java.awt.event.ItemEvent;
+import java.awt.CardLayout;
+
+
 public class GRPCSamplerGui extends AbstractSamplerGui {
 
   private static final Logger log = LoggerFactory.getLogger(GRPCSamplerGui.class);
@@ -55,6 +59,15 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
   private JCheckBox isTLSCheckBox;
 
   private JSyntaxTextArea requestJsonArea;
+
+  //static variables to setup for dynamic card panel UI support
+  private static String GRPCREQUESTPANEL = "GRPC Custom Method";
+  private static String GRPCHEALTHPANEL = "grpc.health.v1.Health/Check";
+  private static CardLayout dynamicCardLayout = new CardLayout();
+  private static JPanel dynamicCards = new JPanel(dynamicCardLayout);
+  private static String dynamicSelectorsList[] = { GRPCREQUESTPANEL, GRPCHEALTHPANEL };  
+  private static JComboBox dynamicSelector = new JComboBox(dynamicSelectorsList);
+  
 
   public GRPCSamplerGui() {
     super();
@@ -94,7 +107,21 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
       sampler.setFullMethod(this.fullMethodField.getSelectedItem().toString());
       sampler.setDeadline(this.deadlineField.getText());
       sampler.setTls(this.isTLSCheckBox.isSelected());
-      sampler.setRequestJson(this.requestJsonArea.getText());
+
+
+      if(dynamicSelector.getSelectedItem().toString().equalsIgnoreCase( GRPCHEALTHPANEL)){
+        //set grpc.health.v1.Health/Check default values
+        sampler.setFullMethod(GRPCHEALTHPANEL);
+        sampler.setRequestJson("{}");        
+        sampler.setProtoFolder("health.proto");
+        sampler.setLibFolder("");
+      }else{
+        sampler.setFullMethod(this.fullMethodField.getSelectedItem().toString());
+        sampler.setRequestJson(this.requestJsonArea.getText());
+        sampler.setProtoFolder(this.protoFolderField.getText());
+        sampler.setLibFolder(this.libFolderField.getText());
+      }
+
     }
   }
 
@@ -114,6 +141,13 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
       deadlineField.setText(sampler.getDeadline());
       isTLSCheckBox.setSelected(sampler.isTls());
       requestJsonArea.setText(sampler.getRequestJson());
+      //auto-swap to health dynamic card if detect method name as grpc.health.v1.Health/Check
+      if(sampler.getFullMethod().equalsIgnoreCase(GRPCHEALTHPANEL)){
+        //set default values for grpc.health.v1.Health/Check
+        dynamicSelector.setSelectedItem(GRPCHEALTHPANEL);
+        requestJsonArea.setText("{}");
+        protoFolderField.setText("health.proto");
+      }      
     }
   }
 
@@ -192,7 +226,56 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     return webServerPanel;
   }
 
-  private JPanel getGRPCRequestPanel() {
+  private JPanel getDynamicGRPCRequestPanel(){
+    JPanel requestPanel = new JPanel(); 
+    requestPanel.setLayout(new BoxLayout((requestPanel),BoxLayout.Y_AXIS));
+
+    //setup selector for panel/UI    
+    dynamicSelector.setEditable(false);
+    dynamicSelector.addItemListener(new DynamicCardSelectorListener());
+
+    //add cards to the dynamicCard panel, referenced by the dynamicSelector
+    dynamicCards.add(GRPCREQUESTPANEL,getDefaultGRPCRequestPanel() );
+    dynamicCards.add(GRPCHEALTHPANEL,getHealthPanel() );
+
+    //put panel together for UI
+    requestPanel.add(dynamicSelector);
+    requestPanel.add(dynamicCards);
+    return requestPanel;
+  }
+
+  //for the dynamic card UI support
+  class DynamicCardSelectorListener implements java.awt.event.ItemListener{
+
+    @Override
+    public void itemStateChanged(ItemEvent itemEvent) {
+      dynamicCardLayout.show(dynamicCards, (String)itemEvent.getItem());
+      if(((String)itemEvent.getItem()).equalsIgnoreCase(GRPCHEALTHPANEL)){
+        //set default values for grpc.health.v1.Health/Check
+        requestJsonArea.setText("{}");
+        protoFolderField.setText("health.proto");
+      }
+    }
+  }
+
+
+  private JPanel getHealthPanel(){
+    JPanel healthPanel = new JPanel();
+    healthPanel.setLayout(new BoxLayout(healthPanel, BoxLayout.Y_AXIS));
+
+
+    JLabel healthLabel = new JLabel("Swapping to default grpc.health.v1.Health/Check proto & method");
+    JLabel healthLabel2 = new JLabel("https://github.com/grpc/grpc/blob/master/doc/health-checking.md");
+    JLabel healthLabel3 = new JLabel("https://github.com/grpc/grpc/blob/master/src/proto/grpc/health/v1/health.proto");
+
+    healthPanel.add(healthLabel);
+    healthPanel.add(healthLabel2);
+    healthPanel.add(healthLabel3);
+    return healthPanel;
+  }
+
+  private JPanel getDefaultGRPCRequestPanel() {
+
     JPanel requestPanel = new JPanel(new GridBagLayout());
 
     GridBagConstraints labelConstraints = new GridBagConstraints();
@@ -244,14 +327,19 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
         getMethods(fullMethodField);
       }
     });
+    return requestPanel;
+  }
 
+  private JPanel getGRPCRequestPanel() {
     // Container
     JPanel container = new JPanel(new BorderLayout());
     container.setBorder(BorderFactory.createCompoundBorder(
         BorderFactory.createEmptyBorder(9, 0, 0, 0),
         BorderFactory.createTitledBorder("GRPC Request")
     ));
-    container.add(requestPanel, BorderLayout.NORTH);
+    //    container.add(getDefaultGRPCRequestPanel(), BorderLayout.NORTH); //if different Desktops have issues with dynamic card UI regress back
+    container.add(getDynamicGRPCRequestPanel(), BorderLayout.NORTH);
+
     return container;
   }
 
