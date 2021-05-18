@@ -24,6 +24,7 @@ import kg.apc.jmeter.gui.GuiBuilderHelper;
 import org.apache.jmeter.gui.util.HorizontalPanel;
 import org.apache.jmeter.gui.util.JSyntaxTextArea;
 import org.apache.jmeter.gui.util.JTextScrollPane;
+import org.apache.jmeter.gui.util.VerticalPanel;
 import org.apache.jmeter.samplers.gui.AbstractSamplerGui;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jorphan.gui.JLabeledTextField;
@@ -266,12 +267,20 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     isTLSCheckBox = new JCheckBox("SSL/TLS");
     isTLSDisableVerificationCheckBox = new JCheckBox("Disable SSL/TLS Cert Verification");
 
-    JPanel webServerPanel = new HorizontalPanel();
+    //support shorter horizontal resolutions, split the panel
+    JPanel webServerPanel = new VerticalPanel();
     webServerPanel.setBorder(BorderFactory.createTitledBorder("Web Server")); // $NON-NLS-1$
-    webServerPanel.add(hostField);
-    webServerPanel.add(portField);
-    webServerPanel.add(isTLSCheckBox);
-    webServerPanel.add(isTLSDisableVerificationCheckBox);
+
+    JPanel webserverHostPanel = new HorizontalPanel();
+    webserverHostPanel.add(hostField);
+    JPanel webserverOtherPanel = new HorizontalPanel();
+    webserverOtherPanel.add(portField);
+    webserverOtherPanel.add(isTLSCheckBox);
+    webserverOtherPanel.add(isTLSDisableVerificationCheckBox);
+
+    webServerPanel.add(webserverHostPanel);
+    webServerPanel.add(webserverOtherPanel);
+
     return webServerPanel;
   }
 
