@@ -5,16 +5,23 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
+
+
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -31,11 +38,26 @@ public class ProtocInvoker {
     private final ImmutableList<Path> protocIncludePaths;
     private final Path discoveryRoot;
 
+    private static final ClassLoader classLoader = ProtocInvoker.class.getClassLoader();
+
     /**
      * Creates a new {@link ProtocInvoker} with the supplied configuration.
      */
     public static ProtocInvoker forConfig(String protoDiscoveryRoot, String libFolder) {
         Path discoveryRootPath = Paths.get(protoDiscoveryRoot);
+        //if detect a pre-loaded proto, use classloader instead
+        if(discoveryRootPath.toString().equalsIgnoreCase("health.proto")){
+            //put health.proto and any other defaults in /src/main/resources/proto so can be found by classloader
+            try {
+                URI preloadedproto = classLoader.getResource("proto/" + protoDiscoveryRoot).toURI();
+                discoveryRootPath = getNioPathWithinJar(preloadedproto);
+            } catch (URISyntaxException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+
+
         ImmutableList.Builder<Path> includePaths = ImmutableList.builder();
 
         List<String> includePathsList = getProtocIncludes(libFolder);
@@ -200,4 +222,57 @@ public class ProtocInvoker {
             super(message, cause);
         }
     }
+
+    /**
+     * Utility method to support java.nio.Paths ability to read classloader URI's that contain files within jar files (i.e. zip filesystem)
+     */
+    private static Path getNioPathWithinJar(URI uri)
+    {
+        Path result = null;
+        try
+        {
+            String base = uri.toString(); //example: jar:file:/usr/local/Cellar/jmeter/5.3/libexec/lib/ext/jmeter-grpc-request-1.1.2.jar!/proto/health.proto
+            String[] basesplit = base.split("!"); 
+            URI jarpath = URI.create(basesplit[0]);
+            String zipfspath = basesplit[1];
+
+            //prep FS access
+            logger.info("attempting to getNioPathWithinJar for jarpath [" + jarpath.toString() + "]");
+            Map<String, String> env = new HashMap<>(); 
+            env.put("create", "true");
+            
+            FileSystem zipfs = FileSystems.newFileSystem(jarpath,env);
+        
+
+
+            //extract file and copy to tmp for now
+                Path externalFile = Paths.get(zipfspath );
+                
+                try{
+                    externalFile = Files.createTempDirectory("proto"); 
+                    externalFile = Paths.get(externalFile.toString() + File.separator + "health.proto"); //code specific target for now
+                    Path createdExternalTxtFile = Files.createFile(externalFile); //create file, if exists throw faee and nothing to do, great
+                    Path pathInZipfile = zipfs.getPath(zipfspath);  
+                    Files.copy( pathInZipfile, createdExternalTxtFile, 
+                            StandardCopyOption.REPLACE_EXISTING ); 
+    
+                }catch(FileAlreadyExistsException faee){
+                    //if already exists, great, skip other steps as not needed
+                    //faee.printStackTrace();
+                }catch(Exception e){
+                    e.printStackTrace();;
+                }
+                
+            //then use new externalized file location as the zipfile content does not seem to work with java.nio.Path
+            result = externalFile.getParent();
+//            logger.info("getNioPathWithinJar returning path [" + result + "]");
+        }
+        catch( Exception e )
+        {
+            logger.error("getNioPathWithinJar failed to get preloaded proto file:  " + e.getLocalizedMessage()  );
+            e.printStackTrace();
+        }
+        return result;
+    }
+
 }
