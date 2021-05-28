@@ -1,16 +1,16 @@
 package vn.zalopay.benchmark.core.grpc;
 
 import com.google.common.net.HostAndPort;
-import io.grpc.CallOptions;
-import io.grpc.Channel;
-import io.grpc.ClientCall;
-import io.grpc.ClientInterceptor;
-import io.grpc.ClientInterceptors;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
-import io.grpc.Metadata;
+import io.grpc.*;
+import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NegotiationType;
 import io.grpc.netty.NettyChannelBuilder;
+import io.netty.handler.ssl.ApplicationProtocolConfig;
+import io.netty.handler.ssl.ApplicationProtocolNames;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+
+import javax.net.ssl.SSLException;
 import java.util.Map;
 
 /**
@@ -24,21 +24,42 @@ public class ChannelFactory {
     private ChannelFactory() {
     }
 
-    public ManagedChannel createChannel(HostAndPort endpoint, boolean tls, Map<String, String> metadataHash) {
-        ManagedChannelBuilder managedChannelBuilder = createChannelBuilder(endpoint, tls, metadataHash);
+    public ManagedChannel createChannel(HostAndPort endpoint, boolean tls, boolean disableTtlVerification, Map<String, String> metadataHash) {
+        ManagedChannelBuilder managedChannelBuilder = createChannelBuilder(endpoint, tls, disableTtlVerification, metadataHash);
         return managedChannelBuilder.build();
     }
 
-    private ManagedChannelBuilder createChannelBuilder(HostAndPort endpoint, boolean tls, Map<String, String> metadataHash) {
-        if (tls) {
+    private ManagedChannelBuilder createChannelBuilder(HostAndPort endpoint, boolean tls, boolean disableTtlVerification, Map<String, String> metadataHash) {
+        if (!tls) {
             return NettyChannelBuilder.forAddress(endpoint.getHost(), endpoint.getPort())
-                    .negotiationType(NegotiationType.TLS)
+                    .negotiationType(NegotiationType.PLAINTEXT)
                     .intercept(metadataInterceptor(metadataHash));
         }
+        return createSSLMessageChannel(endpoint, disableTtlVerification, metadataHash);
+    }
 
+    private ManagedChannelBuilder createSSLMessageChannel(HostAndPort endpoint, boolean disableTtlVerification, Map<String, String> metadataHash) {
         return NettyChannelBuilder.forAddress(endpoint.getHost(), endpoint.getPort())
-                .negotiationType(NegotiationType.PLAINTEXT)
+                .negotiationType(NegotiationType.TLS)
+                .sslContext(createSslContext(disableTtlVerification))
                 .intercept(metadataInterceptor(metadataHash));
+
+    }
+
+    private SslContext createSslContext(boolean disableTtlVerification) {
+        try {
+            io.netty.handler.ssl.SslContextBuilder grpcSslContexts = GrpcSslContexts.forClient();
+            if (disableTtlVerification) {
+                grpcSslContexts.trustManager(InsecureTrustManagerFactory.INSTANCE);
+            }
+            return grpcSslContexts
+                    .applicationProtocolConfig(
+                            new ApplicationProtocolConfig(ApplicationProtocolConfig.Protocol.ALPN, ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE,
+                                    ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT, ApplicationProtocolNames.HTTP_2))
+                    .build();
+        } catch (SSLException e) {
+            throw new RuntimeException("Error in create SSL connection!");
+        }
     }
 
     private ClientInterceptor metadataInterceptor(Map<String, String> metadataHash) {

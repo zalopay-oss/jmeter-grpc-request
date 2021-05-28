@@ -1,16 +1,15 @@
 package vn.zalopay.benchmark;
 
-import com.google.protobuf.DynamicMessage;
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.protobuf.util.JsonFormat;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vn.zalopay.benchmark.core.ClientCaller;
+import vn.zalopay.benchmark.core.specification.GrpcResponse;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @Ignore
 public class ClientCallerTest {
@@ -24,6 +23,7 @@ public class ClientCallerTest {
     private static String REQUEST_JSON = "{\"shelf\":{\"id\":1599156420811,\"theme\":\"Hello server!!\"}}";
     private static String FULL_METHOD = "bookstore.Bookstore/CreateShelf";
     private static boolean TLS = Boolean.FALSE;
+    private static boolean TLS_DISABLE_VERIFICATION = false;
     private static String METADATA = "";
 
     private ClientCaller clientCaller;
@@ -31,22 +31,18 @@ public class ClientCallerTest {
     @Before
     public void setup() {
         logger.info("Setup test");
-        clientCaller = new ClientCaller(HOST_PORT, PROTO_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, TLS, METADATA);
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, TLS, TLS_DISABLE_VERIFICATION, METADATA);
     }
 
     @Test
     public void test() {
         logger.info("Main test");
         clientCaller.buildRequest(REQUEST_JSON);
-        DynamicMessage resp = clientCaller.call("10000");
+        GrpcResponse resp = clientCaller.call("10000");
         clientCaller.shutdown();
+        logger.info(resp.getGrpcMessageString());
+        System.out.println(resp.getGrpcMessageString());
 
-        try {
-            logger.info(JsonFormat.printer().print(resp));
-            System.out.println(JsonFormat.printer().print(resp));
-        } catch (InvalidProtocolBufferException e) {
-            logger.error("Exception when parsing to JSON" , e);
-        }
     }
 
 }

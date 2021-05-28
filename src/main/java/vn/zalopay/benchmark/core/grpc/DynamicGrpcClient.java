@@ -2,12 +2,16 @@ package vn.zalopay.benchmark.core.grpc;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.Descriptors.MethodDescriptor;
 import com.google.protobuf.DynamicMessage;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.MethodDescriptor.MethodType;
 import io.grpc.stub.ClientCalls;
+import io.grpc.stub.StreamObserver;
+import vn.zalopay.benchmark.core.channel.ComponentObserver;
+import vn.zalopay.benchmark.core.channel.DoneObserver;
 
 public class DynamicGrpcClient {
     private final MethodDescriptor protoMethodDescriptor;
@@ -23,20 +27,21 @@ public class DynamicGrpcClient {
         this.channel = channel;
     }
 
-    public DynamicMessage blockingUnaryCall(
+    public ListenableFuture<Void> blockingUnaryCall(
             ImmutableList<DynamicMessage> requests,
+            StreamObserver<DynamicMessage> responseObserver,
             CallOptions callOptions) {
-        return ClientCalls.blockingUnaryCall(
-                this.channel, createGrpcMethodDescriptor(), callOptions, requests.get(0)
-        );
+        DoneObserver<DynamicMessage> doneObserver = new DoneObserver<>();
+        ClientCalls.asyncUnaryCall(this.channel.newCall(createGrpcMethodDescriptor(), callOptions), requests.get(0), ComponentObserver.of(responseObserver, doneObserver));
+        return doneObserver.getCompletionFuture();
     }
 
     private io.grpc.MethodDescriptor<DynamicMessage, DynamicMessage> createGrpcMethodDescriptor() {
-        return io.grpc.MethodDescriptor.<DynamicMessage, DynamicMessage>create(
-                getMethodType(),
-                getFullMethodName(),
-                new DynamicMessageMarshaller(protoMethodDescriptor.getInputType()),
-                new DynamicMessageMarshaller(protoMethodDescriptor.getOutputType()));
+        return io.grpc.MethodDescriptor.<DynamicMessage, DynamicMessage>newBuilder()
+                .setFullMethodName(getFullMethodName())
+                .setType(getMethodType())
+                .setResponseMarshaller(new DynamicMessageMarshaller(protoMethodDescriptor.getOutputType()))
+                .setRequestMarshaller(new DynamicMessageMarshaller(protoMethodDescriptor.getInputType())).build();
     }
 
     private String getFullMethodName() {

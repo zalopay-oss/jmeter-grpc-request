@@ -11,15 +11,20 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
 import io.grpc.CallOptions;
 import io.grpc.ManagedChannel;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import io.grpc.stub.StreamObserver;
+import vn.zalopay.benchmark.core.channel.ComponentObserver;
 import vn.zalopay.benchmark.core.grpc.ChannelFactory;
 import vn.zalopay.benchmark.core.grpc.DynamicGrpcClient;
-import vn.zalopay.benchmark.core.io.MessageReader;
+import vn.zalopay.benchmark.core.message.Reader;
+import vn.zalopay.benchmark.core.message.Writer;
 import vn.zalopay.benchmark.core.protobuf.ProtoMethodName;
 import vn.zalopay.benchmark.core.protobuf.ProtocInvoker;
 import vn.zalopay.benchmark.core.protobuf.ServiceResolver;
+import vn.zalopay.benchmark.core.specification.GrpcResponse;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class ClientCaller {
     private Descriptors.MethodDescriptor methodDescriptor;
@@ -28,11 +33,11 @@ public class ClientCaller {
     private ImmutableList<DynamicMessage> requestMessages;
     private ManagedChannel channel;
 
-    public ClientCaller(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean TLS, String METADATA) {
-        this.init(HOST_PORT, TEST_PROTO_FILES, LIB_FOLDER, FULL_METHOD, TLS, METADATA);
+    public ClientCaller(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean TLS, boolean TLS_DISABLE_VERIFICATION, String METADATA) {
+        this.init(HOST_PORT, TEST_PROTO_FILES, LIB_FOLDER, FULL_METHOD, TLS, TLS_DISABLE_VERIFICATION, METADATA);
     }
 
-    private void init(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean tls, String metadata) {
+    private void init(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean tls, boolean disableTtlVerification, String metadata) {
         HostAndPort hostAndPort = HostAndPort.fromString(HOST_PORT);
         ProtoMethodName grpcMethodName =
                 ProtoMethodName.parseFullGrpcMethodName(FULL_METHOD);
@@ -40,8 +45,8 @@ public class ClientCaller {
         ChannelFactory channelFactory = ChannelFactory.create();
         Map<String, String> metadataMap = buildHashMetadata(metadata);
         try {
-            channel = channelFactory.createChannel(hostAndPort, tls, metadataMap);
-        }catch (IllegalStateException e){
+            channel = channelFactory.createChannel(hostAndPort, tls, disableTtlVerification, metadataMap);
+        } catch (IllegalStateException e) {
             throw new RuntimeException("Unable to create channel grpc by invoking tls", e);
         }
 
@@ -69,15 +74,15 @@ public class ClientCaller {
     private Map<String, String> buildHashMetadata(String metadata) {
         Map<String, String> metadataHash = new LinkedHashMap<>();
 
-        if(Strings.isNullOrEmpty(metadata))
+        if (Strings.isNullOrEmpty(metadata))
             return metadataHash;
 
         String[] keyValue;
-        for (String part : metadata.split(",")){
+        for (String part : metadata.split(",")) {
             keyValue = part.split(":", 2);
 
             Preconditions.checkArgument(keyValue.length == 2,
-                "Metadata entry must be defined in key1:value1,key2:value2 format: " + metadata);
+                    "Metadata entry must be defined in key1:value1,key2:value2 format: " + metadata);
 
             metadataHash.put(keyValue[0], keyValue[1]);
         }
@@ -86,9 +91,7 @@ public class ClientCaller {
     }
 
     public String buildRequest(String jsonData) {
-        requestMessages =
-                MessageReader.forJSON(methodDescriptor.getInputType(), registry, jsonData).read();
-
+        requestMessages = Reader.create(methodDescriptor.getInputType(), jsonData, registry).read();
         try {
             return JsonFormat.printer().print(requestMessages.get(0));
         } catch (InvalidProtocolBufferException e) {
@@ -96,21 +99,22 @@ public class ClientCaller {
         }
     }
 
-    public DynamicMessage call(String deadlineMs) {
+    public GrpcResponse call(String deadlineMs) {
         long deadline;
         try {
             deadline = Long.parseLong(deadlineMs);
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException("Caught exception while parsing deadline to long", e);
         }
 
-        DynamicMessage resp;
+        GrpcResponse output = new GrpcResponse();
+        StreamObserver<DynamicMessage> streamObserver = ComponentObserver.of(Writer.create(output, registry));
         try {
-            resp = dynamicClient.blockingUnaryCall(requestMessages, callOptions(deadline));
+            dynamicClient.blockingUnaryCall(requestMessages, streamObserver, callOptions(deadline)).get();
         } catch (Throwable t) {
             throw new RuntimeException("Caught exception while waiting for rpc", t);
         }
-        return resp;
+        return output;
     }
 
     private static CallOptions callOptions(long deadlineMs) {
@@ -121,7 +125,7 @@ public class ClientCaller {
         return result;
     }
 
-    public void shutdown(){
+    public void shutdown() {
 
         try {
             if (channel != null)

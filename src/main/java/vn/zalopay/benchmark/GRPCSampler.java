@@ -1,10 +1,6 @@
 package vn.zalopay.benchmark;
 
-import com.google.protobuf.DynamicMessage;
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.protobuf.util.JsonFormat;
 import io.grpc.StatusRuntimeException;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.jmeter.samplers.AbstractSampler;
 import org.apache.jmeter.samplers.Entry;
 import org.apache.jmeter.samplers.SampleResult;
@@ -12,202 +8,211 @@ import org.apache.jmeter.testelement.ThreadListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vn.zalopay.benchmark.core.ClientCaller;
+import vn.zalopay.benchmark.core.specification.GrpcResponse;
 import vn.zalopay.benchmark.exception.ShortExceptionName;
+
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class GRPCSampler extends AbstractSampler implements ThreadListener {
 
-  private static final Logger log = LoggerFactory.getLogger(GRPCSampler.class);
-  private static final long serialVersionUID = 232L;
+    private static final Logger log = LoggerFactory.getLogger(GRPCSampler.class);
+    private static final long serialVersionUID = 232L;
 
-  public static final String METADATA = "GRPCSampler.metadata";
-  public static final String LIB_FOLDER = "GRPCSampler.libFolder";
-  public static final String PROTO_FOLDER = "GRPCSampler.protoFolder";
-  public static final String HOST = "GRPCSampler.host";
-  public static final String PORT = "GRPCSampler.port";
-  public static final String FULL_METHOD = "GRPCSampler.fullMethod";
-  public static final String REQUEST_JSON = "GRPCSampler.requestJson";
-  public static final String DEADLINE = "GRPCSampler.deadline";
-  public static final String TLS = "GRPCSampler.tls";
+    public static final String METADATA = "GRPCSampler.metadata";
+    public static final String LIB_FOLDER = "GRPCSampler.libFolder";
+    public static final String PROTO_FOLDER = "GRPCSampler.protoFolder";
+    public static final String HOST = "GRPCSampler.host";
+    public static final String PORT = "GRPCSampler.port";
+    public static final String FULL_METHOD = "GRPCSampler.fullMethod";
+    public static final String REQUEST_JSON = "GRPCSampler.requestJson";
+    public static final String DEADLINE = "GRPCSampler.deadline";
+    public static final String TLS = "GRPCSampler.tls";
+    public static final String TLS_DISABLE_VERIFICATION = "GRPCSampler.tlsDisableVerification";
 
-  private transient ClientCaller clientCaller = null;
+    private transient ClientCaller clientCaller = null;
 
-  private static AtomicInteger classCount = new AtomicInteger(0); // keep track of classes created
+    private static AtomicInteger classCount = new AtomicInteger(0); // keep track of classes created
 
-  public GRPCSampler() {
-    classCount.incrementAndGet();
-    trace("GRPCSampler()");
-  }
-
-  /**
-   * @return a string for the sampleResult Title
-   */
-  private String getTitle() {
-    return this.getName();
-  }
-
-  private void trace(String s) {
-    if (log.isDebugEnabled()) {
-      log.debug("{} ({}) {} {} {}", Thread.currentThread().getName(), classCount.get(),
-          getTitle(), s, this.toString());
+    public GRPCSampler() {
+        classCount.incrementAndGet();
+        trace("GRPCSampler()");
     }
-  }
 
-  private void init() {
-    clientCaller = new ClientCaller(
-        getHostPort(),
-        getProtoFolder(),
-        getLibFolder(),
-        getFullMethod(),
-        isTls(),
-        getMetadata());
-  }
+    /**
+     * @return a string for the sampleResult Title
+     */
+    private String getTitle() {
+        return this.getName();
+    }
 
-  @Override
-  public SampleResult sample(Entry ignored) {
-    SampleResult res = new SampleResult();
-    res.setSampleLabel(getName());
-
-    String req = clientCaller.buildRequest(getRequestJson());
-    res.setSamplerData(req);
-    res.sampleStart();
-
-    try {
-      try {
-        DynamicMessage resp = clientCaller.call(getDeadline());
-
-        try {
-          res.sampleEnd();
-          res.setSuccessful(true);
-          res.setResponseData(JsonFormat.printer().print(resp).getBytes());
-          res.setResponseMessage("Success");
-          res.setDataType(SampleResult.TEXT);
-          res.setResponseCodeOK();
-        } catch (InvalidProtocolBufferException e) {
-          errorResult(res, e);
+    private void trace(String s) {
+        if (log.isDebugEnabled()) {
+            log.debug("{} ({}) {} {} {}", Thread.currentThread().getName(), classCount.get(),
+                    getTitle(), s, this.toString());
         }
-      } catch (RuntimeException e) {
-        errorResult(res, e);
-      }
-    } catch (StatusRuntimeException e) {
-      errorResult(res, e);
     }
-    return res;
-  }
 
-  @Override
-  public void clear() {
-    super.clear();
-  }
-
-  @Override
-  public void threadStarted() {
-    log.info("{}\ttestStarted", whoAmI());
-    init();
-  }
-
-  @Override
-  public void threadFinished() {
-    log.info("{}\ttestEnded", whoAmI());
-
-    if (clientCaller != null) {
-      clientCaller.shutdown();
+    private void init() {
+        clientCaller = new ClientCaller(
+                getHostPort(),
+                getProtoFolder(),
+                getLibFolder(),
+                getFullMethod(),
+                isTls(),
+                isTlsDisableVerification(),
+                getMetadata());
     }
-  }
 
-  private String whoAmI() {
-    return Thread.currentThread().getName() +
-        "@" +
-        Integer.toHexString(hashCode()) +
-        "-" +
-        getName();
-  }
+    @Override
+    public SampleResult sample(Entry ignored) {
+        SampleResult sampleResult = new SampleResult();
+        sampleResult.setSampleLabel(getName());
+        String grpcRequest = clientCaller.buildRequest(getRequestJson());
+        sampleResult.setSamplerData(grpcRequest);
+        sampleResult.sampleStart();
+        GrpcResponse grpcResponse = new GrpcResponse();
+        try {
+            try {
+                grpcResponse = clientCaller.call(getDeadline());
+                sampleResult.sampleEnd();
+                sampleResult.setSuccessful(true);
+                sampleResult.setResponseData(grpcResponse.getGrpcMessageString().getBytes(StandardCharsets.UTF_8));
+                sampleResult.setResponseMessage("Success");
+                sampleResult.setDataType(SampleResult.TEXT);
+                sampleResult.setResponseCodeOK();
+            } catch (RuntimeException e) {
+                errorResult(grpcResponse, sampleResult, e);
+            }
+        } catch (StatusRuntimeException e) {
+            errorResult(grpcResponse, sampleResult, e);
+        }
+        return sampleResult;
+    }
 
-  private void errorResult(SampleResult res, Exception e) {
-    res.sampleEnd();
-    res.setSuccessful(false);
-    res.setResponseMessage("Exception: " + ShortExceptionName.shortest(e.getCause().getMessage()));
-    res.setResponseData(e.getMessage().getBytes());
-    res.setDataType(SampleResult.TEXT);
-    res.setResponseCode("500");
-  }
+    @Override
+    public void clear() {
+        super.clear();
+    }
 
-  /**
-   * GETTER AND SETTER
-   */
+    @Override
+    public void threadStarted() {
+        log.info("{}\ttestStarted", whoAmI());
+        init();
+    }
 
-  public String getMetadata() {
-    return getPropertyAsString(METADATA);
-  }
+    @Override
+    public void threadFinished() {
+        log.info("{}\ttestEnded", whoAmI());
 
-  public void setMetadata(String metadata) {
-    setProperty(METADATA, metadata);
-  }
+        if (clientCaller != null) {
+            clientCaller.shutdown();
+        }
+    }
 
-  public String getLibFolder() {
-    return getPropertyAsString(LIB_FOLDER);
-  }
+    private String whoAmI() {
+        return Thread.currentThread().getName() +
+                "@" +
+                Integer.toHexString(hashCode()) +
+                "-" +
+                getName();
+    }
 
-  public void setLibFolder(String libFolder) {
-    setProperty(LIB_FOLDER, libFolder);
-  }
+    private void errorResult(GrpcResponse grpcResponse, SampleResult sampleResult, Exception e) {
+        String responseMessage = grpcResponse != null ? grpcResponse.getGrpcMessageString() : "";
+        sampleResult.sampleEnd();
+        sampleResult.setSuccessful(false);
+        sampleResult.setResponseData(String.format("Exception: %s. %s", e.getCause().getMessage(), responseMessage), "UTF-8");
+        sampleResult.setResponseMessage("Exception: " + ShortExceptionName.shortest(e.getCause().getMessage()));
+        sampleResult.setDataType(SampleResult.TEXT);
+        sampleResult.setResponseCode("500");
+    }
 
-  public String getProtoFolder() {
-    return getPropertyAsString(PROTO_FOLDER);
-  }
+    /**
+     * GETTER AND SETTER
+     */
 
-  public void setProtoFolder(String protoFolder) {
-    setProperty(PROTO_FOLDER, protoFolder);
-  }
+    public String getMetadata() {
+        return getPropertyAsString(METADATA);
+    }
 
-  public String getFullMethod() {
-    return getPropertyAsString(FULL_METHOD);
-  }
+    public void setMetadata(String metadata) {
+        setProperty(METADATA, metadata);
+    }
 
-  public void setFullMethod(String fullMethod) {
-    setProperty(FULL_METHOD, fullMethod);
-  }
+    public String getLibFolder() {
+        return getPropertyAsString(LIB_FOLDER);
+    }
 
-  public String getRequestJson() {
-    return getPropertyAsString(REQUEST_JSON);
-  }
+    public void setLibFolder(String libFolder) {
+        setProperty(LIB_FOLDER, libFolder);
+    }
 
-  public void setRequestJson(String requestJson) {
-    setProperty(REQUEST_JSON, requestJson);
-  }
+    public String getProtoFolder() {
+        return getPropertyAsString(PROTO_FOLDER);
+    }
 
-  public String getDeadline() {
-    return getPropertyAsString(DEADLINE);
-  }
+    public void setProtoFolder(String protoFolder) {
+        setProperty(PROTO_FOLDER, protoFolder);
+    }
 
-  public void setDeadline(String deadline) {
-    setProperty(DEADLINE, deadline);
-  }
+    public String getFullMethod() {
+        return getPropertyAsString(FULL_METHOD);
+    }
 
-  public boolean isTls() {
-    return getPropertyAsBoolean(TLS);
-  }
+    public void setFullMethod(String fullMethod) {
+        setProperty(FULL_METHOD, fullMethod);
+    }
 
-  public void setTls(boolean tls) {
-    setProperty(TLS, tls);
-  }
+    public String getRequestJson() {
+        return getPropertyAsString(REQUEST_JSON);
+    }
 
-  public String getHost() {
-    return getPropertyAsString(HOST);
-  }
+    public void setRequestJson(String requestJson) {
+        setProperty(REQUEST_JSON, requestJson);
+    }
 
-  public void setHost(String host) {
-    setProperty(HOST, host);
-  }
+    public String getDeadline() {
+        return getPropertyAsString(DEADLINE);
+    }
 
-  public String getPort() {
-    return getPropertyAsString(PORT);
-  }
+    public void setDeadline(String deadline) {
+        setProperty(DEADLINE, deadline);
+    }
 
-  public void setPort(String port) {
-    setProperty(PORT, port);
-  }
+    public boolean isTls() {
+        return getPropertyAsBoolean(TLS);
+    }
 
-  private String getHostPort() {
-    return getHost() + ":" + getPort();
-  }
+    public void setTls(boolean tls) {
+        setProperty(TLS, tls);
+    }
+
+    public boolean isTlsDisableVerification() {
+        return getPropertyAsBoolean(TLS_DISABLE_VERIFICATION);
+    }
+
+    public void setTlsDisableVerification(boolean tlsDisableVerification) {
+        setProperty(TLS_DISABLE_VERIFICATION, tlsDisableVerification);
+    }
+
+    public String getHost() {
+        return getPropertyAsString(HOST);
+    }
+
+    public void setHost(String host) {
+        setProperty(HOST, host);
+    }
+
+    public String getPort() {
+        return getPropertyAsString(PORT);
+    }
+
+    public void setPort(String port) {
+        setProperty(PORT, port);
+    }
+
+    private String getHostPort() {
+        return getHost() + ":" + getPort();
+    }
 }

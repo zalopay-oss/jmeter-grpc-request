@@ -15,19 +15,18 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
 
-        <grpc.version>1.23.0</grpc.version>
-        <protobuf.version>3.6.1</protobuf.version>
         <guava.version>29.0-jre</guava.version>
         <lombok.version>1.18.10</lombok.version>
-        <jmeter.core.version>5.1.1</jmeter.core.version>
-        <netty.version>4.1.42.Final</netty.version>
-        <netty.ssl.version>2.0.34.Final</netty.ssl.version>
+        <jmeter.core.version>5.4.1</jmeter.core.version>
+        <netty.version>4.1.63.Final</netty.version>
+        <netty.ssl.version>2.0.39.Final</netty.ssl.version>
         <slf4j.version>1.7.26</slf4j.version>
         <junit.version>4.13.1</junit.version>
         <os72.protoc.version>3.10.1</os72.protoc.version>
+        <grpc.version>1.37.0</grpc.version>
+        <protobuf.version>3.6.1</protobuf.version>
         <jcommander.version>1.48</jcommander.version>
-        <opencensus.version>0.21.0</opencensus.version>
-        <cmn.jmeter.version>0.3</cmn.jmeter.version>
+        <cmn.jmeter.version>0.6</cmn.jmeter.version>
         <emulators.jmeter.version>0.4</emulators.jmeter.version>
     </properties>
 
@@ -47,7 +46,7 @@
 
         <dependency>
             <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java</artifactId>
+            <artifactId>protobuf-java-util</artifactId>
             <version>${protobuf.version}</version>
         </dependency>
 
@@ -130,12 +129,6 @@
         </dependency>
 
         <dependency>
-            <groupId>io.opencensus</groupId>
-            <artifactId>opencensus-api</artifactId>
-            <version>${opencensus.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>${guava.version}</version>
@@ -200,7 +193,6 @@
                             <artifactSet>
                                 <includes>
                                     <include>io.grpc</include>
-                                    <include>io.opencensus</include>
                                     <include>com.google.guava</include>
                                     <include>io.perfmark</include>
                                     <include>com.google.protobuf</include>
