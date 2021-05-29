@@ -28,11 +28,11 @@ public class ClientCaller {
     private ImmutableList<DynamicMessage> requestMessages;
     private ManagedChannel channel;
 
-    public ClientCaller(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean TLS, String METADATA) {
-        this.init(HOST_PORT, TEST_PROTO_FILES, LIB_FOLDER, FULL_METHOD, TLS, METADATA);
+    public ClientCaller(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean TLS, boolean TLS_DISABLE_VERIFICATION, String METADATA) {
+        this.init(HOST_PORT, TEST_PROTO_FILES, LIB_FOLDER, FULL_METHOD, TLS, TLS_DISABLE_VERIFICATION, METADATA);
     }
 
-    private void init(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean tls, String metadata) {
+    private void init(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean tls, boolean tlsDisableVerification, String metadata) {
         HostAndPort hostAndPort = HostAndPort.fromString(HOST_PORT);
         ProtoMethodName grpcMethodName =
                 ProtoMethodName.parseFullGrpcMethodName(FULL_METHOD);
@@ -40,11 +40,11 @@ public class ClientCaller {
         ChannelFactory channelFactory = ChannelFactory.create();
         Map<String, String> metadataMap = buildHashMetadata(metadata);
         try {
-            channel = channelFactory.createChannel(hostAndPort, tls, metadataMap);
+            channel = channelFactory.createChannel(hostAndPort, tls, tlsDisableVerification, metadataMap);
         }catch (IllegalStateException e){
             throw new RuntimeException("Unable to create channel grpc by invoking tls", e);
         }
-
+        
         // Fetch the appropriate file descriptors for the service.
         final DescriptorProtos.FileDescriptorSet fileDescriptorSet;
 
