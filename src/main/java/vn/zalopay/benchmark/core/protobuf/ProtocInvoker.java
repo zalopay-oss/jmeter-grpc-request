@@ -5,17 +5,20 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.URL;
 import java.nio.file.*;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -53,7 +56,7 @@ public class ProtocInvoker {
      * Get paths lib protoc
      */
     private static List<String> getProtocIncludes(String libFolder) {
-        if(Objects.isNull(libFolder))
+        if (Objects.isNull(libFolder))
             return Collections.emptyList();
 
         List<String> protocIncludes = new LinkedList<>();
@@ -81,8 +84,10 @@ public class ProtocInvoker {
      */
     public FileDescriptorSet invoke() throws ProtocInvocationException {
         Path wellKnownTypesInclude;
+        Path googleTypesInclude;
         try {
             wellKnownTypesInclude = setupWellKnownTypes();
+            googleTypesInclude = setupGoogleTypes();
         } catch (IOException e) {
             throw new ProtocInvocationException("Unable to extract well known types", e);
         }
@@ -96,11 +101,10 @@ public class ProtocInvoker {
 
         ImmutableList<String> protocArgs = ImmutableList.<String>builder()
                 .addAll(scanProtoFiles(discoveryRoot))
-                .addAll(includePathArgs(wellKnownTypesInclude))
+                .addAll(includePathArgs(wellKnownTypesInclude, googleTypesInclude))
                 .add("--descriptor_set_out=" + descriptorPath.toAbsolutePath().toString())
                 .add("--include_imports")
                 .build();
-
         invokeBinary(protocArgs);
 
         try {
@@ -110,7 +114,7 @@ public class ProtocInvoker {
         }
     }
 
-    private ImmutableList<String> includePathArgs(Path wellKnownTypesInclude) {
+    private ImmutableList<String> includePathArgs(Path wellKnownTypesInclude,Path googleTypesInclude) {
         ImmutableList.Builder<String> resultBuilder = ImmutableList.builder();
         for (Path path : protocIncludePaths) {
             resultBuilder.add("-I" + path.toString());
@@ -119,6 +123,7 @@ public class ProtocInvoker {
         // Add the include path which makes sure that protoc finds the well known types. Note that we
         // add this *after* the user types above in case users want to provide their own well known
         // types.
+        resultBuilder.add("-I" + googleTypesInclude.toString());
         resultBuilder.add("-I" + wellKnownTypesInclude.toString());
 
         // Protoc requires that all files being compiled are present in the subtree rooted at one of
@@ -163,7 +168,7 @@ public class ProtocInvoker {
     private ImmutableSet<String> scanProtoFiles(Path protoRoot) throws ProtocInvocationException {
         try (final Stream<Path> protoPaths = Files.walk(protoRoot)) {
             return ImmutableSet.copyOf(protoPaths
-                    .filter(path -> PROTO_MATCHER.matches(path))
+                    .filter(PROTO_MATCHER::matches)
                     .map(path -> path.toAbsolutePath().toString())
                     .collect(Collectors.toSet()));
         } catch (IOException e) {
@@ -183,6 +188,15 @@ public class ProtocInvoker {
                     ProtocInvoker.class.getResourceAsStream("/google/protobuf/" + file),
                     Paths.get(protoDir.toString(), file));
         }
+        return tmpdir;
+    }
+
+    private static Path setupGoogleTypes() throws IOException {
+        ClassLoader classLoader = ProtocInvoker.class.getClassLoader();
+        URL googleProtoResources = classLoader.getResource("google");
+        File googleProtoResourcesDir = new File(googleProtoResources.getPath());
+        Path tmpdir = Files.createTempDirectory("polyglot-google-types");
+        FileUtils.copyDirectory(googleProtoResourcesDir, new File(Paths.get(tmpdir.toString(), "google").toString()));
         return tmpdir;
     }
 
