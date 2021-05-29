@@ -7,6 +7,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -32,6 +34,7 @@ import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vn.zalopay.benchmark.core.ClientList;
+import vn.zalopay.benchmark.core.ClientMessageParse;
 
 public class GRPCSamplerGui extends AbstractSamplerGui {
 
@@ -251,6 +254,20 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
       }
     });
 
+    fullMethodField.addItemListener(new ItemListener(){
+      @Override
+      public void itemStateChanged( ItemEvent e)
+      {
+           if(e.getStateChange()==1)
+           {
+             
+             log.info("Select Method : " + e.getItem().toString());
+             if(!fullMethodField.getSelectedItem().toString().isEmpty())
+             {setBaseRequest(fullMethodField);}
+           }
+      }
+    });
+
     // Container
     JPanel container = new JPanel(new BorderLayout());
     container.setBorder(BorderFactory.createCompoundBorder(
@@ -295,7 +312,22 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
 
       fullMethodField.setModel(new DefaultComboBoxModel<>(methodsArr));
       fullMethodField.setSelectedIndex(0);
+      setBaseRequest(fullMethodField);
     }
+  }
+    /**
+     * Setting Base Request in textarea when Item Changed
+     */
+  private void setBaseRequest(JComboBox<String> fullMethodField){
+    if (!Strings.isNullOrEmpty(fullMethodField.getSelectedItem().toString())) {
+
+      String baserequest = ClientMessageParse.Parse(protoFolderField.getText(), libFolderField.getText(), fullMethodField.getSelectedItem().toString());
+      log.info("Parse Method: " + fullMethodField.getSelectedItem().toString());
+      
+
+
+      requestJsonArea.setText(baserequest);
+    }   
   }
 
 }
