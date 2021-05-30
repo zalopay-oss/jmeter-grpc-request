@@ -1,4 +1,4 @@
-package vn.zalopay.benchmark;
+package vn.zalopay.benchmark.core;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.commons.io.FileUtils;
@@ -8,11 +8,9 @@ import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import vn.zalopay.benchmark.core.ClientList;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.CopyOption;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
@@ -27,13 +25,10 @@ public class ClientListTest {
 
     private static final Path PROTO_PATH_WITH_INVALID_FILE_PATH =
             Paths.get("dist/benchmark/grpc-server/src/main/resources/protos-v2/shelf.proto1");
-
     private static final Path PROTO_WITH_EXTERNAL_IMPORT_FOLDER =
             Paths.get("dist/benchmark/grpc-server/src/main/resources/protos-v2");
     private static final Path PROTO_FOLDER =
             Paths.get("dist/benchmark/grpc-server/src/main/resources/protos");
-
-    /* Download at https://github.com/googleapis/googleapis */
     private static final Path LIB_FOLDER =
             Paths.get("dist/benchmark/grpc-server/src/main/resources/libs");
 
