@@ -22,4 +22,6 @@ jobs:
         run: |
           env
           mvn clean install
-          mvn test -Djavax.net.ssl.trustStore=$GITHUB_WORKSPACE/dist/cert/cacert -Djavax.net.debug=ssl:handshake -Djavax.net.ssl.trustStorePassword=changeit
+          echo "$GITHUB_WORKSPACE/dist/cert/cacert"
+          export CACERT_PATH=$GITHUB_WORKSPACE/dist/cert/cacert
+          mvn test -Djavax.net.ssl.trustStore=$CACERT_PATH -Djavax.net.debug=ssl:handshake -Djavax.net.ssl.trustStorePassword=changeit
