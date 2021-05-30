@@ -61,19 +61,9 @@ public class ProtocInvoker {
 
         List<String> protocIncludes = new LinkedList<>();
         for (String pathString : libFolder.split(",")) {
-            System.out.println("===============");
-            System.out.println("===============");
-            System.out.println(pathString);
-            System.out.println("===============");
-            System.out.println("===============");
             Path includePath = Paths.get(pathString);
-            System.out.println("+++++++++++++++");
-            System.out.println("+++++++++++++++");;
-            System.out.println(pathString);
-            System.out.println("+++++++++++++++");
-            System.out.println("+++++++++++++++");
-            Preconditions.checkArgument(Files.exists(includePath), "Invalid include: " + includePath);
-            protocIncludes.add(includePath.toString());
+            if (Files.exists(includePath))
+                protocIncludes.add(includePath.toString());
         }
 
         return protocIncludes;
