@@ -20,4 +20,5 @@ jobs:
           distribution: 'adopt'
       - name: Run unit test
         run: |
-          mvn clean test -Djavax.net.ssl.trustStore=dist/cert/cacert -Djavax.net.debug=ssl:handshake -Djavax.net.ssl.trustStorePassword=changeit
+          mvn clean install
+          mvn test -Djavax.net.ssl.trustStore=dist/cert/cacert -Djavax.net.debug=ssl:handshake -Djavax.net.ssl.trustStorePassword=changeit
