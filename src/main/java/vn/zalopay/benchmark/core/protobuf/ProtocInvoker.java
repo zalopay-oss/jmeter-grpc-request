@@ -61,6 +61,11 @@ public class ProtocInvoker {
 
         List<String> protocIncludes = new LinkedList<>();
         for (String pathString : libFolder.split(",")) {
+            System.out.println("===============");
+            System.out.println("===============");
+            System.out.println(pathString);
+            System.out.println("===============");
+            System.out.println("===============");
             Path includePath = Paths.get(pathString);
             Preconditions.checkArgument(Files.exists(includePath), "Invalid include: " + includePath);
             protocIncludes.add(includePath.toString());
@@ -114,7 +119,7 @@ public class ProtocInvoker {
         }
     }
 
-    private ImmutableList<String> includePathArgs(Path wellKnownTypesInclude,Path googleTypesInclude) {
+    private ImmutableList<String> includePathArgs(Path wellKnownTypesInclude, Path googleTypesInclude) {
         ImmutableList.Builder<String> resultBuilder = ImmutableList.builder();
         for (Path path : protocIncludePaths) {
             resultBuilder.add("-I" + path.toString());
