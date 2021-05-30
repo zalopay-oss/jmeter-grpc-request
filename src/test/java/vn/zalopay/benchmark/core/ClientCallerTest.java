@@ -32,33 +32,45 @@ public class ClientCallerTest {
             Paths.get("dist/benchmark/grpc-server/src/main/resources/libs");
 
     private static String HOST_PORT = "localhost:8005";
+    private static String HOST_PORT_TLS = "localhost:8006";
     private static String REQUEST_JSON = "{\"shelf\":{\"id\":1599156420811,\"theme\":\"Hello server!!\"}}";
     private static String FULL_METHOD = "bookstore.Bookstore/CreateShelf";
-    private static boolean TLS = Boolean.FALSE;
-    private static boolean TLS_DISABLE_VERIFICATION = false;
     private static String METADATA = "";
 
-    Process bookStoreServer;
-    Process helloWorldServer;
-    File dummyLog;
+    private static Process bookStoreServer;
+    private static Process helloWorldServer;
+    private static Process bookStoreTlsServer;
+    private static Process helloWorldTlsServer;
+    private static File dummyLog;
 
     @BeforeClass
     public void setupDependencies() throws IOException {
-        File javaHome = new File(System.getProperty("java.home"), "bin");
-        String javaPath = javaHome + File.separator + "java";
-        String startClassPathCommand = String.format("%s", Paths.get(System.getProperty("user.dir"), GRPC_DUMMY_SERVER_FOLDER.toString(), GRPC_DUMMY_SERVER_JAR.toString()).toString());
-        ProcessBuilder startBookStoreGRPCServerProcessBuilder = new ProcessBuilder(javaPath, "-cp", startClassPathCommand, "server.BookStoreServer");
-        ProcessBuilder startHelloWorldGRPCServerProcessBuilder = new ProcessBuilder(javaPath, "-cp", startClassPathCommand, "server.HelloWorldServer");
-        dummyLog = new File("grpc-dummy-server.log");
-        startBookStoreGRPCServerProcessBuilder.redirectError(ProcessBuilder.Redirect.appendTo(dummyLog));
-        startHelloWorldGRPCServerProcessBuilder.redirectError(ProcessBuilder.Redirect.appendTo(dummyLog));
-        bookStoreServer = startBookStoreGRPCServerProcessBuilder.start();
-        helloWorldServer = startHelloWorldGRPCServerProcessBuilder.start();
+        startDummyGrpcServer();
     }
 
     @Test
     public void testCanSendGrpcUnaryRequest() {
-        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, TLS, TLS_DISABLE_VERIFICATION, METADATA);
+        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
+        clientCaller.buildRequest(REQUEST_JSON);
+        GrpcResponse resp = clientCaller.call("10000");
+        clientCaller.shutdown();
+        Assert.assertNotNull(resp);
+        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
+    }
+
+    @Test
+    public void testCanSendGrpcUnaryRequestWithSSLAndDisableSSLVerification() {
+        ClientCaller clientCaller = new ClientCaller(HOST_PORT_TLS, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, true, true, METADATA);
+        clientCaller.buildRequest(REQUEST_JSON);
+        GrpcResponse resp = clientCaller.call("10000");
+        clientCaller.shutdown();
+        Assert.assertNotNull(resp);
+        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
+    }
+
+    @Test
+    public void testCanSendGrpcUnaryRequestWithSSLAndEnableSSLVerification() {
+        ClientCaller clientCaller = new ClientCaller(HOST_PORT_TLS, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, true, false, METADATA);
         clientCaller.buildRequest(REQUEST_JSON);
         GrpcResponse resp = clientCaller.call("10000");
         clientCaller.shutdown();
@@ -102,8 +114,26 @@ public class ClientCallerTest {
     @AfterClass
     public void shutdownDummyServer() {
         bookStoreServer.destroy();
+        bookStoreServer.destroyForcibly();
         helloWorldServer.destroy();
+        helloWorldServer.destroyForcibly();
         dummyLog.delete();
     }
 
+    private void startDummyGrpcServer() throws IOException {
+        File javaHome = new File(System.getProperty("java.home"), "bin");
+        String javaPath = javaHome + File.separator + "java";
+        String startClassPathCommand = String.format("%s", Paths.get(System.getProperty("user.dir"), GRPC_DUMMY_SERVER_FOLDER.toString(), GRPC_DUMMY_SERVER_JAR.toString()).toString());
+        ProcessBuilder startBookStoreGRPCServerProcessBuilder = new ProcessBuilder(javaPath, "-cp", startClassPathCommand, "server.BookStoreServer");
+        ProcessBuilder startHelloWorldGRPCServerProcessBuilder = new ProcessBuilder(javaPath, "-cp", startClassPathCommand, "server.HelloWorldServer");
+        ProcessBuilder startBookStoreTlsGRPCServerProcessBuilder = new ProcessBuilder(javaPath, "-cp", startClassPathCommand, "server.BookStoreServerTls");
+        ProcessBuilder startHelloWorldTlsGRPCServerProcessBuilder = new ProcessBuilder(javaPath, "-cp", startClassPathCommand, "server.HelloWorldServerTls");
+        dummyLog = new File("grpc-dummy-server.log");
+        startBookStoreGRPCServerProcessBuilder.redirectError(ProcessBuilder.Redirect.appendTo(dummyLog));
+        startHelloWorldGRPCServerProcessBuilder.redirectError(ProcessBuilder.Redirect.appendTo(dummyLog));
+        bookStoreServer = startBookStoreGRPCServerProcessBuilder.start();
+        helloWorldServer = startHelloWorldGRPCServerProcessBuilder.start();
+        bookStoreTlsServer = startBookStoreTlsGRPCServerProcessBuilder.start();
+        helloWorldTlsServer = startHelloWorldTlsGRPCServerProcessBuilder.start();
+    }
 }
