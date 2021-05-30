@@ -1,16 +1,24 @@
 package vn.zalopay.benchmark.core;
 
+import io.grpc.netty.GrpcSslContexts;
+import io.netty.handler.ssl.ApplicationProtocolConfig;
+import io.netty.handler.ssl.SslContextBuilder;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import vn.zalopay.benchmark.core.specification.GrpcResponse;
 
+import javax.net.ssl.SSLException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import static org.mockito.Mockito.any;
 
 
 public class ClientCallerTest {
@@ -30,7 +38,6 @@ public class ClientCallerTest {
     private static boolean TLS_DISABLE_VERIFICATION = false;
     private static String METADATA = "";
 
-    private ClientCaller clientCaller;
     Process bookStoreServer;
     Process helloWorldServer;
     File dummyLog;
@@ -49,18 +56,47 @@ public class ClientCallerTest {
         helloWorldServer = startHelloWorldGRPCServerProcessBuilder.start();
     }
 
-    @BeforeMethod
-    public void setup() {
-        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, TLS, TLS_DISABLE_VERIFICATION, METADATA);
-    }
-
     @Test
     public void testCanSendGrpcUnaryRequest() {
+        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, TLS, TLS_DISABLE_VERIFICATION, METADATA);
         clientCaller.buildRequest(REQUEST_JSON);
         GrpcResponse resp = clientCaller.call("10000");
         clientCaller.shutdown();
         Assert.assertNotNull(resp);
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
+    }
+
+    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Error in create SSL connection!")
+    public void testCanThrowExceptionWithSSLException() {
+        MockedStatic<io.grpc.netty.GrpcSslContexts> grpcSslContextBuilder = Mockito.mockStatic(io.grpc.netty.GrpcSslContexts.class);
+        grpcSslContextBuilder.when(() -> GrpcSslContexts.forClient()
+        ).then(invocation -> {
+                    SslContextBuilder sslContext = Mockito.mock(SslContextBuilder.class);
+                    Mockito.when(sslContext.applicationProtocolConfig(any(ApplicationProtocolConfig.class))).then(i -> sslContext);
+                    Mockito.when(sslContext.build()).thenThrow(new SSLException("Dummy Exception"));
+                    return sslContext;
+                }
+        );
+        new ClientCaller("localhost:1231", PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, true, false, METADATA);
+    }
+
+    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Error in create SSL connection!")
+    public void testCanThrowExceptionWithSSLExceptionAndDisableSSLVerification() {
+        MockedStatic<io.grpc.netty.GrpcSslContexts> grpcSslContextBuilder = Mockito.mockStatic(io.grpc.netty.GrpcSslContexts.class);
+        grpcSslContextBuilder.when(() -> GrpcSslContexts.forClient()
+        ).then(invocation -> {
+                    SslContextBuilder sslContext = Mockito.mock(SslContextBuilder.class);
+                    Mockito.when(sslContext.applicationProtocolConfig(any(ApplicationProtocolConfig.class))).then(i -> sslContext);
+                    Mockito.when(sslContext.build()).thenThrow(new SSLException("Dummy Exception"));
+                    return sslContext;
+                }
+        );
+        new ClientCaller("localhost:1231", PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, true, true, METADATA);
+    }
+
+    @AfterMethod
+    public void cleanMockito() {
+        Mockito.clearAllCaches();
     }
 
     @AfterClass
@@ -69,4 +105,5 @@ public class ClientCallerTest {
         helloWorldServer.destroy();
         dummyLog.delete();
     }
+
 }
