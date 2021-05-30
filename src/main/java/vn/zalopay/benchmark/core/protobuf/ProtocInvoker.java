@@ -67,6 +67,11 @@ public class ProtocInvoker {
             System.out.println("===============");
             System.out.println("===============");
             Path includePath = Paths.get(pathString);
+            System.out.println("+++++++++++++++");
+            System.out.println("+++++++++++++++");;
+            System.out.println(pathString);
+            System.out.println("+++++++++++++++");
+            System.out.println("+++++++++++++++");
             Preconditions.checkArgument(Files.exists(includePath), "Invalid include: " + includePath);
             protocIncludes.add(includePath.toString());
         }
