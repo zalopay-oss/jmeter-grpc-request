@@ -23,13 +23,13 @@ import static org.mockito.Mockito.any;
 
 public class ClientCallerTest {
     private static final String GRPC_DUMMY_SERVER_JAR = "gprc-server-1.0-SNAPSHOT.jar";
-    private static final Path GRPC_DUMMY_SERVER_FOLDER = Paths.get("/dist/benchmark/grpc-server/dist");
+    private static final Path GRPC_DUMMY_SERVER_FOLDER = Paths.get(System.getProperty("user.dir"), "/dist/benchmark/grpc-server/dist");
     private static final Path PROTO_WITH_EXTERNAL_IMPORT_FOLDER =
-            Paths.get("dist/benchmark/grpc-server/src/main/resources/protos-v2");
+            Paths.get(System.getProperty("user.dir"), "dist/benchmark/grpc-server/src/main/resources/protos-v2");
     private static final Path PROTO_FOLDER =
-            Paths.get("dist/benchmark/grpc-server/src/main/resources/protos");
+            Paths.get(System.getProperty("user.dir"), "dist/benchmark/grpc-server/src/main/resources/protos");
     private static final Path LIB_FOLDER =
-            Paths.get("dist/benchmark/grpc-server/src/main/resources/libs");
+            Paths.get(System.getProperty("user.dir"), "dist/benchmark/grpc-server/src/main/resources/libs");
 
     private static String HOST_PORT = "localhost:8005";
     private static String HOST_PORT_TLS = "localhost:8006";
@@ -117,6 +117,10 @@ public class ClientCallerTest {
         bookStoreServer.destroyForcibly();
         helloWorldServer.destroy();
         helloWorldServer.destroyForcibly();
+        bookStoreTlsServer.destroy();
+        bookStoreTlsServer.destroyForcibly();
+        helloWorldTlsServer.destroy();
+        helloWorldTlsServer.destroyForcibly();
         dummyLog.delete();
     }
 

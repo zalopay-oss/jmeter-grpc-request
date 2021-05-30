@@ -24,13 +24,13 @@ import static org.mockito.Mockito.any;
 public class ClientListTest {
 
     private static final Path PROTO_PATH_WITH_INVALID_FILE_PATH =
-            Paths.get("dist/benchmark/grpc-server/src/main/resources/protos-v2/shelf.proto1");
+            Paths.get(System.getProperty("user.dir"), "dist/benchmark/grpc-server/src/main/resources/protos-v2/shelf.proto1");
     private static final Path PROTO_WITH_EXTERNAL_IMPORT_FOLDER =
-            Paths.get("dist/benchmark/grpc-server/src/main/resources/protos-v2");
+            Paths.get(System.getProperty("user.dir"), "dist/benchmark/grpc-server/src/main/resources/protos-v2");
     private static final Path PROTO_FOLDER =
-            Paths.get("dist/benchmark/grpc-server/src/main/resources/protos");
+            Paths.get(System.getProperty("user.dir"), "dist/benchmark/grpc-server/src/main/resources/protos");
     private static final Path LIB_FOLDER =
-            Paths.get("dist/benchmark/grpc-server/src/main/resources/libs");
+            Paths.get(System.getProperty("user.dir"), "dist/benchmark/grpc-server/src/main/resources/libs");
 
     @Test
     public void testCanListAllMethodsInProtoWithoutExternalLibs() {
