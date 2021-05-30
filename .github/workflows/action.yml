@@ -21,4 +21,4 @@ jobs:
       - name: Run unit test
         run: |
           mvn clean install
-          mvn test -Djavax.net.ssl.trustStore=dist/cert/cacert -Djavax.net.debug=ssl:handshake -Djavax.net.ssl.trustStorePassword=changeit
+          mvn test -Djavax.net.ssl.trustStore=./dist/cert/cacert -Djavax.net.debug=ssl:handshake -Djavax.net.ssl.trustStorePassword=changeit

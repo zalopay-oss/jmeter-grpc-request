@@ -65,7 +65,6 @@ public class ProtocInvoker {
             if (Files.exists(includePath))
                 protocIncludes.add(includePath.toString());
         }
-
         return protocIncludes;
     }
 
