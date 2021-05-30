@@ -37,11 +37,11 @@ public class ClientCallerTest {
     private static String FULL_METHOD = "bookstore.Bookstore/CreateShelf";
     private static String METADATA = "";
 
-    private static Process bookStoreServer;
-    private static Process helloWorldServer;
-    private static Process bookStoreTlsServer;
-    private static Process helloWorldTlsServer;
-    private static File dummyLog;
+    static Process bookStoreServer;
+    static Process helloWorldServer;
+    static Process bookStoreTlsServer;
+    static Process helloWorldTlsServer;
+    static File dummyLog;
 
     @BeforeClass
     public void setupDependencies() throws IOException {
@@ -52,7 +52,7 @@ public class ClientCallerTest {
     public void testCanSendGrpcUnaryRequest() {
         ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
         clientCaller.buildRequest(REQUEST_JSON);
-        GrpcResponse resp = clientCaller.call("10000");
+        GrpcResponse resp = clientCaller.call("1000");
         clientCaller.shutdown();
         Assert.assertNotNull(resp);
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
@@ -127,7 +127,7 @@ public class ClientCallerTest {
     private void startDummyGrpcServer() throws IOException {
         File javaHome = new File(System.getProperty("java.home"), "bin");
         String javaPath = javaHome + File.separator + "java";
-        String startClassPathCommand = String.format("%s", Paths.get(System.getProperty("user.dir"), GRPC_DUMMY_SERVER_FOLDER.toString(), GRPC_DUMMY_SERVER_JAR.toString()).toString());
+        String startClassPathCommand = String.format("%s", Paths.get(GRPC_DUMMY_SERVER_FOLDER.toString(), GRPC_DUMMY_SERVER_JAR.toString()).toString());
         ProcessBuilder startBookStoreGRPCServerProcessBuilder = new ProcessBuilder(javaPath, "-cp", startClassPathCommand, "server.BookStoreServer");
         ProcessBuilder startHelloWorldGRPCServerProcessBuilder = new ProcessBuilder(javaPath, "-cp", startClassPathCommand, "server.HelloWorldServer");
         ProcessBuilder startBookStoreTlsGRPCServerProcessBuilder = new ProcessBuilder(javaPath, "-cp", startClassPathCommand, "server.BookStoreServerTls");
