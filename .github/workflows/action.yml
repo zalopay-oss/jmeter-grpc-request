@@ -23,6 +23,8 @@ jobs:
           mvn clean install -Dmaven.test.skip=true
       - name: Run unit test
         run: |
+          ls -la
+          printf "changeit" |  keytool -list -v -keystore dist/cert/cacert
           mvn test || 1
           cat grpc-dummy-server.log
         if: always()
