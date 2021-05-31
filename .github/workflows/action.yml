@@ -23,7 +23,7 @@ jobs:
           mvn clean install -Dmaven.test.skip=true
       - name: Run unit test
         run: |
-          mvn test -Djavax.net.ssl.trustStore=/home/runner/work/jmeter-grpc-request/jmeter-grpc-request/dist/cert/cacert -Djavax.net.debug=ssl:handshake -Djavax.net.ssl.trustStorePassword=changeit
+          mvn test
       - name: Verify Dummy Log
         run: |
           cat grpc-dummy-server.log
