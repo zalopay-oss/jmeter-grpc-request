@@ -24,6 +24,7 @@ jobs:
       - name: Run unit test
         run: |
           mvn test
+          cat grpc-dummy-server.log
       - name: Verify Dummy Log
         run: |
           cat grpc-dummy-server.log
