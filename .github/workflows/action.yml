@@ -25,6 +25,8 @@ jobs:
         run: |
           mvn test || 1
           cat grpc-dummy-server.log
+        if: always()
       - name: Verify Dummy Log
         run: |
           cat grpc-dummy-server.log
+        if: always()
