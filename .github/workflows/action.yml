@@ -23,7 +23,7 @@ jobs:
           mvn clean install -Dmaven.test.skip=true
       - name: Run unit test
         run: |
-          mvn test
+          mvn test || 1
           cat grpc-dummy-server.log
       - name: Verify Dummy Log
         run: |
