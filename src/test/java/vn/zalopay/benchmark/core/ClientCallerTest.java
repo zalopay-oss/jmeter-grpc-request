@@ -137,6 +137,8 @@ public class ClientCallerTest {
         dummyLog = new File("grpc-dummy-server.log");
         startBookStoreGRPCServerProcessBuilder.redirectError(ProcessBuilder.Redirect.appendTo(dummyLog));
         startHelloWorldGRPCServerProcessBuilder.redirectError(ProcessBuilder.Redirect.appendTo(dummyLog));
+        startBookStoreTlsGRPCServerProcessBuilder.redirectError(ProcessBuilder.Redirect.appendTo(dummyLog));
+        startHelloWorldTlsGRPCServerProcessBuilder.redirectError(ProcessBuilder.Redirect.appendTo(dummyLog));
         bookStoreServer = startBookStoreGRPCServerProcessBuilder.start();
         helloWorldServer = startHelloWorldGRPCServerProcessBuilder.start();
         bookStoreTlsServer = startBookStoreTlsGRPCServerProcessBuilder.start();

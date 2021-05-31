@@ -52,7 +52,7 @@ public class BookStoreServerTls {
                 .useTransportSecurity(certFile, keyFile)
                 .build()
                 .start();
-        logger.info("Server started, listening on " + port);
+        logger.info("TLS Server started, listening on " + port);
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {

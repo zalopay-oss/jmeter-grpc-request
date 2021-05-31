@@ -1,0 +1,65 @@
+May 31, 2021 11:50:56 AM server.HelloWorldServer start
+INFO: Server started, listening on 50051
+May 31, 2021 11:50:56 AM server.BookStoreServer start
+INFO: Server started, listening on 8005
+Exception in thread "main" java.io.IOException: Failed to bind
+	at io.grpc.netty.NettyServer.start(NettyServer.java:246)
+	at io.grpc.internal.ServerImpl.start(ServerImpl.java:180)
+	at io.grpc.internal.ServerImpl.start(ServerImpl.java:88)
+	at server.BookStoreServerTls.start(BookStoreServerTls.java:54)
+	at server.BookStoreServerTls.main(BookStoreServerTls.java:91)
+Caused by: java.net.BindException: Address already in use
+	at java.base/sun.nio.ch.Net.bind0(Native Method)
+	at java.base/sun.nio.ch.Net.bind(Net.java:550)
+	at java.base/sun.nio.ch.ServerSocketChannelImpl.bind(ServerSocketChannelImpl.java:249)
+	at io.netty.channel.socket.nio.NioServerSocketChannel.doBind(NioServerSocketChannel.java:132)
+	at io.netty.channel.AbstractChannel$AbstractUnsafe.bind(AbstractChannel.java:551)
+	at io.netty.channel.DefaultChannelPipeline$HeadContext.bind(DefaultChannelPipeline.java:1345)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeBind(AbstractChannelHandlerContext.java:503)
+	at io.netty.channel.AbstractChannelHandlerContext.bind(AbstractChannelHandlerContext.java:488)
+	at io.netty.channel.DefaultChannelPipeline.bind(DefaultChannelPipeline.java:984)
+	at io.netty.channel.AbstractChannel.bind(AbstractChannel.java:247)
+	at io.netty.bootstrap.AbstractBootstrap$2.run(AbstractBootstrap.java:355)
+	at io.netty.util.concurrent.AbstractEventExecutor.safeExecute(AbstractEventExecutor.java:163)
+	at io.netty.util.concurrent.SingleThreadEventExecutor.runAllTasks(SingleThreadEventExecutor.java:416)
+	at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:515)
+	at io.netty.util.concurrent.SingleThreadEventExecutor$5.run(SingleThreadEventExecutor.java:918)
+	at io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)
+	at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
+	at java.base/java.lang.Thread.run(Thread.java:832)
+Exception in thread "main" java.io.IOException: Failed to bind
+	at io.grpc.netty.NettyServer.start(NettyServer.java:246)
+	at io.grpc.internal.ServerImpl.start(ServerImpl.java:180)
+	at io.grpc.internal.ServerImpl.start(ServerImpl.java:88)
+	at server.HelloWorldServerTls.start(HelloWorldServerTls.java:54)
+	at server.HelloWorldServerTls.main(HelloWorldServerTls.java:91)
+Caused by: java.net.BindException: Address already in use
+	at java.base/sun.nio.ch.Net.bind0(Native Method)
+	at java.base/sun.nio.ch.Net.bind(Net.java:550)
+	at java.base/sun.nio.ch.ServerSocketChannelImpl.bind(ServerSocketChannelImpl.java:249)
+	at io.netty.channel.socket.nio.NioServerSocketChannel.doBind(NioServerSocketChannel.java:132)
+	at io.netty.channel.AbstractChannel$AbstractUnsafe.bind(AbstractChannel.java:551)
+	at io.netty.channel.DefaultChannelPipeline$HeadContext.bind(DefaultChannelPipeline.java:1345)
+	at io.netty.channel.AbstractChannelHandlerContext.invokeBind(AbstractChannelHandlerContext.java:503)
+	at io.netty.channel.AbstractChannelHandlerContext.bind(AbstractChannelHandlerContext.java:488)
+	at io.netty.channel.DefaultChannelPipeline.bind(DefaultChannelPipeline.java:984)
+	at io.netty.channel.AbstractChannel.bind(AbstractChannel.java:247)
+	at io.netty.bootstrap.AbstractBootstrap$2.run(AbstractBootstrap.java:355)
+	at io.netty.util.concurrent.AbstractEventExecutor.safeExecute(AbstractEventExecutor.java:163)
+	at io.netty.util.concurrent.SingleThreadEventExecutor.runAllTasks(SingleThreadEventExecutor.java:416)
+	at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:515)
+	at io.netty.util.concurrent.SingleThreadEventExecutor$5.run(SingleThreadEventExecutor.java:918)
+	at io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)
+	at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)
+	at java.base/java.lang.Thread.run(Thread.java:832)
+WARNING: An illegal reflective access operation has occurred
+WARNING: Illegal reflective access by com.google.protobuf.UnsafeUtil (file:/Users/lap14198/workspace/jmeter-grpc-request/dist/benchmark/grpc-server/dist/gprc-server-1.0-SNAPSHOT.jar) to field java.nio.Buffer.address
+WARNING: Please consider reporting this to the maintainers of com.google.protobuf.UnsafeUtil
+WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
+WARNING: All illegal access operations will be denied in a future release
+May 31, 2021 11:50:59 AM server.BookStoreServer$BookstoreServicesImpl createShelf
+INFO: shelf {
+  id: 1599156420811
+  theme: "Hello server!!"
+}
+
