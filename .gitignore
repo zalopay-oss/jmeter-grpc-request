@@ -24,3 +24,4 @@ output
 .iml
 /.idea/
 dependency-reduced-pom.xml
+grpc-dummy-server.log

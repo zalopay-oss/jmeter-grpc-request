@@ -123,7 +123,6 @@ public class ClientCallerTest {
         bookStoreTlsServer.destroyForcibly();
         helloWorldTlsServer.destroy();
         helloWorldTlsServer.destroyForcibly();
-        //dummyLog.delete();
     }
 
     private void startDummyGrpcServer() throws IOException {
