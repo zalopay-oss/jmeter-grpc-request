@@ -21,12 +21,14 @@ jobs:
       - name: Set up dependencies
         run: |
           mvn clean install -Dmaven.test.skip=true
-      - name: Run unit test
+      - name: Check cacert
         run: |
           ls -la
           printf "changeit" |  keytool -list -v -keystore dist/cert/cacert
-          mvn test || 1
-          cat grpc-dummy-server.log
+        if: always()
+      - name: Run unit test
+        run: |
+          mvn test -Djavax.net.ssl.trustStore=dist/cert/cacert -Djavax.net.ssl.trustStorePassword=changeit
         if: always()
       - name: Verify Dummy Log
         run: |
