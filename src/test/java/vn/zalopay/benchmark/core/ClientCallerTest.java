@@ -45,6 +45,8 @@ public class ClientCallerTest {
 
     @BeforeClass
     public void setupDependencies() throws IOException {
+        System.setProperty("javax.net.ssl.trustStore", Paths.get(System.getProperty("user.dir"), "dist", "cert", "cacert").toString());
+        System.setProperty("javax.net.ssl.trustStorePassword", "changeit");
         startDummyGrpcServer();
     }
 
