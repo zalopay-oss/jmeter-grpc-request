@@ -53,19 +53,21 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
         }
     }
 
-    private void init() {
-        clientCaller = new ClientCaller(
-                getHostPort(),
-                getProtoFolder(),
-                getLibFolder(),
-                getFullMethod(),
-                isTls(),
-                isTlsDisableVerification(),
-                getMetadata());
+    private void initGrpcClient() {
+        if (clientCaller == null)
+            clientCaller = new ClientCaller(
+                    getHostPort(),
+                    getProtoFolder(),
+                    getLibFolder(),
+                    getFullMethod(),
+                    isTls(),
+                    isTlsDisableVerification(),
+                    getMetadata());
     }
 
     @Override
     public SampleResult sample(Entry ignored) {
+        initGrpcClient();
         SampleResult sampleResult = new SampleResult();
         sampleResult.setSampleLabel(getName());
         String grpcRequest = clientCaller.buildRequest(getRequestJson());
@@ -87,7 +89,7 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
         } catch (StatusRuntimeException e) {
             errorResult(grpcResponse, sampleResult, e);
         } finally {
-            clientCaller.shutdown();
+            clientCaller.shutdownNettyChannel();
         }
         return sampleResult;
     }
@@ -100,7 +102,6 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
     @Override
     public void threadStarted() {
         log.info("{}\ttestStarted", whoAmI());
-        init();
     }
 
     @Override
@@ -108,7 +109,7 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
         log.info("{}\ttestEnded", whoAmI());
 
         if (clientCaller != null) {
-            clientCaller.shutdown();
+            clientCaller.shutdownNettyChannel();
         }
     }
 

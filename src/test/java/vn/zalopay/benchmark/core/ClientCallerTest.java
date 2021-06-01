@@ -28,8 +28,6 @@ public class ClientCallerTest {
     private static final Path GRPC_DUMMY_SERVER_FOLDER = Paths.get(System.getProperty("user.dir"), "/dist/benchmark/grpc-server/dist");
     private static final Path PROTO_WITH_EXTERNAL_IMPORT_FOLDER =
             Paths.get(System.getProperty("user.dir"), "dist/benchmark/grpc-server/src/main/resources/protos-v2");
-    private static final Path PROTO_FOLDER =
-            Paths.get(System.getProperty("user.dir"), "dist/benchmark/grpc-server/src/main/resources/protos");
     private static final Path LIB_FOLDER =
             Paths.get(System.getProperty("user.dir"), "dist/benchmark/grpc-server/src/main/resources/libs");
 
@@ -38,7 +36,7 @@ public class ClientCallerTest {
     private static String REQUEST_JSON = "{\"shelf\":{\"id\":1599156420811,\"theme\":\"Hello server!!\"}}";
     private static String FULL_METHOD = "bookstore.Bookstore/CreateShelf";
     private static String METADATA = "";
-
+    private ClientCaller clientCaller;
     static Process bookStoreServer;
     static Process helloWorldServer;
     static Process bookStoreTlsServer;
@@ -54,125 +52,125 @@ public class ClientCallerTest {
 
     @Test
     public void testCanSendGrpcUnaryRequest() {
-        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, "key1:1,key2:2");
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, "key1:1,key2:2");
         clientCaller.buildRequest(REQUEST_JSON);
         GrpcResponse resp = clientCaller.call("2000");
-        clientCaller.shutdown();
+        clientCaller.shutdownNettyChannel();
         Assert.assertNotNull(resp);
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
     }
 
     @Test
     public void testCanCallClientStreamingRequest() {
-        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, "key1:1,key2:2");
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, "key1:1,key2:2");
         clientCaller.buildRequest(REQUEST_JSON);
         GrpcResponse resp = clientCaller.callClientStreaming("2000");
-        clientCaller.shutdown();
+        clientCaller.shutdownNettyChannel();
         Assert.assertNotNull(resp);
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
     }
 
     @Test
     public void testCanCallServerStreamingRequest() {
-        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, "key1:1,key2:2");
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, "key1:1,key2:2");
         clientCaller.buildRequest(REQUEST_JSON);
         GrpcResponse resp = clientCaller.callServerStreaming("2000");
-        clientCaller.shutdown();
+        clientCaller.shutdownNettyChannel();
         Assert.assertNotNull(resp);
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
     }
 
     @Test
     public void testCanCallBidiStreamingRequest() {
-        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, "key1:1,key2:2");
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, "key1:1,key2:2");
         clientCaller.buildRequest(REQUEST_JSON);
-        GrpcResponse resp = clientCaller.callBidiStreaming("2000");
-        clientCaller.shutdown();
+        GrpcResponse resp = clientCaller.callBidiStreaming("3000");
+        clientCaller.shutdownNettyChannel();
         Assert.assertNotNull(resp);
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
     }
 
     @Test
     public void testCanSendRequestWithNegativeTimeoutRequest() {
-        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
         clientCaller.buildRequest(REQUEST_JSON);
         GrpcResponse resp = clientCaller.call("-10");
-        clientCaller.shutdown();
+        clientCaller.shutdownNettyChannel();
         Assert.assertNotNull(resp);
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = "Metadata entry must be defined in key1:value1,key2:value2 format: key1=1,key2:2")
     public void testCanThrowExceptionWithInvalidMetaData() {
-        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, "key1=1,key2:2");
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, "key1=1,key2:2");
         clientCaller.buildRequest(REQUEST_JSON);
         GrpcResponse resp = clientCaller.call("2000");
-        clientCaller.shutdown();
+        clientCaller.shutdownNettyChannel();
         Assert.assertNotNull(resp);
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
     }
 
     @Test
     public void testCanSendGrpcUnaryRequestWithMetaData() {
-        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
         clientCaller.buildRequest(REQUEST_JSON);
         GrpcResponse resp = clientCaller.call("2000");
-        clientCaller.shutdown();
+        clientCaller.shutdownNettyChannel();
         Assert.assertNotNull(resp);
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
     }
 
     @Test
     public void testCanSendGrpcUnaryRequestWithSSLAndDisableSSLVerification() {
-        ClientCaller clientCaller = new ClientCaller(HOST_PORT_TLS, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, true, true, METADATA);
+        clientCaller = new ClientCaller(HOST_PORT_TLS, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, true, true, METADATA);
         clientCaller.buildRequest(REQUEST_JSON);
         GrpcResponse resp = clientCaller.call("10000");
-        clientCaller.shutdown();
+        clientCaller.shutdownNettyChannel();
         Assert.assertNotNull(resp);
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
     }
 
     @Test
     public void testCanSendGrpcUnaryRequestWithSSLAndEnableSSLVerification() {
-        ClientCaller clientCaller = new ClientCaller(HOST_PORT_TLS, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, true, false, METADATA);
+        clientCaller = new ClientCaller(HOST_PORT_TLS, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, true, false, METADATA);
         clientCaller.buildRequest(REQUEST_JSON);
         GrpcResponse resp = clientCaller.call("10000");
-        clientCaller.shutdown();
+        clientCaller.shutdownNettyChannel();
         Assert.assertNotNull(resp);
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
     }
 
     @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while parsing deadline to long")
     public void testThrowExceptionWithInvalidTimeoutFormat() {
-        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
         clientCaller.buildRequest(REQUEST_JSON);
         clientCaller.call("1000s");
     }
 
     @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while parsing deadline to long")
     public void testThrowExceptionWithBlankTimeoutFormat() {
-        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
         clientCaller.buildRequest(REQUEST_JSON);
         clientCaller.call(" ");
     }
 
     @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while parsing deadline to long")
     public void testThrowExceptionWithEmptyTimeoutFormat() {
-        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
         clientCaller.buildRequest(REQUEST_JSON);
         clientCaller.call("");
     }
 
     @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while parsing deadline to long")
     public void testThrowExceptionWithNullTimeoutFormat() {
-        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
         clientCaller.buildRequest(REQUEST_JSON);
         clientCaller.call(null);
     }
 
     @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while parsing request for rpc")
     public void testThrowExceptionWithInvalidRequestJson() {
-        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
         clientCaller.buildRequest("{shelf:{\"id\":1599156420811,\"theme\":\"Hello server!!\".}}");
         clientCaller.call("1000");
     }
@@ -181,7 +179,7 @@ public class ClientCallerTest {
     public void testThrowExceptionWithParsingRequestToJson() {
         MockedStatic<com.google.protobuf.util.JsonFormat> jsonFormat = Mockito.mockStatic(com.google.protobuf.util.JsonFormat.class);
         jsonFormat.when(JsonFormat::printer).then((i) -> new InvalidProtocolBufferException("Dummy Exception"));
-        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
         clientCaller.buildRequest("{shelf:{\"id\":1599156420811,\"theme\":\"Hello server!!\".}}");
         clientCaller.call("1000");
     }
@@ -190,9 +188,7 @@ public class ClientCallerTest {
     public void testThrowExceptionWithExceptionInProtocInvoke() {
         MockedStatic<ProtocInvoker> protocInvoker = Mockito.mockStatic(ProtocInvoker.class);
         protocInvoker.when(() -> ProtocInvoker.forConfig(Mockito.anyString(), Mockito.anyString()).invoke()).thenThrow(new RuntimeException("Dummy Exception"));
-        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
-        clientCaller.buildRequest("{shelf:{\"id\":1599156420811,\"theme\":\"Hello server!!\"}}");
-        clientCaller.call("1000s");
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
     }
 
     @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Error in create SSL connection!")
@@ -206,7 +202,7 @@ public class ClientCallerTest {
                     return sslContext;
                 }
         );
-        new ClientCaller("localhost:1231", PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, true, false, METADATA);
+        clientCaller = new ClientCaller("localhost:1231", PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, true, false, METADATA);
     }
 
     @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Error in create SSL connection!")
@@ -220,145 +216,140 @@ public class ClientCallerTest {
                     return sslContext;
                 }
         );
-        new ClientCaller("localhost:1231", PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, true, true, METADATA);
+        clientCaller = new ClientCaller("localhost:1231", PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, true, true, METADATA);
     }
 
     @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while waiting for rpc")
     public void testThrowExceptionWithTimeoutRequest() {
-        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
         clientCaller.buildRequest(REQUEST_JSON);
         GrpcResponse resp = clientCaller.call("10");
-        clientCaller.shutdown();
+        clientCaller.shutdownNettyChannel();
         Assert.assertNotNull(resp);
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
     }
 
     @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while waiting for rpc")
     public void testThrowExceptionWithTimeoutRequestServerStream() {
-        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
         clientCaller.buildRequest(REQUEST_JSON);
         GrpcResponse resp = clientCaller.callServerStreaming("10");
-        clientCaller.shutdown();
+        clientCaller.shutdownNettyChannel();
         Assert.assertNotNull(resp);
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
     }
 
     @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while waiting for rpc")
     public void testThrowExceptionWithTimeoutRequestClientStream() {
-        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
         clientCaller.buildRequest(REQUEST_JSON);
         GrpcResponse resp = clientCaller.callClientStreaming("10");
-        clientCaller.shutdown();
+        clientCaller.shutdownNettyChannel();
         Assert.assertNotNull(resp);
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
     }
 
     @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while waiting for rpc")
     public void testThrowExceptionWithTimeoutRequestBidiStream() {
-        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
         clientCaller.buildRequest(REQUEST_JSON);
         GrpcResponse resp = clientCaller.callBidiStreaming("1");
-        clientCaller.shutdown();
+        clientCaller.shutdownNettyChannel();
         Assert.assertNotNull(resp);
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
     }
 
     @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Unable to find method invalidName in service Bookstore")
     public void testThrowExceptionWithInvalidMethodName() {
-        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), "bookstore.Bookstore/invalidName", false, false, METADATA);
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), "bookstore.Bookstore/invalidName", false, false, METADATA);
         clientCaller.buildRequest(REQUEST_JSON);
-        GrpcResponse resp = clientCaller.call("10");
-        clientCaller.shutdown();
-        Assert.assertNotNull(resp);
-        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
     }
 
     @Test(expectedExceptions = NullPointerException.class, expectedExceptionsMessageRegExp = "fullMethodName")
     public void testThrowExceptionWithNullMethodName() {
-        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), null, false, false, METADATA);
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), null, false, false, METADATA);
         clientCaller.buildRequest(REQUEST_JSON);
-        GrpcResponse resp = clientCaller.call("10");
-        clientCaller.shutdown();
-        Assert.assertNotNull(resp);
-        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = "Could not extract full service from  ")
     public void testThrowExceptionWithBlankMethodName() {
-        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), " ", false, false, METADATA);
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), " ", false, false, METADATA);
         clientCaller.buildRequest(REQUEST_JSON);
         GrpcResponse resp = clientCaller.call("10");
-        clientCaller.shutdown();
+        clientCaller.shutdownNettyChannel();
         Assert.assertNotNull(resp);
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = "Could not extract full service from ")
     public void testThrowExceptionWithEmptyMethodName() {
-        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), "", false, false, METADATA);
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), "", false, false, METADATA);
         clientCaller.buildRequest(REQUEST_JSON);
         GrpcResponse resp = clientCaller.call("10");
-        clientCaller.shutdown();
+        clientCaller.shutdownNettyChannel();
         Assert.assertNotNull(resp);
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = "Could not extract package name from bookstoreBookstore")
     public void testThrowExceptionWithPackageAndServiceMethodName() {
-        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), "bookstoreBookstore/CreateShelf", false, false, METADATA);
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), "bookstoreBookstore/CreateShelf", false, false, METADATA);
         clientCaller.buildRequest(REQUEST_JSON);
         GrpcResponse resp = clientCaller.call("10");
-        clientCaller.shutdown();
+        clientCaller.shutdownNettyChannel();
         Assert.assertNotNull(resp);
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = "Could not extract service from bookstoreBookstore.")
     public void testThrowExceptionWithInvalidPackagedName() {
-        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), "bookstoreBookstore./CreateShelf", false, false, METADATA);
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), "bookstoreBookstore./CreateShelf", false, false, METADATA);
         clientCaller.buildRequest(REQUEST_JSON);
         GrpcResponse resp = clientCaller.call("10");
-        clientCaller.shutdown();
+        clientCaller.shutdownNettyChannel();
         Assert.assertNotNull(resp);
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = "Could not extract method name from bookstore.Bookstore/")
     public void testThrowExceptionWithInvalidMethodNameWithDoubleSlash() {
-        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), "bookstore.Bookstore/", false, false, METADATA);
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), "bookstore.Bookstore/", false, false, METADATA);
         clientCaller.buildRequest(REQUEST_JSON);
         GrpcResponse resp = clientCaller.call("10");
-        clientCaller.shutdown();
+        clientCaller.shutdownNettyChannel();
         Assert.assertNotNull(resp);
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = "Unable to find service with name: Bookstores")
     public void testThrowExceptionWithInvalidServiceName() {
-        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), "bookstore.Bookstores/CreateShelf", false, false, METADATA);
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), "bookstore.Bookstores/CreateShelf", false, false, METADATA);
         clientCaller.buildRequest(REQUEST_JSON);
-        GrpcResponse resp = clientCaller.call("1000");
-        clientCaller.shutdown();
-        Assert.assertNotNull(resp);
-        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
     }
 
 
     @AfterMethod
     public void cleanMockito() {
         Mockito.clearAllCaches();
+        if (clientCaller != null)
+            clientCaller.shutdownNettyChannel();
+        clientCaller = null;
     }
 
     @AfterClass
-    public void shutdownDummyServer() {
+    public void shutdownDummyServer() throws InterruptedException {
         bookStoreServer.destroy();
-        bookStoreServer.destroyForcibly();
+        if (bookStoreServer.isAlive())
+            bookStoreServer.destroyForcibly();
         helloWorldServer.destroy();
-        helloWorldServer.destroyForcibly();
+        if (helloWorldServer.isAlive())
+            helloWorldServer.destroyForcibly();
         bookStoreTlsServer.destroy();
-        bookStoreTlsServer.destroyForcibly();
+        if (bookStoreTlsServer.isAlive())
+            bookStoreTlsServer.destroyForcibly();
         helloWorldTlsServer.destroy();
-        helloWorldTlsServer.destroyForcibly();
+        if (helloWorldTlsServer.isAlive())
+            helloWorldTlsServer.destroyForcibly();
     }
 
     private void startDummyGrpcServer() throws IOException {

@@ -37,32 +37,38 @@ public class ClientCaller {
     }
 
     private void init(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean tls, boolean disableTtlVerification, String metadata) {
-        HostAndPort hostAndPort = HostAndPort.fromString(HOST_PORT);
-        ProtoMethodName grpcMethodName =
-                ProtoMethodName.parseFullGrpcMethodName(FULL_METHOD);
-
-        ChannelFactory channelFactory = ChannelFactory.create();
-        Map<String, String> metadataMap = buildHashMetadata(metadata);
-        channel = channelFactory.createChannel(hostAndPort, tls, disableTtlVerification, metadataMap);
-        // Fetch the appropriate file descriptors for the service.
-        final DescriptorProtos.FileDescriptorSet fileDescriptorSet;
-
         try {
-            fileDescriptorSet = ProtocInvoker.forConfig(TEST_PROTO_FILES, LIB_FOLDER).invoke();
+            HostAndPort hostAndPort = HostAndPort.fromString(HOST_PORT);
+            ProtoMethodName grpcMethodName =
+                    ProtoMethodName.parseFullGrpcMethodName(FULL_METHOD);
+
+            ChannelFactory channelFactory = ChannelFactory.create();
+            Map<String, String> metadataMap = buildHashMetadata(metadata);
+            channel = channelFactory.createChannel(hostAndPort, tls, disableTtlVerification, metadataMap);
+            // Fetch the appropriate file descriptors for the service.
+            final DescriptorProtos.FileDescriptorSet fileDescriptorSet;
+
+            try {
+                fileDescriptorSet = ProtocInvoker.forConfig(TEST_PROTO_FILES, LIB_FOLDER).invoke();
+            } catch (Throwable t) {
+                shutdownNettyChannel();
+                throw new RuntimeException("Unable to resolve service by invoking protoc", t);
+            }
+
+            // Set up the dynamic client and make the call.
+            ServiceResolver serviceResolver = ServiceResolver.fromFileDescriptorSet(fileDescriptorSet);
+            methodDescriptor = serviceResolver.resolveServiceMethod(grpcMethodName);
+
+            dynamicClient = DynamicGrpcClient.create(methodDescriptor, channel);
+
+            // This collects all known types into a registry for resolution of potential "Any" types.
+            registry = JsonFormat.TypeRegistry.newBuilder()
+                    .add(serviceResolver.listMessageTypes())
+                    .build();
         } catch (Throwable t) {
-            throw new RuntimeException("Unable to resolve service by invoking protoc", t);
+            shutdownNettyChannel();
+            throw t;
         }
-
-        // Set up the dynamic client and make the call.
-        ServiceResolver serviceResolver = ServiceResolver.fromFileDescriptorSet(fileDescriptorSet);
-        methodDescriptor = serviceResolver.resolveServiceMethod(grpcMethodName);
-
-        dynamicClient = DynamicGrpcClient.create(methodDescriptor, channel);
-
-        // This collects all known types into a registry for resolution of potential "Any" types.
-        registry = JsonFormat.TypeRegistry.newBuilder()
-                .add(serviceResolver.listMessageTypes())
-                .build();
     }
 
     private Map<String, String> buildHashMetadata(String metadata) {
@@ -89,6 +95,7 @@ public class ClientCaller {
             requestMessages = Reader.create(methodDescriptor.getInputType(), jsonData, registry).read();
             return JsonFormat.printer().print(requestMessages.get(0));
         } catch (Exception e) {
+            shutdownNettyChannel();
             throw new RuntimeException("Caught exception while parsing request for rpc", e);
         }
     }
@@ -100,6 +107,7 @@ public class ClientCaller {
         try {
             dynamicClient.blockingUnaryCall(requestMessages, streamObserver, callOptions(deadline)).get();
         } catch (Throwable t) {
+            shutdownNettyChannel();
             throw new RuntimeException("Caught exception while waiting for rpc", t);
         }
         return output;
@@ -112,6 +120,7 @@ public class ClientCaller {
         try {
             dynamicClient.callServerStreaming(requestMessages, streamObserver, callOptions(deadline)).get();
         } catch (Throwable t) {
+            shutdownNettyChannel();
             throw new RuntimeException("Caught exception while waiting for rpc", t);
         }
         return output;
@@ -124,6 +133,7 @@ public class ClientCaller {
         try {
             dynamicClient.callClientStreaming(requestMessages, streamObserver, callOptions(deadline)).get();
         } catch (Throwable t) {
+            shutdownNettyChannel();
             throw new RuntimeException("Caught exception while waiting for rpc", t);
         }
         return output;
@@ -136,6 +146,7 @@ public class ClientCaller {
         try {
             dynamicClient.callBidiStreaming(requestMessages, streamObserver, callOptions(deadline)).get();
         } catch (Throwable t) {
+            shutdownNettyChannel();
             throw new RuntimeException("Caught exception while waiting for rpc", t);
         }
         return output;
@@ -149,11 +160,9 @@ public class ClientCaller {
         return result;
     }
 
-    public void shutdown() {
+    public void shutdownNettyChannel() {
         try {
             if (channel != null) {
-                if (channel.isShutdown())
-                    return;
                 channel.shutdown();
                 if (!channel.awaitTermination(5, TimeUnit.SECONDS)) {
                     shutdownNowChannel();

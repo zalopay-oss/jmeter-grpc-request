@@ -18,12 +18,12 @@
         <guava.version>29.0-jre</guava.version>
         <lombok.version>1.18.10</lombok.version>
         <jmeter.core.version>5.4.1</jmeter.core.version>
-        <netty.version>4.1.63.Final</netty.version>
+        <netty.version>4.1.65.Final</netty.version>
         <netty.ssl.version>2.0.39.Final</netty.ssl.version>
         <slf4j.version>1.7.26</slf4j.version>
         <junit.version>4.13.2</junit.version>
-        <os72.protoc.version>3.10.1</os72.protoc.version>
-        <grpc.version>1.37.0</grpc.version>
+        <os72.protoc.version>3.11.4</os72.protoc.version>
+        <grpc.version>1.38.0</grpc.version>
         <protobuf.version>3.17.1</protobuf.version>
         <jcommander.version>1.48</jcommander.version>
         <cmn.jmeter.version>0.6</cmn.jmeter.version>
