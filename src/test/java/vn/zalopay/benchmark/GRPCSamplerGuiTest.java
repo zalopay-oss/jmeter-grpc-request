@@ -20,7 +20,7 @@ public class GRPCSamplerGuiTest {
 
     @Test
     public void testCanShowGui() {
-        if (!GraphicsEnvironment.isHeadless()) {
+//        if (!GraphicsEnvironment.isHeadless()) {
             GRPCSamplerGui grpRequestPluginGUI = new GRPCSamplerGui();
             JFrame frame = new JFrame("Test");
             frame.setPreferredSize(new Dimension(1024, 768));
@@ -29,11 +29,11 @@ public class GRPCSamplerGuiTest {
             frame.setVisible(true);
             Assert.assertNotNull(grpRequestPluginGUI);
             frame.dispose();
-        } else {
-            System.out.println("===============================");
-            System.out.println("===============================");
-            System.out.println("===============================");
-        }
+//        } else {
+//            System.out.println("===============================");
+//            System.out.println("===============================");
+//            System.out.println("===============================");
+//        }
     }
 
 }
