@@ -257,7 +257,7 @@ public class ClientCallerTest {
     public void testThrowExceptionWithTimeoutRequestBidiStream() {
         ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
         clientCaller.buildRequest(REQUEST_JSON);
-        GrpcResponse resp = clientCaller.callBidiStreaming("10");
+        GrpcResponse resp = clientCaller.callBidiStreaming("1");
         clientCaller.shutdown();
         Assert.assertNotNull(resp);
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
