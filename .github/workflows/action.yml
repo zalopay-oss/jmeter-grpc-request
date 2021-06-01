@@ -23,8 +23,6 @@ jobs:
           mvn clean install -Dmaven.test.skip=true
           sudo apt-get update
           sudo apt-get -y install xvfb
-          nohup Xvfb :99 > /dev/null 2>&1 &
-          export DISPLAY=:99
       - name: Check cacert
         run: |
           ls -la
@@ -32,6 +30,8 @@ jobs:
         if: always()
       - name: Run unit test
         run: |
+          nohup Xvfb :99 > /dev/null 2>&1 &
+          export DISPLAY=:99
           mvn test -Djavax.net.ssl.trustStore=dist/cert/cacertslocal -Djavax.net.ssl.trustStorePassword=changeit
         if: always()
       - name: Verify Dummy Log
