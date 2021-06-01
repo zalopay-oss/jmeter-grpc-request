@@ -61,7 +61,7 @@ jobs:
     steps:
       - name: Publish new gRPC plugin to release page
         run: |
-          mvn clean install package -Dmaven.test.skip=true
+          echo "Start to publish plugin to release page"
       - uses: actions/download-artifact@v2
         with:
           name: gRPC-plugin-build
