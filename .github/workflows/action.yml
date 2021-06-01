@@ -28,6 +28,7 @@ jobs:
         if: always()
       - name: Run unit test
         run: |
+          export DISPLAY=localhost:0
           mvn test -Djavax.net.ssl.trustStore=dist/cert/cacertslocal -Djavax.net.ssl.trustStorePassword=changeit
         if: always()
       - name: Verify Dummy Log
