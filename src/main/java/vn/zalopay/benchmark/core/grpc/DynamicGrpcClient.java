@@ -7,6 +7,7 @@ import com.google.protobuf.Descriptors.MethodDescriptor;
 import com.google.protobuf.DynamicMessage;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
+import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor.MethodType;
 import io.grpc.stub.ClientCalls;
 import io.grpc.stub.StreamObserver;
@@ -15,14 +16,14 @@ import vn.zalopay.benchmark.core.channel.DoneObserver;
 
 public class DynamicGrpcClient {
     private final MethodDescriptor protoMethodDescriptor;
-    private final Channel channel;
+    private final ManagedChannel channel;
 
-    public static DynamicGrpcClient create(MethodDescriptor protoMethod, Channel channel) {
+    public static DynamicGrpcClient create(MethodDescriptor protoMethod, ManagedChannel channel) {
         return new DynamicGrpcClient(protoMethod, channel);
     }
 
     @VisibleForTesting
-    DynamicGrpcClient(MethodDescriptor protoMethodDescriptor, Channel channel) {
+    DynamicGrpcClient(MethodDescriptor protoMethodDescriptor, ManagedChannel channel) {
         this.protoMethodDescriptor = protoMethodDescriptor;
         this.channel = channel;
     }
@@ -38,7 +39,6 @@ public class DynamicGrpcClient {
 
     public ListenableFuture<Void> callServerStreaming(ImmutableList<DynamicMessage> requests,
                                                       StreamObserver<DynamicMessage> responseObserver, CallOptions callOptions) {
-        long numRequests = requests.size();
         DoneObserver<DynamicMessage> doneObserver = new DoneObserver<>();
         ClientCalls.asyncServerStreamingCall(this.channel.newCall(createGrpcMethodDescriptor(), callOptions), requests.get(0),
                 ComponentObserver.of(responseObserver, doneObserver));
