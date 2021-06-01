@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" packages="org.apache.jmeter.gui.logging">
+    <Appenders>
+        <Console name="jmeter-log" target="SYSTEM_OUT">
+            <PatternLayout>
+                <pattern>%d %p %c{1.}: %m%n</pattern>
+            </PatternLayout>
+        </Console>
+    </Appenders>
+    <root>
+        <level value="debug"/>
+        <appender-ref ref="jmeter-log"/>
+    </root>
+    <Loggers>
+        <Root level="debug">
+            <AppenderRef ref="jmeter-log"/>
+        </Root>
+        <Logger name="vn.zalopay.benchmark" level="debug">
+            <AppenderRef ref="jmeter-log"/>
+        </Logger>
+        <Logger name="org.apache.jmeter.samplers" level="debug">
+            <AppenderRef ref="jmeter-log"/>
+        </Logger>
+        <Logger name="org.apache.jorphan" level="debug">
+            <AppenderRef ref="jmeter-log"/>
+        </Logger>
+    </Loggers>
+</Configuration>

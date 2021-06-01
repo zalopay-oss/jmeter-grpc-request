@@ -20,16 +20,7 @@ import java.util.List;
 
 import static org.mockito.Mockito.any;
 
-public class ClientListTest {
-
-    private static final Path PROTO_PATH_WITH_INVALID_FILE_PATH =
-            Paths.get(System.getProperty("user.dir"), "dist/benchmark/grpc-server/src/main/resources/protos-v2/shelf.proto1");
-    private static final Path PROTO_WITH_EXTERNAL_IMPORT_FOLDER =
-            Paths.get(System.getProperty("user.dir"), "dist/benchmark/grpc-server/src/main/resources/protos-v2");
-    private static final Path PROTO_FOLDER =
-            Paths.get(System.getProperty("user.dir"), "dist/benchmark/grpc-server/src/main/resources/protos");
-    private static final Path LIB_FOLDER =
-            Paths.get(System.getProperty("user.dir"), "dist/benchmark/grpc-server/src/main/resources/libs");
+public class ClientListTest extends BaseTest{
 
     @Test
     public void testCanListAllMethodsInProtoWithoutExternalLibs() {
@@ -118,15 +109,5 @@ public class ClientListTest {
         files.when(() -> java.nio.file.Files.createTempFile("descriptor", ".pb.bin")).thenThrow(IOException.class);
         files.when(() -> java.nio.file.Files.copy(any(java.io.InputStream.class), any(java.nio.file.Path.class), any(CopyOption[].class))).thenReturn(10000L);
         ClientList.listServices(PROTO_FOLDER.toString(), LIB_FOLDER.toString());
-    }
-
-    @BeforeMethod
-    public void cleanMockBefore() {
-        Mockito.clearAllCaches();
-    }
-
-    @AfterMethod
-    public void cleanMock() {
-        Mockito.clearAllCaches();
     }
 }

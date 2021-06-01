@@ -73,41 +73,37 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     @Override
     public void modifyTestElement(TestElement element) {
         configureTestElement(element);
-
-        if (element instanceof GRPCSampler) {
-            GRPCSampler sampler = (GRPCSampler) element;
-
-            sampler.setProtoFolder(this.protoFolderField.getText());
-            sampler.setLibFolder(this.libFolderField.getText());
-            sampler.setMetadata(this.metadataField.getText());
-            sampler.setHost(this.hostField.getText());
-            sampler.setPort(this.portField.getText());
-            sampler.setFullMethod(this.fullMethodField.getSelectedItem().toString());
-            sampler.setDeadline(this.deadlineField.getText());
-            sampler.setTls(this.isTLSCheckBox.isSelected());
-            sampler.setTlsDisableVerification(this.isTLSDisableVerificationCheckBox.isSelected());
-            sampler.setRequestJson(this.requestJsonArea.getText());
-        }
+        if (!(element instanceof GRPCSampler))
+            return;
+        GRPCSampler sampler = (GRPCSampler) element;
+        sampler.setProtoFolder(this.protoFolderField.getText());
+        sampler.setLibFolder(this.libFolderField.getText());
+        sampler.setMetadata(this.metadataField.getText());
+        sampler.setHost(this.hostField.getText());
+        sampler.setPort(this.portField.getText());
+        sampler.setFullMethod(this.fullMethodField.getSelectedItem().toString());
+        sampler.setDeadline(this.deadlineField.getText());
+        sampler.setTls(this.isTLSCheckBox.isSelected());
+        sampler.setTlsDisableVerification(this.isTLSDisableVerificationCheckBox.isSelected());
+        sampler.setRequestJson(this.requestJsonArea.getText());
     }
 
     @Override
     public void configure(TestElement element) {
         super.configure(element);
-
-        if (element instanceof GRPCSampler) {
-            GRPCSampler sampler = (GRPCSampler) element;
-
-            protoFolderField.setText(sampler.getProtoFolder());
-            libFolderField.setText(sampler.getLibFolder());
-            metadataField.setText(sampler.getMetadata());
-            hostField.setText(sampler.getHost());
-            portField.setText(sampler.getPort());
-            fullMethodField.setSelectedItem(sampler.getFullMethod());
-            deadlineField.setText(sampler.getDeadline());
-            isTLSCheckBox.setSelected(sampler.isTls());
-            isTLSDisableVerificationCheckBox.setSelected(sampler.isTlsDisableVerification());
-            requestJsonArea.setText(sampler.getRequestJson());
-        }
+        if (!(element instanceof GRPCSampler))
+            return;
+        GRPCSampler sampler = (GRPCSampler) element;
+        protoFolderField.setText(sampler.getProtoFolder());
+        libFolderField.setText(sampler.getLibFolder());
+        metadataField.setText(sampler.getMetadata());
+        hostField.setText(sampler.getHost());
+        portField.setText(sampler.getPort());
+        fullMethodField.setSelectedItem(sampler.getFullMethod());
+        deadlineField.setText(sampler.getDeadline());
+        isTLSCheckBox.setSelected(sampler.isTls());
+        isTLSDisableVerificationCheckBox.setSelected(sampler.isTlsDisableVerification());
+        requestJsonArea.setText(sampler.getRequestJson());
     }
 
     @Override

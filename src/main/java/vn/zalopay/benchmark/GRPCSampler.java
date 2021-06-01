@@ -47,10 +47,10 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
     }
 
     private void trace(String s) {
-        if (log.isDebugEnabled()) {
-            log.debug("{} ({}) {} {} {}", Thread.currentThread().getName(), classCount.get(),
-                    getTitle(), s, this.toString());
-        }
+        if (log.isDebugEnabled())
+            return;
+        log.debug("{} ({}) {} {} {}", Thread.currentThread().getName(), classCount.get(),
+                getTitle(), s, this.toString());
     }
 
     private void initGrpcClient() {

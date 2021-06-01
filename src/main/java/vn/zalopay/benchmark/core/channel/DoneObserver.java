@@ -26,7 +26,7 @@ public final class DoneObserver<T> implements StreamObserver<T> {
 
     @Override
     public void onNext(T next) {
-        LOGGER.info("On next gRPC message: {}", next);
+        LOGGER.debug("On next gRPC message: {}", next);
     }
 
     /**
