@@ -86,6 +86,8 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
             }
         } catch (StatusRuntimeException e) {
             errorResult(grpcResponse, sampleResult, e);
+        } finally {
+            clientCaller.shutdown();
         }
         return sampleResult;
     }
