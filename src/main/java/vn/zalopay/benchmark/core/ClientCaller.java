@@ -7,7 +7,6 @@ import com.google.common.net.HostAndPort;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
-import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
 import io.grpc.CallOptions;
 import io.grpc.ManagedChannel;
@@ -44,12 +43,7 @@ public class ClientCaller {
 
         ChannelFactory channelFactory = ChannelFactory.create();
         Map<String, String> metadataMap = buildHashMetadata(metadata);
-        try {
-            channel = channelFactory.createChannel(hostAndPort, tls, disableTtlVerification, metadataMap);
-        } catch (IllegalStateException e) {
-            throw new RuntimeException("Unable to create channel grpc by invoking tls", e);
-        }
-
+        channel = channelFactory.createChannel(hostAndPort, tls, disableTtlVerification, metadataMap);
         // Fetch the appropriate file descriptors for the service.
         final DescriptorProtos.FileDescriptorSet fileDescriptorSet;
 
@@ -91,26 +85,56 @@ public class ClientCaller {
     }
 
     public String buildRequest(String jsonData) {
-        requestMessages = Reader.create(methodDescriptor.getInputType(), jsonData, registry).read();
         try {
+            requestMessages = Reader.create(methodDescriptor.getInputType(), jsonData, registry).read();
             return JsonFormat.printer().print(requestMessages.get(0));
-        } catch (InvalidProtocolBufferException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Caught exception while parsing request for rpc", e);
         }
     }
 
     public GrpcResponse call(String deadlineMs) {
-        long deadline;
-        try {
-            deadline = Long.parseLong(deadlineMs);
-        } catch (Exception e) {
-            throw new RuntimeException("Caught exception while parsing deadline to long", e);
-        }
-
+        long deadline = parsingDeadlineTime(deadlineMs);
         GrpcResponse output = new GrpcResponse();
         StreamObserver<DynamicMessage> streamObserver = ComponentObserver.of(Writer.create(output, registry));
         try {
             dynamicClient.blockingUnaryCall(requestMessages, streamObserver, callOptions(deadline)).get();
+        } catch (Throwable t) {
+            throw new RuntimeException("Caught exception while waiting for rpc", t);
+        }
+        return output;
+    }
+
+    public GrpcResponse callServerStreaming(String deadlineMs) {
+        long deadline = parsingDeadlineTime(deadlineMs);
+        GrpcResponse output = new GrpcResponse();
+        StreamObserver<DynamicMessage> streamObserver = ComponentObserver.of(Writer.create(output, registry));
+        try {
+            dynamicClient.callServerStreaming(requestMessages, streamObserver, callOptions(deadline)).get();
+        } catch (Throwable t) {
+            throw new RuntimeException("Caught exception while waiting for rpc", t);
+        }
+        return output;
+    }
+
+    public GrpcResponse callClientStreaming(String deadlineMs) {
+        long deadline = parsingDeadlineTime(deadlineMs);
+        GrpcResponse output = new GrpcResponse();
+        StreamObserver<DynamicMessage> streamObserver = ComponentObserver.of(Writer.create(output, registry));
+        try {
+            dynamicClient.callClientStreaming(requestMessages, streamObserver, callOptions(deadline)).get();
+        } catch (Throwable t) {
+            throw new RuntimeException("Caught exception while waiting for rpc", t);
+        }
+        return output;
+    }
+
+    public GrpcResponse callBidiStreaming(String deadlineMs) {
+        long deadline = parsingDeadlineTime(deadlineMs);
+        GrpcResponse output = new GrpcResponse();
+        StreamObserver<DynamicMessage> streamObserver = ComponentObserver.of(Writer.create(output, registry));
+        try {
+            dynamicClient.callBidiStreaming(requestMessages, streamObserver, callOptions(deadline)).get();
         } catch (Throwable t) {
             throw new RuntimeException("Caught exception while waiting for rpc", t);
         }
@@ -126,12 +150,19 @@ public class ClientCaller {
     }
 
     public void shutdown() {
-
         try {
             if (channel != null)
                 channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             throw new RuntimeException("Caught exception while shutting down channel", e);
+        }
+    }
+
+    private Long parsingDeadlineTime(String deadlineMs) {
+        try {
+            return Long.parseLong(deadlineMs);
+        } catch (Exception e) {
+            throw new RuntimeException("Caught exception while parsing deadline to long", e);
         }
     }
 

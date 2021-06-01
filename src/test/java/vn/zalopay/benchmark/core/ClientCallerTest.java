@@ -1,5 +1,7 @@
 package vn.zalopay.benchmark.core;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.util.JsonFormat;
 import io.grpc.netty.GrpcSslContexts;
 import io.netty.handler.ssl.ApplicationProtocolConfig;
 import io.netty.handler.ssl.SslContextBuilder;
@@ -10,6 +12,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import vn.zalopay.benchmark.core.protobuf.ProtocInvoker;
 import vn.zalopay.benchmark.core.specification.GrpcResponse;
 
 import javax.net.ssl.SSLException;
@@ -52,9 +55,69 @@ public class ClientCallerTest {
 
     @Test
     public void testCanSendGrpcUnaryRequest() {
+        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, "key1:1,key2:2");
+        clientCaller.buildRequest(REQUEST_JSON);
+        GrpcResponse resp = clientCaller.call("2000");
+        clientCaller.shutdown();
+        Assert.assertNotNull(resp);
+        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
+    }
+
+    @Test
+    public void testCanCallClientStreamingRequest() {
+        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, "key1:1,key2:2");
+        clientCaller.buildRequest(REQUEST_JSON);
+        GrpcResponse resp = clientCaller.callClientStreaming("2000");
+        clientCaller.shutdown();
+        Assert.assertNotNull(resp);
+        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
+    }
+
+    @Test
+    public void testCanCallServerStreamingRequest() {
+        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, "key1:1,key2:2");
+        clientCaller.buildRequest(REQUEST_JSON);
+        GrpcResponse resp = clientCaller.callServerStreaming("2000");
+        clientCaller.shutdown();
+        Assert.assertNotNull(resp);
+        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
+    }
+
+    @Test
+    public void testCanCallBidiStreamingRequest() {
+        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, "key1:1,key2:2");
+        clientCaller.buildRequest(REQUEST_JSON);
+        GrpcResponse resp = clientCaller.callBidiStreaming("2000");
+        clientCaller.shutdown();
+        Assert.assertNotNull(resp);
+        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
+    }
+
+    @Test
+    public void testCanSendRequestWithNegativeTimeoutRequest() {
         ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
         clientCaller.buildRequest(REQUEST_JSON);
-        GrpcResponse resp = clientCaller.call("1000");
+        GrpcResponse resp = clientCaller.call("-10");
+        clientCaller.shutdown();
+        Assert.assertNotNull(resp);
+        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = "Metadata entry must be defined in key1:value1,key2:value2 format: key1=1,key2:2")
+    public void testCanThrowExceptionWithInvalidMetaData() {
+        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, "key1=1,key2:2");
+        clientCaller.buildRequest(REQUEST_JSON);
+        GrpcResponse resp = clientCaller.call("2000");
+        clientCaller.shutdown();
+        Assert.assertNotNull(resp);
+        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
+    }
+
+    @Test
+    public void testCanSendGrpcUnaryRequestWithMetaData() {
+        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
+        clientCaller.buildRequest(REQUEST_JSON);
+        GrpcResponse resp = clientCaller.call("2000");
         clientCaller.shutdown();
         Assert.assertNotNull(resp);
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
@@ -78,6 +141,59 @@ public class ClientCallerTest {
         clientCaller.shutdown();
         Assert.assertNotNull(resp);
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
+    }
+
+    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while parsing deadline to long")
+    public void testThrowExceptionWithInvalidTimeoutFormat() {
+        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
+        clientCaller.buildRequest(REQUEST_JSON);
+        clientCaller.call("1000s");
+    }
+
+    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while parsing deadline to long")
+    public void testThrowExceptionWithBlankTimeoutFormat() {
+        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
+        clientCaller.buildRequest(REQUEST_JSON);
+        clientCaller.call(" ");
+    }
+
+    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while parsing deadline to long")
+    public void testThrowExceptionWithEmptyTimeoutFormat() {
+        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
+        clientCaller.buildRequest(REQUEST_JSON);
+        clientCaller.call("");
+    }
+
+    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while parsing deadline to long")
+    public void testThrowExceptionWithNullTimeoutFormat() {
+        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
+        clientCaller.buildRequest(REQUEST_JSON);
+        clientCaller.call(null);
+    }
+
+    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while parsing request for rpc")
+    public void testThrowExceptionWithInvalidRequestJson() {
+        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
+        clientCaller.buildRequest("{shelf:{\"id\":1599156420811,\"theme\":\"Hello server!!\".}}");
+        clientCaller.call("1000");
+    }
+
+    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while parsing request for rpc")
+    public void testThrowExceptionWithParsingRequestToJson() {
+        MockedStatic<com.google.protobuf.util.JsonFormat> jsonFormat = Mockito.mockStatic(com.google.protobuf.util.JsonFormat.class);
+        jsonFormat.when(JsonFormat::printer).then((i) -> new InvalidProtocolBufferException("Dummy Exception"));
+        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
+        clientCaller.buildRequest("{shelf:{\"id\":1599156420811,\"theme\":\"Hello server!!\".}}");
+        clientCaller.call("1000");
+    }
+
+    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Unable to resolve service by invoking protoc")
+    public void testThrowExceptionWithExceptionInProtocInvoke() {
+        MockedStatic<ProtocInvoker> protocInvoker = Mockito.mockStatic(ProtocInvoker.class);
+        protocInvoker.when(() -> ProtocInvoker.forConfig(Mockito.anyString(), Mockito.anyString()).invoke()).thenThrow(new RuntimeException("Dummy Exception"));
+        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
+        clientCaller.buildRequest("{shelf:{\"id\":1599156420811,\"theme\":\"Hello server!!\"}}");
+        clientCaller.call("1000s");
     }
 
     @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Error in create SSL connection!")
@@ -107,6 +223,127 @@ public class ClientCallerTest {
         );
         new ClientCaller("localhost:1231", PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, true, true, METADATA);
     }
+
+    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while waiting for rpc")
+    public void testThrowExceptionWithTimeoutRequest() {
+        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
+        clientCaller.buildRequest(REQUEST_JSON);
+        GrpcResponse resp = clientCaller.call("10");
+        clientCaller.shutdown();
+        Assert.assertNotNull(resp);
+        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
+    }
+
+    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while waiting for rpc")
+    public void testThrowExceptionWithTimeoutRequestServerStream() {
+        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
+        clientCaller.buildRequest(REQUEST_JSON);
+        GrpcResponse resp = clientCaller.callServerStreaming("10");
+        clientCaller.shutdown();
+        Assert.assertNotNull(resp);
+        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
+    }
+
+    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while waiting for rpc")
+    public void testThrowExceptionWithTimeoutRequestClientStream() {
+        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
+        clientCaller.buildRequest(REQUEST_JSON);
+        GrpcResponse resp = clientCaller.callClientStreaming("10");
+        clientCaller.shutdown();
+        Assert.assertNotNull(resp);
+        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
+    }
+
+    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while waiting for rpc")
+    public void testThrowExceptionWithTimeoutRequestBidiStream() {
+        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
+        clientCaller.buildRequest(REQUEST_JSON);
+        GrpcResponse resp = clientCaller.callBidiStreaming("10");
+        clientCaller.shutdown();
+        Assert.assertNotNull(resp);
+        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
+    }
+
+    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Unable to find method invalidName in service Bookstore")
+    public void testThrowExceptionWithInvalidMethodName() {
+        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), "bookstore.Bookstore/invalidName", false, false, METADATA);
+        clientCaller.buildRequest(REQUEST_JSON);
+        GrpcResponse resp = clientCaller.call("10");
+        clientCaller.shutdown();
+        Assert.assertNotNull(resp);
+        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
+    }
+
+    @Test(expectedExceptions = NullPointerException.class, expectedExceptionsMessageRegExp = "fullMethodName")
+    public void testThrowExceptionWithNullMethodName() {
+        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), null, false, false, METADATA);
+        clientCaller.buildRequest(REQUEST_JSON);
+        GrpcResponse resp = clientCaller.call("10");
+        clientCaller.shutdown();
+        Assert.assertNotNull(resp);
+        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = "Could not extract full service from  ")
+    public void testThrowExceptionWithBlankMethodName() {
+        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), " ", false, false, METADATA);
+        clientCaller.buildRequest(REQUEST_JSON);
+        GrpcResponse resp = clientCaller.call("10");
+        clientCaller.shutdown();
+        Assert.assertNotNull(resp);
+        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = "Could not extract full service from ")
+    public void testThrowExceptionWithEmptyMethodName() {
+        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), "", false, false, METADATA);
+        clientCaller.buildRequest(REQUEST_JSON);
+        GrpcResponse resp = clientCaller.call("10");
+        clientCaller.shutdown();
+        Assert.assertNotNull(resp);
+        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = "Could not extract package name from bookstoreBookstore")
+    public void testThrowExceptionWithPackageAndServiceMethodName() {
+        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), "bookstoreBookstore/CreateShelf", false, false, METADATA);
+        clientCaller.buildRequest(REQUEST_JSON);
+        GrpcResponse resp = clientCaller.call("10");
+        clientCaller.shutdown();
+        Assert.assertNotNull(resp);
+        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = "Could not extract service from bookstoreBookstore.")
+    public void testThrowExceptionWithInvalidPackagedName() {
+        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), "bookstoreBookstore./CreateShelf", false, false, METADATA);
+        clientCaller.buildRequest(REQUEST_JSON);
+        GrpcResponse resp = clientCaller.call("10");
+        clientCaller.shutdown();
+        Assert.assertNotNull(resp);
+        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = "Could not extract method name from bookstore.Bookstore/")
+    public void testThrowExceptionWithInvalidMethodNameWithDoubleSlash() {
+        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), "bookstore.Bookstore/", false, false, METADATA);
+        clientCaller.buildRequest(REQUEST_JSON);
+        GrpcResponse resp = clientCaller.call("10");
+        clientCaller.shutdown();
+        Assert.assertNotNull(resp);
+        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = "Unable to find service with name: Bookstores")
+    public void testThrowExceptionWithInvalidServiceName() {
+        ClientCaller clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), "bookstore.Bookstores/CreateShelf", false, false, METADATA);
+        clientCaller.buildRequest(REQUEST_JSON);
+        GrpcResponse resp = clientCaller.call("1000");
+        clientCaller.shutdown();
+        Assert.assertNotNull(resp);
+        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
+    }
+
 
     @AfterMethod
     public void cleanMockito() {

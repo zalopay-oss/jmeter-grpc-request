@@ -36,6 +36,35 @@ public class DynamicGrpcClient {
         return doneObserver.getCompletionFuture();
     }
 
+    public ListenableFuture<Void> callServerStreaming(ImmutableList<DynamicMessage> requests,
+                                                      StreamObserver<DynamicMessage> responseObserver, CallOptions callOptions) {
+        long numRequests = requests.size();
+        DoneObserver<DynamicMessage> doneObserver = new DoneObserver<>();
+        ClientCalls.asyncServerStreamingCall(this.channel.newCall(createGrpcMethodDescriptor(), callOptions), requests.get(0),
+                ComponentObserver.of(responseObserver, doneObserver));
+        return doneObserver.getCompletionFuture();
+    }
+
+    public ListenableFuture<Void> callClientStreaming(ImmutableList<DynamicMessage> requests,
+                                                      StreamObserver<DynamicMessage> responseObserver, CallOptions callOptions) {
+        DoneObserver<DynamicMessage> doneObserver = new DoneObserver<>();
+        StreamObserver<DynamicMessage> requestObserver = ClientCalls.asyncClientStreamingCall(
+                this.channel.newCall(createGrpcMethodDescriptor(), callOptions), ComponentObserver.of(responseObserver, doneObserver));
+        requests.forEach(requestObserver::onNext);
+        requestObserver.onCompleted();
+        return doneObserver.getCompletionFuture();
+    }
+
+    public ListenableFuture<Void> callBidiStreaming(ImmutableList<DynamicMessage> requests,
+                                                    StreamObserver<DynamicMessage> responseObserver, CallOptions callOptions) {
+        DoneObserver<DynamicMessage> doneObserver = new DoneObserver<>();
+        StreamObserver<DynamicMessage> requestObserver = ClientCalls.asyncBidiStreamingCall(
+                this.channel.newCall(createGrpcMethodDescriptor(), callOptions), ComponentObserver.of(responseObserver, doneObserver));
+        requests.forEach(requestObserver::onNext);
+        requestObserver.onCompleted();
+        return doneObserver.getCompletionFuture();
+    }
+
     private io.grpc.MethodDescriptor<DynamicMessage, DynamicMessage> createGrpcMethodDescriptor() {
         return io.grpc.MethodDescriptor.<DynamicMessage, DynamicMessage>newBuilder()
                 .setFullMethodName(getFullMethodName())
