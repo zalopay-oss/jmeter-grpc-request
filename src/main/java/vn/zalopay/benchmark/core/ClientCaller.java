@@ -152,6 +152,8 @@ public class ClientCaller {
     public void shutdown() {
         try {
             if (channel != null) {
+                if (channel.isShutdown())
+                    return;
                 channel.shutdown();
                 if (!channel.awaitTermination(5, TimeUnit.SECONDS)) {
                     shutdownNowChannel();
