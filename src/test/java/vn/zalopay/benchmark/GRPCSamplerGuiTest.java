@@ -21,13 +21,13 @@ public class GRPCSamplerGuiTest {
     @Test
     public void testCanShowGui() {
         if (!GraphicsEnvironment.isHeadless()) {
-            GRPCSamplerGui grpRquestPluginGUI = new GRPCSamplerGui();
+            GRPCSamplerGui grpRequestPluginGUI = new GRPCSamplerGui();
             JFrame frame = new JFrame("Test");
             frame.setPreferredSize(new Dimension(1024, 768));
-            frame.getContentPane().add(grpRquestPluginGUI, BorderLayout.CENTER);
+            frame.getContentPane().add(grpRequestPluginGUI, BorderLayout.CENTER);
             frame.pack();
             frame.setVisible(true);
-            Assert.assertNotNull(grpRquestPluginGUI);
+            Assert.assertNotNull(grpRequestPluginGUI);
             frame.dispose();
         } else {
             System.out.println("===============================");
