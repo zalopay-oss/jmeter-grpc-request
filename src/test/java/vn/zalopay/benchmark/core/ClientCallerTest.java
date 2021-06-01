@@ -23,7 +23,6 @@ import java.nio.file.Paths;
 
 import static org.mockito.Mockito.any;
 
-
 public class ClientCallerTest {
     private static final String GRPC_DUMMY_SERVER_JAR = "gprc-server-1.0-SNAPSHOT.jar";
     private static final Path GRPC_DUMMY_SERVER_FOLDER = Paths.get(System.getProperty("user.dir"), "/dist/benchmark/grpc-server/dist");

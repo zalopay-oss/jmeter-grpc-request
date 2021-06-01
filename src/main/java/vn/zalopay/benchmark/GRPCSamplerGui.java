@@ -159,7 +159,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     }
 
     private JPanel getRequestJSONPanel() {
-        requestJsonArea = JSyntaxTextArea.getInstance(30, 50);// $NON-NLS-1$
+        requestJsonArea = new JSyntaxTextArea(30, 50);
         requestJsonArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JSON);
 
         JPanel webServerPanel = new JPanel(new BorderLayout());
@@ -167,7 +167,8 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
                 BorderFactory.createEmptyBorder(9, 0, 0, 0),
                 BorderFactory.createTitledBorder("Send JSON Format With the Request")
         ));
-        webServerPanel.add(JTextScrollPane.getInstance(requestJsonArea));
+        JTextScrollPane syntaxPanel = new JTextScrollPane(requestJsonArea);
+        webServerPanel.add(syntaxPanel);
         return webServerPanel;
     }
 

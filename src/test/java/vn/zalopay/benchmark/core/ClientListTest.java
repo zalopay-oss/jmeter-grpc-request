@@ -20,7 +20,6 @@ import java.util.List;
 
 import static org.mockito.Mockito.any;
 
-
 public class ClientListTest {
 
     private static final Path PROTO_PATH_WITH_INVALID_FILE_PATH =

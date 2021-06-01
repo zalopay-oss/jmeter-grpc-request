@@ -151,8 +151,12 @@ public class ClientCaller {
 
     public void shutdown() {
         try {
-            if (channel != null)
-                channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+            if (channel != null) {
+                Boolean isShutdown = channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+                if (!isShutdown) {
+                    channel.shutdownNow();
+                }
+            }
         } catch (InterruptedException e) {
             throw new RuntimeException("Caught exception while shutting down channel", e);
         }
