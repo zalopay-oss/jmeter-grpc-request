@@ -1,14 +1,14 @@
 package vn.zalopay.benchmark.core;
 
 import com.google.common.net.HostAndPort;
-import org.apache.jmeter.engine.StandardJMeterEngine;
 import org.apache.jmeter.samplers.SampleResult;
-import org.apache.jmeter.threads.SetupThreadGroup;
-import org.apache.jmeter.threads.ThreadGroup;
+import org.apache.log4j.Appender;
+import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import vn.zalopay.benchmark.GRPCSampler;
-import vn.zalopay.benchmark.GRPCSamplerGui;
 
 public class GrpcSamplerTest extends BaseTest {
 
@@ -33,7 +33,7 @@ public class GrpcSamplerTest extends BaseTest {
     }
 
     @Test
-    public void testCanSendSampleRequestBaseThreadStart() {
+    public void testCanSendSampleRequestWithThreadStart() {
         HostAndPort hostAndPort = HostAndPort.fromString(HOST_PORT);
         GRPCSampler grpcSampler = new GRPCSampler();
         grpcSampler.setComment("dummyComment");
