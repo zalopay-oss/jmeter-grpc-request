@@ -55,15 +55,12 @@ public class ClientListTest extends BaseTest {
     @Test
     public void testCanListAllMethodsInProtoWithNullLibFolderPath() {
         // Arrange
-        List<String> methods = ClientList.listServices(PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), null);
+        List<String> methods = ClientList.listServices(PROTO_FOLDER.toString(), null);
 
         // Action
         List<String> list = Arrays.asList(
-                "bookstore.Bookstore/ListShelves",
-                "bookstore.Bookstore/CreateShelf",
-                "bookstore.Bookstore/GetShelfStreamClient",
-                "bookstore.Bookstore/GetShelfStreamServer",
-                "bookstore.Bookstore/GetShelfStreamBidi"
+                "data_services_seg.SegmentServices/checkSeg",
+                "helloworld.Greeter/SayHello"
         );
 
         // Assertion
@@ -78,13 +75,6 @@ public class ClientListTest extends BaseTest {
     @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Unable to resolve service by invoking protoc")
     public void testThrowExceptionWhenInvokeProtocPathWithFilePath() {
         ClientList.listServices(PROTO_PATH_WITH_INVALID_FILE_PATH.toString(), LIB_FOLDER.toString());
-    }
-
-    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Unable to resolve service by invoking protoc")
-    public void testThrowExceptionWhenInvokeProtocPathWithCantCreateTempFolder() {
-        MockedStatic<FileUtils> fileUtils = Mockito.mockStatic(FileUtils.class);
-        fileUtils.when(() -> FileUtils.copyDirectory(any(File.class), any(File.class))).thenThrow(IOException.class);
-        ClientList.listServices(PROTO_FOLDER.toString(), LIB_FOLDER.toString());
     }
 
     @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Unable to resolve service by invoking protoc")

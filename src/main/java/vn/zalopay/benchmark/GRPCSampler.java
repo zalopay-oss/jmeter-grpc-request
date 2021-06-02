@@ -83,8 +83,6 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
             sampleResult.setResponseCodeOK();
         } catch (RuntimeException e) {
             errorResult(grpcResponse, sampleResult, e);
-        } finally {
-            clientCaller.shutdownNettyChannel();
         }
         return sampleResult;
     }
@@ -102,7 +100,6 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
     @Override
     public void threadFinished() {
         log.info("{}\ttestEnded", whoAmI());
-
         if (clientCaller != null) {
             clientCaller.shutdownNettyChannel();
         }

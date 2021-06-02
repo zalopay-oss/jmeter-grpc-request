@@ -5,15 +5,12 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.net.URL;
 import java.nio.file.*;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -86,7 +83,6 @@ public class ProtocInvoker {
         Path googleTypesInclude;
         try {
             wellKnownTypesInclude = setupWellKnownTypes();
-            googleTypesInclude = setupGoogleTypes();
         } catch (IOException e) {
             throw new ProtocInvocationException("Unable to extract well known types", e);
         }
@@ -100,7 +96,7 @@ public class ProtocInvoker {
 
         ImmutableList<String> protocArgs = ImmutableList.<String>builder()
                 .addAll(scanProtoFiles(discoveryRoot))
-                .addAll(includePathArgs(wellKnownTypesInclude, googleTypesInclude))
+                .addAll(includePathArgs(wellKnownTypesInclude))
                 .add("--descriptor_set_out=" + descriptorPath.toAbsolutePath().toString())
                 .add("--include_imports")
                 .build();
@@ -113,7 +109,7 @@ public class ProtocInvoker {
         }
     }
 
-    private ImmutableList<String> includePathArgs(Path wellKnownTypesInclude, Path googleTypesInclude) {
+    private ImmutableList<String> includePathArgs(Path wellKnownTypesInclude) {
         ImmutableList.Builder<String> resultBuilder = ImmutableList.builder();
         for (Path path : protocIncludePaths) {
             resultBuilder.add("-I" + path.toString());
@@ -122,7 +118,6 @@ public class ProtocInvoker {
         // Add the include path which makes sure that protoc finds the well known types. Note that we
         // add this *after* the user types above in case users want to provide their own well known
         // types.
-        resultBuilder.add("-I" + googleTypesInclude.toString());
         resultBuilder.add("-I" + wellKnownTypesInclude.toString());
 
         // Protoc requires that all files being compiled are present in the subtree rooted at one of
@@ -187,15 +182,6 @@ public class ProtocInvoker {
                     ProtocInvoker.class.getResourceAsStream("/google/protobuf/" + file),
                     Paths.get(protoDir.toString(), file));
         }
-        return tmpdir;
-    }
-
-    private static Path setupGoogleTypes() throws IOException {
-        ClassLoader classLoader = ProtocInvoker.class.getClassLoader();
-        URL googleProtoResources = classLoader.getResource("google");
-        File googleProtoResourcesDir = new File(googleProtoResources.getPath());
-        Path tmpdir = Files.createTempDirectory("polyglot-google-types");
-        FileUtils.copyDirectory(googleProtoResourcesDir, new File(Paths.get(tmpdir.toString(), "google").toString()));
         return tmpdir;
     }
 
