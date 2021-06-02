@@ -23,7 +23,7 @@ public class ClientCallerTest extends BaseTest {
     public void testCanSendGrpcUnaryRequest() {
         clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, "key1:1,key2:2");
         clientCaller.buildRequest(REQUEST_JSON);
-        GrpcResponse resp = clientCaller.call("2000");
+        GrpcResponse resp = clientCaller.call("5000");
         clientCaller.shutdownNettyChannel();
         Assert.assertNotNull(resp);
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
@@ -33,7 +33,7 @@ public class ClientCallerTest extends BaseTest {
     public void testCanCallClientStreamingRequest() {
         clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, "key1:1,key2:2");
         clientCaller.buildRequest(REQUEST_JSON);
-        GrpcResponse resp = clientCaller.callClientStreaming("2000");
+        GrpcResponse resp = clientCaller.callClientStreaming("5000");
         clientCaller.shutdownNettyChannel();
         Assert.assertNotNull(resp);
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
@@ -43,7 +43,7 @@ public class ClientCallerTest extends BaseTest {
     public void testCanCallServerStreamingRequest() {
         clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, "key1:1,key2:2");
         clientCaller.buildRequest(REQUEST_JSON);
-        GrpcResponse resp = clientCaller.callServerStreaming("2000");
+        GrpcResponse resp = clientCaller.callServerStreaming("5000");
         clientCaller.shutdownNettyChannel();
         Assert.assertNotNull(resp);
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
@@ -53,7 +53,7 @@ public class ClientCallerTest extends BaseTest {
     public void testCanCallBidiStreamingRequest() {
         clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, "key1:1,key2:2");
         clientCaller.buildRequest(REQUEST_JSON);
-        GrpcResponse resp = clientCaller.callBidiStreaming("3000");
+        GrpcResponse resp = clientCaller.callBidiStreaming("5000");
         clientCaller.shutdownNettyChannel();
         Assert.assertNotNull(resp);
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));

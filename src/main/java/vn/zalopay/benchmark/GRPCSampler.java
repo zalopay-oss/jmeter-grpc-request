@@ -66,15 +66,14 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
 
     @Override
     public SampleResult sample(Entry ignored) {
-        initGrpcClient();
-        SampleResult sampleResult = new SampleResult();
-        sampleResult.setSampleLabel(getName());
-        String grpcRequest = clientCaller.buildRequest(getRequestJson());
-        sampleResult.setSamplerData(grpcRequest);
-        sampleResult.sampleStart();
         GrpcResponse grpcResponse = new GrpcResponse();
-
+        SampleResult sampleResult = new SampleResult();
         try {
+            initGrpcClient();
+            sampleResult.setSampleLabel(getName());
+            String grpcRequest = clientCaller.buildRequest(getRequestJson());
+            sampleResult.setSamplerData(grpcRequest);
+            sampleResult.sampleStart();
             grpcResponse = clientCaller.call(getDeadline());
             sampleResult.sampleEnd();
             sampleResult.setSuccessful(true);
