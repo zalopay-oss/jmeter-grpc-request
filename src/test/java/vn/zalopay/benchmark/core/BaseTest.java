@@ -2,7 +2,10 @@ package vn.zalopay.benchmark.core;
 
 import kg.apc.emulators.TestJMeterUtils;
 import org.mockito.Mockito;
-import org.testng.annotations.*;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeSuite;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,7 +44,7 @@ public class BaseTest {
     }
 
     @BeforeMethod
-    public void cleanMockitoBeforeMethod(){
+    public void cleanMockitoBeforeMethod() {
         Mockito.clearAllCaches();
     }
 
@@ -73,10 +76,10 @@ public class BaseTest {
         File javaHome = new File(System.getProperty("java.home"), "bin");
         String javaPath = javaHome + File.separator + "java";
         String startClassPathCommand = String.format("%s", Paths.get(GRPC_DUMMY_SERVER_FOLDER.toString(), GRPC_DUMMY_SERVER_JAR.toString()).toString());
-        ProcessBuilder startBookStoreGRPCServerProcessBuilder = new ProcessBuilder(javaPath, "-cp", startClassPathCommand, "server.BookStoreServer");
-        ProcessBuilder startHelloWorldGRPCServerProcessBuilder = new ProcessBuilder(javaPath, "-cp", startClassPathCommand, "server.HelloWorldServer");
-        ProcessBuilder startBookStoreTlsGRPCServerProcessBuilder = new ProcessBuilder(javaPath, "-cp", startClassPathCommand, "server.BookStoreServerTls");
-        ProcessBuilder startHelloWorldTlsGRPCServerProcessBuilder = new ProcessBuilder(javaPath, "-cp", startClassPathCommand, "server.HelloWorldServerTls");
+        ProcessBuilder startBookStoreGRPCServerProcessBuilder = new ProcessBuilder(new String[]{javaPath, "-cp", startClassPathCommand, "server.BookStoreServer"});
+        ProcessBuilder startHelloWorldGRPCServerProcessBuilder = new ProcessBuilder(new String[]{javaPath, "-cp", startClassPathCommand, "server.HelloWorldServer"});
+        ProcessBuilder startBookStoreTlsGRPCServerProcessBuilder = new ProcessBuilder(new String[]{javaPath, "-cp", startClassPathCommand, "server.BookStoreServerTls"});
+        ProcessBuilder startHelloWorldTlsGRPCServerProcessBuilder = new ProcessBuilder(new String[]{javaPath, "-cp", startClassPathCommand, "server.HelloWorldServerTls"});
         dummyLog = new File("grpc-dummy-server.log");
         startBookStoreGRPCServerProcessBuilder.redirectError(ProcessBuilder.Redirect.appendTo(dummyLog));
         startHelloWorldGRPCServerProcessBuilder.redirectError(ProcessBuilder.Redirect.appendTo(dummyLog));
