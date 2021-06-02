@@ -58,7 +58,9 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: gRPC-JMeter-plugin
-          path: ./target/jmeter-grpc-request.jar
+          path: |
+            ./target/jmeter-grpc-request.jar
+            README.md
   release-plugin:
     runs-on: ubuntu-latest
     needs: [build-plugin]
