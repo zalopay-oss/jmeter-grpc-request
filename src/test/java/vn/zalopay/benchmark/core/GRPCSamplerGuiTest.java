@@ -8,6 +8,8 @@ import vn.zalopay.benchmark.GRPCSamplerGui;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.lang.reflect.Field;
 
 
 public class GRPCSamplerGuiTest extends BaseTest {
@@ -102,6 +104,7 @@ public class GRPCSamplerGuiTest extends BaseTest {
         frame.pack();
         frame.setVisible(true);
         grpRequestPluginGUI.configure(debugSampler);
+        Assert.assertNotNull(grpRequestPluginGUI);
         frame.dispose();
     }
 
@@ -115,6 +118,81 @@ public class GRPCSamplerGuiTest extends BaseTest {
         frame.pack();
         frame.setVisible(true);
         grpRequestPluginGUI.modifyTestElement(debugSampler);
+        Assert.assertNotNull(grpRequestPluginGUI);
         frame.dispose();
     }
+
+    @Test
+    public void verifyCanPerformGetMethodName() throws NoSuchFieldException, IllegalAccessException, InterruptedException {
+        GRPCSamplerGui grpRequestPluginGUI = new GRPCSamplerGui();
+        Field fullMethodButtonField = GRPCSamplerGui.class.
+                getDeclaredField("fullMethodButton");
+        Field fullMethodField = GRPCSamplerGui.class.
+                getDeclaredField("fullMethodField");
+        fullMethodField.setAccessible(true);
+        fullMethodButtonField.setAccessible(true);
+        JButton fullMethodButton = (JButton) fullMethodButtonField.get(grpRequestPluginGUI);
+        JComboBox<String> fullMethodComboBox = (JComboBox<String>) fullMethodField.get(grpRequestPluginGUI);
+        JFrame frame = new JFrame("Test");
+        frame.setPreferredSize(new Dimension(1024, 768));
+        frame.getContentPane().add(grpRequestPluginGUI, BorderLayout.CENTER);
+        frame.pack();
+        frame.setVisible(true);
+        GRPCSampler grpcSampler = new GRPCSampler();
+        grpcSampler.setComment("dummyComment");
+        grpcSampler.setProtoFolder(PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString());
+        grpcSampler.setLibFolder(LIB_FOLDER.toString());
+        grpcSampler.setMetadata("dummyMetadata");
+        grpcSampler.setHost("dummyHost");
+        grpcSampler.setPort("dummyPort");
+        grpcSampler.setFullMethod("");
+        grpcSampler.setDeadline("500");
+        grpcSampler.setTls(true);
+        grpcSampler.setTlsDisableVerification(true);
+        grpcSampler.setRequestJson("dummyRequest");
+        grpRequestPluginGUI.configure(grpcSampler);
+        fullMethodButton.doClick();
+        Assert.assertEquals(fullMethodComboBox.getSelectedItem(), "bookstore.Bookstore/ListShelves");
+        Assert.assertNotNull(grpcSampler);
+        Assert.assertNotNull(grpRequestPluginGUI);
+        frame.dispose();
+    }
+
+    @Test
+    public void verifyCantPerformGetMethodName() throws NoSuchFieldException, IllegalAccessException, InterruptedException {
+        GRPCSamplerGui grpRequestPluginGUI = new GRPCSamplerGui();
+        Field fullMethodButtonField = GRPCSamplerGui.class.
+                getDeclaredField("fullMethodButton");
+        Field fullMethodField = GRPCSamplerGui.class.
+                getDeclaredField("fullMethodField");
+        fullMethodField.setAccessible(true);
+        fullMethodButtonField.setAccessible(true);
+        JButton fullMethodButton = (JButton) fullMethodButtonField.get(grpRequestPluginGUI);
+        JComboBox<String> fullMethodComboBox = (JComboBox<String>) fullMethodField.get(grpRequestPluginGUI);
+        JFrame frame = new JFrame("Test");
+        frame.setPreferredSize(new Dimension(1024, 768));
+        frame.getContentPane().add(grpRequestPluginGUI, BorderLayout.CENTER);
+        frame.pack();
+        frame.setVisible(true);
+        GRPCSampler grpcSampler = new GRPCSampler();
+        grpcSampler.setComment("dummyComment");
+        grpcSampler.setProtoFolder("");
+        grpcSampler.setLibFolder(LIB_FOLDER.toString());
+        grpcSampler.setMetadata("dummyMetadata");
+        grpcSampler.setHost("dummyHost");
+        grpcSampler.setPort("dummyPort");
+        grpcSampler.setFullMethod("");
+        grpcSampler.setDeadline("500");
+        grpcSampler.setTls(true);
+        grpcSampler.setTlsDisableVerification(true);
+        grpcSampler.setRequestJson("dummyRequest");
+        grpRequestPluginGUI.configure(grpcSampler);
+        fullMethodButton.doClick();
+        Assert.assertEquals(fullMethodComboBox.getSelectedItem(), "");
+        Assert.assertNotNull(grpcSampler);
+        Assert.assertNotNull(grpRequestPluginGUI);
+        frame.dispose();
+    }
+
+
 }

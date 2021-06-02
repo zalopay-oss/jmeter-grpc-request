@@ -1,6 +1,5 @@
 package vn.zalopay.benchmark;
 
-import io.grpc.StatusRuntimeException;
 import org.apache.jmeter.samplers.AbstractSampler;
 import org.apache.jmeter.samplers.Entry;
 import org.apache.jmeter.samplers.SampleResult;
@@ -74,19 +73,16 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
         sampleResult.setSamplerData(grpcRequest);
         sampleResult.sampleStart();
         GrpcResponse grpcResponse = new GrpcResponse();
+
         try {
-            try {
-                grpcResponse = clientCaller.call(getDeadline());
-                sampleResult.sampleEnd();
-                sampleResult.setSuccessful(true);
-                sampleResult.setResponseData(grpcResponse.getGrpcMessageString().getBytes(StandardCharsets.UTF_8));
-                sampleResult.setResponseMessage("Success");
-                sampleResult.setDataType(SampleResult.TEXT);
-                sampleResult.setResponseCodeOK();
-            } catch (RuntimeException e) {
-                errorResult(grpcResponse, sampleResult, e);
-            }
-        } catch (StatusRuntimeException e) {
+            grpcResponse = clientCaller.call(getDeadline());
+            sampleResult.sampleEnd();
+            sampleResult.setSuccessful(true);
+            sampleResult.setResponseData(grpcResponse.getGrpcMessageString().getBytes(StandardCharsets.UTF_8));
+            sampleResult.setResponseMessage("Success");
+            sampleResult.setDataType(SampleResult.TEXT);
+            sampleResult.setResponseCodeOK();
+        } catch (RuntimeException e) {
             errorResult(grpcResponse, sampleResult, e);
         } finally {
             clientCaller.shutdownNettyChannel();
