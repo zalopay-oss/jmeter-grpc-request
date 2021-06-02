@@ -96,6 +96,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PUBLISH_RELEASE_TOKEN }}
         with:
+          body_path: README.md
           files: |
             jmeter-grpc-request.jar
-            README.md
