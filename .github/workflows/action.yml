@@ -58,7 +58,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: gRPC-JMeter-plugin
-          path: ./target/jmeter-grpc-request-1.1.2.jar
+          path: ./target/jmeter-grpc-request.jar
   release-plugin:
     runs-on: ubuntu-latest
     needs: [build-plugin]
@@ -69,4 +69,23 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: gRPC-JMeter-plugin
-      - run: ls .
+      - name: Get release version
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        with:
+          tag_name: ${{ env.RELEASE_VERSION }}
+          release_name: Release ${{ env.RELEASE_VERSION }}
+          draft: false
+          prerelease: false
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.PUBLISH_RELEASE_TOKEN }}
+        with:
+          files: |
+            jmeter-grpc-request.jar
+            README.md
