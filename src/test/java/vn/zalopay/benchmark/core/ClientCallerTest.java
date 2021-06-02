@@ -200,7 +200,7 @@ public class ClientCallerTest extends BaseTest {
 
     @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while waiting for rpc")
     public void testThrowExceptionWithTimeoutRequestServerStream() {
-        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), "bookstore.Bookstore/GetShelfStreamServer", false, false, METADATA);
         clientCaller.buildRequest(REQUEST_JSON);
         GrpcResponse resp = clientCaller.callServerStreaming("1");
         clientCaller.shutdownNettyChannel();
@@ -210,7 +210,7 @@ public class ClientCallerTest extends BaseTest {
 
     @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while waiting for rpc")
     public void testThrowExceptionWithTimeoutRequestClientStream() {
-        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), "bookstore.Bookstore/GetShelfStreamClient", false, false, METADATA);
         clientCaller.buildRequest(REQUEST_JSON);
         GrpcResponse resp = clientCaller.callClientStreaming("1");
         clientCaller.shutdownNettyChannel();
@@ -220,7 +220,7 @@ public class ClientCallerTest extends BaseTest {
 
     @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while waiting for rpc")
     public void testThrowExceptionWithTimeoutRequestBidiStream() {
-        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), "bookstore.Bookstore/GetShelfStreamBidi", false, false, METADATA);
         clientCaller.buildRequest(REQUEST_JSON);
         GrpcResponse resp = clientCaller.callBidiStreaming("1");
         clientCaller.shutdownNettyChannel();

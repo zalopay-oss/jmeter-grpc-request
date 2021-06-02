@@ -5,8 +5,6 @@ import org.apache.commons.io.FileUtils;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.Assert;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -14,13 +12,12 @@ import java.io.IOException;
 import java.nio.file.CopyOption;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.Mockito.any;
 
-public class ClientListTest extends BaseTest{
+public class ClientListTest extends BaseTest {
 
     @Test
     public void testCanListAllMethodsInProtoWithoutExternalLibs() {
@@ -45,7 +42,10 @@ public class ClientListTest extends BaseTest{
         // Action
         List<String> list = Arrays.asList(
                 "bookstore.Bookstore/ListShelves",
-                "bookstore.Bookstore/CreateShelf"
+                "bookstore.Bookstore/CreateShelf",
+                "bookstore.Bookstore/GetShelfStreamClient",
+                "bookstore.Bookstore/GetShelfStreamServer",
+                "bookstore.Bookstore/GetShelfStreamBidi"
         );
 
         // Assertion
@@ -60,7 +60,10 @@ public class ClientListTest extends BaseTest{
         // Action
         List<String> list = Arrays.asList(
                 "bookstore.Bookstore/ListShelves",
-                "bookstore.Bookstore/CreateShelf"
+                "bookstore.Bookstore/CreateShelf",
+                "bookstore.Bookstore/GetShelfStreamClient",
+                "bookstore.Bookstore/GetShelfStreamServer",
+                "bookstore.Bookstore/GetShelfStreamBidi"
         );
 
         // Assertion

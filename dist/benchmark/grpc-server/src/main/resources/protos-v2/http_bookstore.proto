@@ -30,6 +30,10 @@ service Bookstore {
       body: "shelf"
     };
   }
+
+  rpc GetShelfStreamClient (stream CreateShelfRequest) returns (ListShelvesResponse);
+  rpc GetShelfStreamServer (CreateShelfRequest) returns (stream Shelf);
+  rpc GetShelfStreamBidi (stream CreateShelfRequest) returns (stream Shelf);
 }
 
 // Response to ListShelves call.

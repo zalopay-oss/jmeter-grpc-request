@@ -2,10 +2,7 @@ package vn.zalopay.benchmark.core;
 
 import kg.apc.emulators.TestJMeterUtils;
 import org.mockito.Mockito;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,7 +32,7 @@ public class BaseTest {
     private static Process helloWorldTlsServer;
     private static File dummyLog;
 
-    @BeforeClass
+    @BeforeSuite
     public void setupDependencies() throws IOException {
         System.setProperty("javax.net.ssl.trustStore", Paths.get(System.getProperty("user.dir"), "dist", "cert", "cacert").toString());
         System.setProperty("javax.net.ssl.trustStorePassword", "changeit");
@@ -56,7 +53,7 @@ public class BaseTest {
         clientCaller = null;
     }
 
-    @AfterClass
+    @AfterSuite
     public void shutdownDummyServer() throws InterruptedException {
         bookStoreServer.destroy();
         if (bookStoreServer.isAlive())
