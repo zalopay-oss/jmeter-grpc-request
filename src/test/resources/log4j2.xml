@@ -7,10 +7,10 @@
             </PatternLayout>
         </Console>
     </Appenders>
-    <root>
+    <Root>
         <level value="debug"/>
         <appender-ref ref="jmeter-log"/>
-    </root>
+    </Root>
     <Loggers>
         <Root level="debug">
             <AppenderRef ref="jmeter-log"/>

@@ -53,7 +53,7 @@ jobs:
           mvn clean install package -Dmaven.test.skip=true
       - uses: actions/upload-artifact@v2
         with:
-          name: gRPC-plugin-build
+          name: gRPC-JMeter-plugin
           path: ./target/jmeter-grpc-request-1.1.2.jar
   release-plugin:
     runs-on: ubuntu-latest
@@ -64,5 +64,5 @@ jobs:
           echo "Start to publish plugin to release page"
       - uses: actions/download-artifact@v2
         with:
-          name: gRPC-plugin-build
+          name: gRPC-JMeter-plugin
       - run: ls .
