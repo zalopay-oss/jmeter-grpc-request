@@ -1,4 +1,7 @@
 # JMeter GRPC Request
+![build status](https://github.com/minhhoangvn/jmeter-grpc-request/workflows/Release%20Jmeter%20gRPC%20Plugin/badge.svg)
+
+[![codecov](https://codecov.io/gh/minhhoangvn/jmeter-grpc-request/branch/master/graph/badge.svg?token=DXgxAVZS7a)](https://codecov.io/gh/minhhoangvn/jmeter-grpc-request)
 
 <p align="center"><img src="./dist/asset/jmeter-and-grpc.png" width="600px" alt="Apache JMeter and gRPC logo" /></p>
 
