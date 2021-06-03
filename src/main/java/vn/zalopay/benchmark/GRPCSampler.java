@@ -10,7 +10,6 @@ import vn.zalopay.benchmark.core.ClientCaller;
 import vn.zalopay.benchmark.core.specification.GrpcResponse;
 
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class GRPCSampler extends AbstractSampler implements ThreadListener {
 
@@ -27,14 +26,10 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
     public static final String DEADLINE = "GRPCSampler.deadline";
     public static final String TLS = "GRPCSampler.tls";
     public static final String TLS_DISABLE_VERIFICATION = "GRPCSampler.tlsDisableVerification";
-
     private transient ClientCaller clientCaller = null;
 
-    private static AtomicInteger classCount = new AtomicInteger(0); // keep track of classes created
-
     public GRPCSampler() {
-        classCount.incrementAndGet();
-        trace("GRPCSampler()");
+        trace("init GRPCSampler");
     }
 
     /**
@@ -45,7 +40,8 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
     }
 
     private void trace(String s) {
-        log.debug("{} ({}) {} {} {}", Thread.currentThread().getName(), classCount.get(),
+        String threadName = Thread.currentThread().getName();
+        log.debug("{} ({}) {} {} {}", threadName,
                 getTitle(), s, this.toString());
     }
 
@@ -115,7 +111,7 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
     private void errorResult(GrpcResponse grpcResponse, SampleResult sampleResult, Exception e) {
         sampleResult.sampleEnd();
         sampleResult.setSuccessful(false);
-        sampleResult.setResponseData(String.format("Exception: %s. %s", e.getCause().getMessage(),  grpcResponse.getGrpcMessageString()), "UTF-8");
+        sampleResult.setResponseData(String.format("Exception: %s. %s", e.getCause().getMessage(), grpcResponse.getGrpcMessageString()), "UTF-8");
         sampleResult.setResponseMessage("Exception: " + e.getCause().getMessage());
         sampleResult.setDataType(SampleResult.TEXT);
         sampleResult.setResponseCode("500");
