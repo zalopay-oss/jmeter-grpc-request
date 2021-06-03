@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vn.zalopay.benchmark.core.ClientCaller;
 import vn.zalopay.benchmark.core.specification.GrpcResponse;
-import vn.zalopay.benchmark.exception.ShortExceptionName;
 
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -118,7 +117,7 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
         sampleResult.sampleEnd();
         sampleResult.setSuccessful(false);
         sampleResult.setResponseData(String.format("Exception: %s. %s", e.getCause().getMessage(), responseMessage), "UTF-8");
-        sampleResult.setResponseMessage("Exception: " + ShortExceptionName.shortest(e.getCause().getMessage()));
+        sampleResult.setResponseMessage("Exception: " + e.getCause().getMessage());
         sampleResult.setDataType(SampleResult.TEXT);
         sampleResult.setResponseCode("500");
     }
