@@ -23,34 +23,20 @@ public final class ComponentObserver<T> implements StreamObserver<T> {
 
     @Override
     public void onCompleted() {
-        observers.forEach(tStreamObserver -> {
-            try {
-                tStreamObserver.onCompleted();
-            } catch (Exception t) {
-                LOGGER.warn(t.getMessage());
-            }
-        });
+        observers.forEach(StreamObserver::onCompleted);
     }
 
     @Override
     public void onError(Throwable t) {
         observers.forEach(tStreamObserver -> {
-            try {
-                tStreamObserver.onError(t);
-            } catch (Exception e) {
-                LOGGER.warn(e.getMessage());
-            }
+            tStreamObserver.onError(t);
         });
     }
 
     @Override
     public void onNext(T value) {
         observers.forEach(tStreamObserver -> {
-            try {
-                tStreamObserver.onNext(value);
-            } catch (Exception t) {
-                LOGGER.warn(t.getMessage());
-            }
+            tStreamObserver.onNext(value);
         });
     }
 }
