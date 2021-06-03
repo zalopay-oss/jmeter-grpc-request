@@ -12,6 +12,8 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 
 import javax.net.ssl.SSLException;
 import java.util.Map;
+import javax.net.ssl.SSLException;
+
 
 /**
  * Knows how to construct grpc channels.
@@ -61,6 +63,7 @@ public class ChannelFactory {
             throw new RuntimeException("Error in create SSL connection!");
         }
     }
+
 
     private ClientInterceptor metadataInterceptor(Map<String, String> metadataHash) {
         return new ClientInterceptor() {

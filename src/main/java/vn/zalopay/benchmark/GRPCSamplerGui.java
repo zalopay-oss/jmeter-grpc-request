@@ -121,6 +121,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
         fullMethodField.setSelectedItem("");
         deadlineField.setText("1000");
         isTLSCheckBox.setSelected(false);
+        isTLSDisableVerificationCheckBox.setSelected(false);
         requestJsonArea.setText("");
     }
 
