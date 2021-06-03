@@ -30,7 +30,7 @@ public class Writer<T extends Message> implements StreamObserver<T> {
 
     @Override
     public void onCompleted() {
-        LOGGER.info("On completed gRPC message: {}", output.getGrpcMessageString());
+        LOGGER.debug("On completed gRPC message: {}", output.getGrpcMessageString());
     }
 
     @Override

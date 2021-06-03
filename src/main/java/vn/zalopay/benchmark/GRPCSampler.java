@@ -92,12 +92,12 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
 
     @Override
     public void threadStarted() {
-        log.info("{}\ttestStarted", whoAmI());
+        log.debug("{}\ttestStarted", whoAmI());
     }
 
     @Override
     public void threadFinished() {
-        log.info("{}\ttestEnded", whoAmI());
+        log.debug("{}\ttestEnded", whoAmI());
         if (clientCaller != null) {
             clientCaller.shutdownNettyChannel();
             clientCaller = null;
