@@ -1,10 +1,11 @@
-package vn.zalopay.benchmark.core;
+package vn.zalopay.benchmark.core.sampler;
 
 import org.apache.jmeter.sampler.DebugSampler;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import vn.zalopay.benchmark.GRPCSampler;
 import vn.zalopay.benchmark.GRPCSamplerGui;
+import vn.zalopay.benchmark.core.BaseTest;
 
 import javax.swing.*;
 import java.awt.*;

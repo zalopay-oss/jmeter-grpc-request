@@ -25,7 +25,6 @@ import vn.zalopay.benchmark.GRPCSampler;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,11 +38,10 @@ public class IntegrationTest extends BaseTest {
     @Test
     public void canRunJMeterScript() throws IOException {
         // Initialize properties
-        Path tempJmeterHome = Paths.get(System.getProperty("user.dir"), "src", "test", "resources");
-        Path jmeterPropertiesFile = Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "jmeter.properties");
-        JMeterUtils.setJMeterHome(tempJmeterHome.toString());
+
+        JMeterUtils.setJMeterHome(TEMP_JMETER_HOME.toString());
         JMeterUtils.initLogging();
-        JMeterUtils.loadJMeterProperties(jmeterPropertiesFile.toString());
+        JMeterUtils.loadJMeterProperties(JMETER_PROPERTIES_FILE.toString());
         JMeterUtils.initLocale();
         JMeterUtils.setProperty("jmeterengine.force.system.exit", "false");
         StandardJMeterEngine jmeter = new StandardJMeterEngine();
@@ -75,7 +73,7 @@ public class IntegrationTest extends BaseTest {
         HashTree threadGroupHashTree = testPlanTree.add(testPlan, threadGroup);
         threadGroupHashTree.add(createGrpcSampler());
 
-        SaveService.saveTree(testPlanTree, new FileOutputStream(Paths.get(tempJmeterHome.toString(), "IntegrationTest.jmx").toString()));
+        SaveService.saveTree(testPlanTree, new FileOutputStream(Paths.get(TEMP_JMETER_HOME.toString(), "IntegrationTest.jmx").toString()));
         //add Summarizer output to get test progress in stdout like:
         // Store execution results into a .jtl file
         IntegrationTestResultCollector testResult = new IntegrationTestResultCollector();

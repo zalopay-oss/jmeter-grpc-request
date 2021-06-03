@@ -1,4 +1,4 @@
-package vn.zalopay.benchmark.core;
+package vn.zalopay.benchmark.core.protobuf;
 
 import org.apache.logging.log4j.util.Strings;
 import org.mockito.MockedStatic;

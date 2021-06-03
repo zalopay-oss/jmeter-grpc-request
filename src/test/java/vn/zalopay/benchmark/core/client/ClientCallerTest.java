@@ -1,4 +1,4 @@
-package vn.zalopay.benchmark.core;
+package vn.zalopay.benchmark.core.client;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
@@ -9,6 +9,8 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import vn.zalopay.benchmark.core.BaseTest;
+import vn.zalopay.benchmark.core.ClientCaller;
 import vn.zalopay.benchmark.core.protobuf.ProtocInvoker;
 import vn.zalopay.benchmark.core.specification.GrpcResponse;
 
