@@ -31,20 +31,26 @@ public class ClientCaller {
     private DynamicGrpcClient dynamicClient;
     private ImmutableList<DynamicMessage> requestMessages;
     private ManagedChannel channel;
+    private HostAndPort hostAndPort;
+    private Map<String, String> metadataMap;
+    private boolean tls;
+    private boolean disableTtlVerification;
+    ChannelFactory channelFactory;
 
     public ClientCaller(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean TLS, boolean TLS_DISABLE_VERIFICATION, String METADATA) {
         this.init(HOST_PORT, TEST_PROTO_FILES, LIB_FOLDER, FULL_METHOD, TLS, TLS_DISABLE_VERIFICATION, METADATA);
     }
 
-    private void init(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean tls, boolean disableTtlVerification, String metadata) {
+    private void init(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean TLS, boolean TLS_DISABLE_VERIFICATION, String METADATA) {
         try {
-            HostAndPort hostAndPort = HostAndPort.fromString(HOST_PORT);
+            tls = TLS;
+            disableTtlVerification = TLS_DISABLE_VERIFICATION;
+            hostAndPort = HostAndPort.fromString(HOST_PORT);
+            metadataMap = buildHashMetadata(METADATA);
+            channelFactory = ChannelFactory.create();
             ProtoMethodName grpcMethodName =
                     ProtoMethodName.parseFullGrpcMethodName(FULL_METHOD);
 
-            ChannelFactory channelFactory = ChannelFactory.create();
-            Map<String, String> metadataMap = buildHashMetadata(metadata);
-            channel = channelFactory.createChannel(hostAndPort, tls, disableTtlVerification, metadataMap);
             // Fetch the appropriate file descriptors for the service.
             final DescriptorProtos.FileDescriptorSet fileDescriptorSet;
 
@@ -59,7 +65,7 @@ public class ClientCaller {
             ServiceResolver serviceResolver = ServiceResolver.fromFileDescriptorSet(fileDescriptorSet);
             methodDescriptor = serviceResolver.resolveServiceMethod(grpcMethodName);
 
-            dynamicClient = DynamicGrpcClient.create(methodDescriptor, channel);
+            createDynamicClient();
 
             // This collects all known types into a registry for resolution of potential "Any" types.
             registry = JsonFormat.TypeRegistry.newBuilder()
@@ -88,6 +94,19 @@ public class ClientCaller {
         }
 
         return metadataHash;
+    }
+
+    public void createDynamicClient() {
+        channel = channelFactory.createChannel(hostAndPort, tls, disableTtlVerification, metadataMap);
+        dynamicClient = DynamicGrpcClient.create(methodDescriptor, channel);
+    }
+
+    public boolean isShutdown() {
+        return channel.isShutdown();
+    }
+
+    public boolean isTerminated() {
+        return channel.isTerminated();
     }
 
     public String buildRequest(String jsonData) {
@@ -191,5 +210,4 @@ public class ClientCaller {
             throw new RuntimeException("Caught exception while shutting down channel", e);
         }
     }
-
 }

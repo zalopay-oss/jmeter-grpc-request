@@ -46,14 +46,12 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
     }
 
     private void trace(String s) {
-        if (log.isDebugEnabled())
-            return;
         log.debug("{} ({}) {} {} {}", Thread.currentThread().getName(), classCount.get(),
                 getTitle(), s, this.toString());
     }
 
     private void initGrpcClient() {
-        if (clientCaller == null)
+        if (clientCaller == null) {
             clientCaller = new ClientCaller(
                     getHostPort(),
                     getProtoFolder(),
@@ -62,6 +60,7 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
                     isTls(),
                     isTlsDisableVerification(),
                     getMetadata());
+        }
     }
 
     @Override
@@ -102,6 +101,7 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
         log.info("{}\ttestEnded", whoAmI());
         if (clientCaller != null) {
             clientCaller.shutdownNettyChannel();
+            clientCaller = null;
         }
     }
 

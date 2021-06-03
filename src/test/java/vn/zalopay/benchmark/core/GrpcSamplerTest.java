@@ -30,6 +30,33 @@ public class GrpcSamplerTest extends BaseTest {
     }
 
     @Test
+    public void testCanSendSampleRequest3times() {
+        HostAndPort hostAndPort = HostAndPort.fromString(HOST_PORT);
+        GRPCSampler grpcSampler = new GRPCSampler();
+        grpcSampler.setComment("dummyComment");
+        grpcSampler.setProtoFolder(PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString());
+        grpcSampler.setLibFolder(LIB_FOLDER.toString());
+        grpcSampler.setMetadata(METADATA);
+        grpcSampler.setHost(hostAndPort.getHost());
+        grpcSampler.setPort(Integer.toString(hostAndPort.getPort()));
+        grpcSampler.setFullMethod(FULL_METHOD);
+        grpcSampler.setDeadline("2000");
+        grpcSampler.setTls(false);
+        grpcSampler.setTlsDisableVerification(false);
+        grpcSampler.setRequestJson(REQUEST_JSON);
+        SampleResult sampleResult1 = grpcSampler.sample(null);
+        SampleResult sampleResult2 = grpcSampler.sample(null);
+        SampleResult sampleResult3 = grpcSampler.sample(null);
+        System.err.println(new String(sampleResult3.getResponseData()));
+        Assert.assertEquals(sampleResult1.getResponseCode(), "200");
+        Assert.assertTrue(new String(sampleResult1.getResponseData()).contains("\"theme\": \"Hello server"));
+        Assert.assertEquals(sampleResult2.getResponseCode(), "200");
+        Assert.assertTrue(new String(sampleResult2.getResponseData()).contains("\"theme\": \"Hello server"));
+        Assert.assertEquals(sampleResult3.getResponseCode(), "200");
+        Assert.assertTrue(new String(sampleResult3.getResponseData()).contains("\"theme\": \"Hello server"));
+    }
+
+    @Test
     public void testCanSendSampleRequestWithThreadStart() {
         HostAndPort hostAndPort = HostAndPort.fromString(HOST_PORT);
         GRPCSampler grpcSampler = new GRPCSampler();
