@@ -7,38 +7,51 @@ import org.apache.jmeter.control.LoopController;
 import org.apache.jmeter.control.gui.LoopControlPanel;
 import org.apache.jmeter.control.gui.TestPlanGui;
 import org.apache.jmeter.engine.StandardJMeterEngine;
-import org.apache.jmeter.reporters.ResultCollector;
-import org.apache.jmeter.reporters.Summariser;
+import org.apache.jmeter.engine.util.NoThreadClone;
+import org.apache.jmeter.reporters.AbstractListenerElement;
+import org.apache.jmeter.samplers.*;
 import org.apache.jmeter.save.SaveService;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.testelement.TestPlan;
+import org.apache.jmeter.testelement.TestStateListener;
 import org.apache.jmeter.threads.ThreadGroup;
 import org.apache.jmeter.threads.gui.ThreadGroupGui;
 import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jorphan.collections.HashTree;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 import vn.zalopay.benchmark.GRPCSampler;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class IntegrationTest extends BaseTest {
+    private static volatile List<SampleResult> sampleResults = new ArrayList<>();
+
     @Test
     public void canRunJMeterScript() throws IOException {
         // Initialize properties
         Path tempJmeterHome = Paths.get(System.getProperty("user.dir"), "src", "test", "resources");
         Path jmeterPropertiesFile = Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "jmeter.properties");
         JMeterUtils.setJMeterHome(tempJmeterHome.toString());
+        JMeterUtils.initLogging();
         JMeterUtils.loadJMeterProperties(jmeterPropertiesFile.toString());
         JMeterUtils.initLocale();
+        JMeterUtils.setProperty("jmeterengine.force.system.exit", "false");
         StandardJMeterEngine jmeter = new StandardJMeterEngine();
         // JMeter Test Plan, basically JOrphan HashTree
         HashTree testPlanTree = new HashTree();
         // Loop Controller
         LoopController loopController = new LoopController();
-        loopController.setLoops(5);
+        loopController.setLoops(2);
         loopController.setFirst(true);
         loopController.setProperty(TestElement.TEST_CLASS, LoopController.class.getName());
         loopController.setProperty(TestElement.GUI_CLASS, LoopControlPanel.class.getName());
@@ -64,21 +77,17 @@ public class IntegrationTest extends BaseTest {
 
         SaveService.saveTree(testPlanTree, new FileOutputStream(Paths.get(tempJmeterHome.toString(), "IntegrationTest.jmx").toString()));
         //add Summarizer output to get test progress in stdout like:
-        // summary =      2 in   1.3s =    1.5/s Avg:   631 Min:   290 Max:   973 Err:     0 (0.00%)
-        Summariser summer = null;
-        String summariserName = JMeterUtils.getPropDefault("summariser.name", "summary");
-        if (summariserName.length() > 0) {
-            summer = new Summariser(summariserName);
-        }
         // Store execution results into a .jtl file
-        String logFile = "jmeter-integration-test.jtl";
-        ResultCollector logger = new ResultCollector(summer);
-        logger.setFilename(logFile);
-        testPlanTree.add(testPlanTree.getArray()[0], logger);
+        IntegrationTestResultCollector testResult = new IntegrationTestResultCollector();
+        testPlanTree.add(testPlanTree.getArray()[0], new Object[]{testResult});
 
         // Run Test Plan
         jmeter.configure(testPlanTree);
         jmeter.run();
+        // Assert
+        Assert.assertEquals(sampleResults.size(), 100);
+        sampleResults.forEach(s -> Assert.assertEquals(s.getResponseCode(), "200"));
+        sampleResults.forEach(s -> assertThat(new String(s.getResponseData()), containsString("\"theme\": \"Hello server")));
     }
 
 
@@ -97,5 +106,47 @@ public class IntegrationTest extends BaseTest {
         grpcSampler.setTlsDisableVerification(false);
         grpcSampler.setRequestJson(REQUEST_JSON);
         return grpcSampler;
+    }
+
+    class IntegrationTestResultCollector extends AbstractListenerElement implements SampleListener, Clearable, Serializable, TestStateListener, Remoteable, NoThreadClone {
+
+        public IntegrationTestResultCollector() {
+        }
+
+
+        @Override
+        public synchronized void sampleOccurred(SampleEvent sampleEvent) {
+            SampleResult result = sampleEvent.getResult();
+            sampleResults.add(result);
+        }
+
+        @Override
+        public void sampleStarted(SampleEvent sampleEvent) {
+        }
+
+        @Override
+        public void sampleStopped(SampleEvent sampleEvent) {
+        }
+
+        @Override
+        public void clearData() {
+
+        }
+
+        @Override
+        public void testStarted() {
+        }
+
+        @Override
+        public void testStarted(String s) {
+        }
+
+        @Override
+        public void testEnded() {
+        }
+
+        @Override
+        public void testEnded(String s) {
+        }
     }
 }
