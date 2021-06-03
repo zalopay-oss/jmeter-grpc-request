@@ -6,7 +6,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.Descriptors.MethodDescriptor;
 import com.google.protobuf.DynamicMessage;
 import io.grpc.CallOptions;
-import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor.MethodType;
 import io.grpc.stub.ClientCalls;
@@ -85,12 +84,13 @@ public class DynamicGrpcClient {
 
         if (!clientStreaming && !serverStreaming) {
             return MethodType.UNARY;
-        } else if (!clientStreaming && serverStreaming) {
+        } else if (clientStreaming && serverStreaming) {
+            return MethodType.BIDI_STREAMING;
+        } else if (serverStreaming) {
             return MethodType.SERVER_STREAMING;
-        } else if (clientStreaming && !serverStreaming) {
+        } else if (clientStreaming) {
             return MethodType.CLIENT_STREAMING;
         }
-
-        return MethodType.BIDI_STREAMING;
+        throw new IllegalArgumentException("Can't map to gRPC method type");
     }
 }

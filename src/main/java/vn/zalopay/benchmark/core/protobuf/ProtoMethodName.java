@@ -37,7 +37,8 @@ public class ProtoMethodName {
         String packageName = fullServiceName.substring(0, index);
 
         // Make sure there is a '.' and use the rest as the service name.
-        if (index + 1 >= fullServiceName.length() || fullServiceName.charAt(index) != '.') {
+        if (index + 1 >= fullServiceName.length() ||
+                fullServiceName.charAt(index) != '.') {
             throw new IllegalArgumentException("Could not extract service from " + fullServiceName);
         }
         String serviceName = fullServiceName.substring(index + 1);
@@ -72,7 +73,7 @@ public class ProtoMethodName {
         return methodName;
     }
 
-    public static Boolean invalidMethodName(String fullServiceName) {
-        return fullServiceName == null || Strings.isBlank(fullServiceName) || Strings.isEmpty(fullServiceName);
+    public static boolean invalidMethodName(String fullServiceName) {
+        return Strings.isBlank(fullServiceName);
     }
 }

@@ -183,9 +183,7 @@ public class ClientCaller {
         try {
             if (channel != null) {
                 channel.shutdown();
-                if (!channel.awaitTermination(5, TimeUnit.SECONDS)) {
-                    shutdownNowChannel();
-                }
+                channel.awaitTermination(5, TimeUnit.SECONDS);
             }
         } catch (InterruptedException e) {
             throw new RuntimeException("Caught exception while shutting down channel", e);
@@ -197,17 +195,6 @@ public class ClientCaller {
             return Long.parseLong(deadlineMs);
         } catch (Exception e) {
             throw new RuntimeException("Caught exception while parsing deadline to long", e);
-        }
-    }
-
-    private void shutdownNowChannel() {
-        try {
-            channel.shutdownNow();
-            if (channel.awaitTermination(5, TimeUnit.SECONDS)) {
-                channel.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            throw new RuntimeException("Caught exception while shutting down channel", e);
         }
     }
 }

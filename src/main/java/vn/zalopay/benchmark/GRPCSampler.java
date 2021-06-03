@@ -113,10 +113,9 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
     }
 
     private void errorResult(GrpcResponse grpcResponse, SampleResult sampleResult, Exception e) {
-        String responseMessage = grpcResponse != null ? grpcResponse.getGrpcMessageString() : "";
         sampleResult.sampleEnd();
         sampleResult.setSuccessful(false);
-        sampleResult.setResponseData(String.format("Exception: %s. %s", e.getCause().getMessage(), responseMessage), "UTF-8");
+        sampleResult.setResponseData(String.format("Exception: %s. %s", e.getCause().getMessage(),  grpcResponse.getGrpcMessageString()), "UTF-8");
         sampleResult.setResponseMessage("Exception: " + e.getCause().getMessage());
         sampleResult.setDataType(SampleResult.TEXT);
         sampleResult.setResponseCode("500");

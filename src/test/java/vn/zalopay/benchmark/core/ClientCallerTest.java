@@ -30,6 +30,23 @@ public class ClientCallerTest extends BaseTest {
     }
 
     @Test
+    public void testCanGetShutDownBoolean() {
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, "key1:1,key2:2");
+        clientCaller.buildRequest(REQUEST_JSON);
+        Assert.assertEquals(clientCaller.isShutdown(), false);
+        Assert.assertEquals(clientCaller.isTerminated(), false);
+    }
+
+    @Test
+    public void testCanGetShutDownBooleanAfterShutdown() {
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, "key1:1,key2:2");
+        clientCaller.buildRequest(REQUEST_JSON);
+        clientCaller.shutdownNettyChannel();
+        Assert.assertEquals(clientCaller.isShutdown(), true);
+        Assert.assertEquals(clientCaller.isTerminated(), true);
+    }
+
+    @Test
     public void testCanCallClientStreamingRequest() {
         clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, "key1:1,key2:2");
         clientCaller.buildRequest(REQUEST_JSON);

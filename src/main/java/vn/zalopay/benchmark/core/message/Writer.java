@@ -4,6 +4,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
 import com.google.protobuf.util.JsonFormat;
 import io.grpc.stub.StreamObserver;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vn.zalopay.benchmark.core.specification.GrpcResponse;
@@ -34,10 +35,9 @@ public class Writer<T extends Message> implements StreamObserver<T> {
 
     @Override
     public void onError(Throwable throwable) {
-        while (throwable != null) {
-            output.storeGrpcMessage(throwable.getMessage());
-            throwable = throwable.getCause();
-        }
+        String stacktrace = ExceptionUtils.getStackTrace(throwable);
+        String throwMsg = throwable.getMessage();
+        output.storeGrpcMessage(String.format("%s. %s", throwMsg, stacktrace));
         LOGGER.error(throwable.getMessage());
     }
 
