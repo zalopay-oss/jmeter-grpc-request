@@ -5,10 +5,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +12,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.*;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -53,16 +53,15 @@ public class ProtocInvoker {
      * Get paths lib protoc
      */
     private static List<String> getProtocIncludes(String libFolder) {
-        if(Objects.isNull(libFolder))
+        if (Objects.isNull(libFolder))
             return Collections.emptyList();
 
         List<String> protocIncludes = new LinkedList<>();
         for (String pathString : libFolder.split(",")) {
             Path includePath = Paths.get(pathString);
-            Preconditions.checkArgument(Files.exists(includePath), "Invalid include: " + includePath);
-            protocIncludes.add(includePath.toString());
+            if (Files.exists(includePath))
+                protocIncludes.add(includePath.toString());
         }
-
         return protocIncludes;
     }
 
@@ -81,6 +80,7 @@ public class ProtocInvoker {
      */
     public FileDescriptorSet invoke() throws ProtocInvocationException {
         Path wellKnownTypesInclude;
+        Path googleTypesInclude;
         try {
             wellKnownTypesInclude = setupWellKnownTypes();
         } catch (IOException e) {
@@ -100,7 +100,6 @@ public class ProtocInvoker {
                 .add("--descriptor_set_out=" + descriptorPath.toAbsolutePath().toString())
                 .add("--include_imports")
                 .build();
-
         invokeBinary(protocArgs);
 
         try {
@@ -163,7 +162,7 @@ public class ProtocInvoker {
     private ImmutableSet<String> scanProtoFiles(Path protoRoot) throws ProtocInvocationException {
         try (final Stream<Path> protoPaths = Files.walk(protoRoot)) {
             return ImmutableSet.copyOf(protoPaths
-                    .filter(path -> PROTO_MATCHER.matches(path))
+                    .filter(PROTO_MATCHER::matches)
                     .map(path -> path.toAbsolutePath().toString())
                     .collect(Collectors.toSet()));
         } catch (IOException e) {

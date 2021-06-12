@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" packages="org.apache.jmeter.gui.logging">
+    <Appenders>
+        <File name="grpcSampler" fileName="${sys:jmeter.logfile:-jmeter.log}" append="false">
+            <PatternLayout>
+                <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+            </PatternLayout>
+        </File>
+    </Appenders>
+    <Loggers>
+        <Root level="trace">
+            <AppenderRef ref="grpcSampler" level="DEBUG"/>
+        </Root>
+        <Logger name="vn.zalopay.benchmark" level="debug">
+            <AppenderRef ref="grpcSampler"/>
+        </Logger>
+        <Logger name="org.apache.jmeter.samplers" level="debug">
+            <AppenderRef ref="grpcSampler"/>
+        </Logger>
+        <Logger name="org.apache.jorphan" level="debug">
+            <AppenderRef ref="grpcSampler"/>
+        </Logger>
+    </Loggers>
+</Configuration>

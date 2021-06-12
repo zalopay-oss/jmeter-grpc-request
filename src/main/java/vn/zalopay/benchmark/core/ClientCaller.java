@@ -7,19 +7,23 @@ import com.google.common.net.HostAndPort;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
-import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
 import io.grpc.CallOptions;
 import io.grpc.ManagedChannel;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import io.grpc.stub.StreamObserver;
+import vn.zalopay.benchmark.core.channel.ComponentObserver;
 import vn.zalopay.benchmark.core.grpc.ChannelFactory;
 import vn.zalopay.benchmark.core.grpc.DynamicGrpcClient;
-import vn.zalopay.benchmark.core.io.MessageReader;
+import vn.zalopay.benchmark.core.message.Reader;
+import vn.zalopay.benchmark.core.message.Writer;
 import vn.zalopay.benchmark.core.protobuf.ProtoMethodName;
 import vn.zalopay.benchmark.core.protobuf.ProtocInvoker;
 import vn.zalopay.benchmark.core.protobuf.ServiceResolver;
+import vn.zalopay.benchmark.core.specification.GrpcResponse;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class ClientCaller {
     private Descriptors.MethodDescriptor methodDescriptor;
@@ -27,57 +31,64 @@ public class ClientCaller {
     private DynamicGrpcClient dynamicClient;
     private ImmutableList<DynamicMessage> requestMessages;
     private ManagedChannel channel;
+    private HostAndPort hostAndPort;
+    private Map<String, String> metadataMap;
+    private boolean tls;
+    private boolean disableTtlVerification;
+    ChannelFactory channelFactory;
 
     public ClientCaller(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean TLS, boolean TLS_DISABLE_VERIFICATION, String METADATA) {
         this.init(HOST_PORT, TEST_PROTO_FILES, LIB_FOLDER, FULL_METHOD, TLS, TLS_DISABLE_VERIFICATION, METADATA);
     }
 
-    private void init(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean tls, boolean tlsDisableVerification, String metadata) {
-        HostAndPort hostAndPort = HostAndPort.fromString(HOST_PORT);
-        ProtoMethodName grpcMethodName =
-                ProtoMethodName.parseFullGrpcMethodName(FULL_METHOD);
-
-        ChannelFactory channelFactory = ChannelFactory.create();
-        Map<String, String> metadataMap = buildHashMetadata(metadata);
+    private void init(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean TLS, boolean TLS_DISABLE_VERIFICATION, String METADATA) {
         try {
-            channel = channelFactory.createChannel(hostAndPort, tls, tlsDisableVerification, metadataMap);
-        }catch (IllegalStateException e){
-            throw new RuntimeException("Unable to create channel grpc by invoking tls", e);
-        }
-        
-        // Fetch the appropriate file descriptors for the service.
-        final DescriptorProtos.FileDescriptorSet fileDescriptorSet;
+            tls = TLS;
+            disableTtlVerification = TLS_DISABLE_VERIFICATION;
+            hostAndPort = HostAndPort.fromString(HOST_PORT);
+            metadataMap = buildHashMetadata(METADATA);
+            channelFactory = ChannelFactory.create();
+            ProtoMethodName grpcMethodName =
+                    ProtoMethodName.parseFullGrpcMethodName(FULL_METHOD);
 
-        try {
-            fileDescriptorSet = ProtocInvoker.forConfig(TEST_PROTO_FILES, LIB_FOLDER).invoke();
+            // Fetch the appropriate file descriptors for the service.
+            final DescriptorProtos.FileDescriptorSet fileDescriptorSet;
+
+            try {
+                fileDescriptorSet = ProtocInvoker.forConfig(TEST_PROTO_FILES, LIB_FOLDER).invoke();
+            } catch (Throwable t) {
+                shutdownNettyChannel();
+                throw new RuntimeException("Unable to resolve service by invoking protoc", t);
+            }
+
+            // Set up the dynamic client and make the call.
+            ServiceResolver serviceResolver = ServiceResolver.fromFileDescriptorSet(fileDescriptorSet);
+            methodDescriptor = serviceResolver.resolveServiceMethod(grpcMethodName);
+
+            createDynamicClient();
+
+            // This collects all known types into a registry for resolution of potential "Any" types.
+            registry = JsonFormat.TypeRegistry.newBuilder()
+                    .add(serviceResolver.listMessageTypes())
+                    .build();
         } catch (Throwable t) {
-            throw new RuntimeException("Unable to resolve service by invoking protoc", t);
+            shutdownNettyChannel();
+            throw t;
         }
-
-        // Set up the dynamic client and make the call.
-        ServiceResolver serviceResolver = ServiceResolver.fromFileDescriptorSet(fileDescriptorSet);
-        methodDescriptor = serviceResolver.resolveServiceMethod(grpcMethodName);
-
-        dynamicClient = DynamicGrpcClient.create(methodDescriptor, channel);
-
-        // This collects all known types into a registry for resolution of potential "Any" types.
-        registry = JsonFormat.TypeRegistry.newBuilder()
-                .add(serviceResolver.listMessageTypes())
-                .build();
     }
 
     private Map<String, String> buildHashMetadata(String metadata) {
         Map<String, String> metadataHash = new LinkedHashMap<>();
 
-        if(Strings.isNullOrEmpty(metadata))
+        if (Strings.isNullOrEmpty(metadata))
             return metadataHash;
 
         String[] keyValue;
-        for (String part : metadata.split(",")){
+        for (String part : metadata.split(",")) {
             keyValue = part.split(":", 2);
 
             Preconditions.checkArgument(keyValue.length == 2,
-                "Metadata entry must be defined in key1:value1,key2:value2 format: " + metadata);
+                    "Metadata entry must be defined in key1:value1,key2:value2 format: " + metadata);
 
             metadataHash.put(keyValue[0], keyValue[1]);
         }
@@ -85,32 +96,79 @@ public class ClientCaller {
         return metadataHash;
     }
 
-    public String buildRequest(String jsonData) {
-        requestMessages =
-                MessageReader.forJSON(methodDescriptor.getInputType(), registry, jsonData).read();
+    public void createDynamicClient() {
+        channel = channelFactory.createChannel(hostAndPort, tls, disableTtlVerification, metadataMap);
+        dynamicClient = DynamicGrpcClient.create(methodDescriptor, channel);
+    }
 
+    public boolean isShutdown() {
+        return channel.isShutdown();
+    }
+
+    public boolean isTerminated() {
+        return channel.isTerminated();
+    }
+
+    public String buildRequest(String jsonData) {
         try {
+            requestMessages = Reader.create(methodDescriptor.getInputType(), jsonData, registry).read();
             return JsonFormat.printer().print(requestMessages.get(0));
-        } catch (InvalidProtocolBufferException e) {
+        } catch (Exception e) {
+            shutdownNettyChannel();
             throw new RuntimeException("Caught exception while parsing request for rpc", e);
         }
     }
 
-    public DynamicMessage call(String deadlineMs) {
-        long deadline;
+    public GrpcResponse call(String deadlineMs) {
+        long deadline = parsingDeadlineTime(deadlineMs);
+        GrpcResponse output = new GrpcResponse();
+        StreamObserver<DynamicMessage> streamObserver = ComponentObserver.of(Writer.create(output, registry));
         try {
-            deadline = Long.parseLong(deadlineMs);
-        }catch (Exception e){
-            throw new RuntimeException("Caught exception while parsing deadline to long", e);
-        }
-
-        DynamicMessage resp;
-        try {
-            resp = dynamicClient.blockingUnaryCall(requestMessages, callOptions(deadline));
+            dynamicClient.blockingUnaryCall(requestMessages, streamObserver, callOptions(deadline)).get();
         } catch (Throwable t) {
+            shutdownNettyChannel();
             throw new RuntimeException("Caught exception while waiting for rpc", t);
         }
-        return resp;
+        return output;
+    }
+
+    public GrpcResponse callServerStreaming(String deadlineMs) {
+        long deadline = parsingDeadlineTime(deadlineMs);
+        GrpcResponse output = new GrpcResponse();
+        StreamObserver<DynamicMessage> streamObserver = ComponentObserver.of(Writer.create(output, registry));
+        try {
+            dynamicClient.callServerStreaming(requestMessages, streamObserver, callOptions(deadline)).get();
+        } catch (Throwable t) {
+            shutdownNettyChannel();
+            throw new RuntimeException("Caught exception while waiting for rpc", t);
+        }
+        return output;
+    }
+
+    public GrpcResponse callClientStreaming(String deadlineMs) {
+        long deadline = parsingDeadlineTime(deadlineMs);
+        GrpcResponse output = new GrpcResponse();
+        StreamObserver<DynamicMessage> streamObserver = ComponentObserver.of(Writer.create(output, registry));
+        try {
+            dynamicClient.callClientStreaming(requestMessages, streamObserver, callOptions(deadline)).get();
+        } catch (Throwable t) {
+            shutdownNettyChannel();
+            throw new RuntimeException("Caught exception while waiting for rpc", t);
+        }
+        return output;
+    }
+
+    public GrpcResponse callBidiStreaming(String deadlineMs) {
+        long deadline = parsingDeadlineTime(deadlineMs);
+        GrpcResponse output = new GrpcResponse();
+        StreamObserver<DynamicMessage> streamObserver = ComponentObserver.of(Writer.create(output, registry));
+        try {
+            dynamicClient.callBidiStreaming(requestMessages, streamObserver, callOptions(deadline)).get();
+        } catch (Throwable t) {
+            shutdownNettyChannel();
+            throw new RuntimeException("Caught exception while waiting for rpc", t);
+        }
+        return output;
     }
 
     private static CallOptions callOptions(long deadlineMs) {
@@ -121,14 +179,22 @@ public class ClientCaller {
         return result;
     }
 
-    public void shutdown(){
-
+    public void shutdownNettyChannel() {
         try {
-            if (channel != null)
-                channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+            if (channel != null) {
+                channel.shutdown();
+                channel.awaitTermination(5, TimeUnit.SECONDS);
+            }
         } catch (InterruptedException e) {
             throw new RuntimeException("Caught exception while shutting down channel", e);
         }
     }
 
+    private Long parsingDeadlineTime(String deadlineMs) {
+        try {
+            return Long.parseLong(deadlineMs);
+        } catch (Exception e) {
+            throw new RuntimeException("Caught exception while parsing deadline to long", e);
+        }
+    }
 }

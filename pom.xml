@@ -15,23 +15,41 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
 
-        <grpc.version>1.23.0</grpc.version>
-        <protobuf.version>3.6.1</protobuf.version>
-        <guava.version>29.0-jre</guava.version>
+        <guava.version>30.1.1-jre</guava.version>
         <lombok.version>1.18.10</lombok.version>
-        <jmeter.core.version>5.1.1</jmeter.core.version>
-        <netty.version>4.1.42.Final</netty.version>
-        <netty.ssl.version>2.0.34.Final</netty.ssl.version>
+        <jmeter.core.version>5.4.1</jmeter.core.version>
+        <netty.version>4.1.65.Final</netty.version>
+        <netty.ssl.version>2.0.39.Final</netty.ssl.version>
         <slf4j.version>1.7.26</slf4j.version>
-        <junit.version>4.13.1</junit.version>
-        <os72.protoc.version>3.10.1</os72.protoc.version>
+        <junit.version>4.13.2</junit.version>
+        <os72.protoc.version>3.11.4</os72.protoc.version>
+        <grpc.version>1.38.0</grpc.version>
+        <protobuf.version>3.17.1</protobuf.version>
         <jcommander.version>1.48</jcommander.version>
-        <opencensus.version>0.21.0</opencensus.version>
-        <cmn.jmeter.version>0.3</cmn.jmeter.version>
+        <cmn.jmeter.version>0.6</cmn.jmeter.version>
         <emulators.jmeter.version>0.4</emulators.jmeter.version>
+        <mockito.version>3.10.0</mockito.version>
+        <testng.version>7.4.0</testng.version>
     </properties>
 
     <dependencies>
+
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>${testng.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+
         <dependency>
             <groupId>kg.apc</groupId>
             <artifactId>jmeter-plugins-cmn-jmeter</artifactId>
@@ -43,6 +61,12 @@
             <artifactId>jmeter-plugins-emulators</artifactId>
             <version>${emulators.jmeter.version}</version>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java-util</artifactId>
+            <version>${protobuf.version}</version>
         </dependency>
 
         <dependency>
@@ -85,14 +109,6 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <version>${slf4j.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -113,27 +129,6 @@
             <version>${os72.protoc.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.jmeter</groupId>
-            <artifactId>ApacheJMeter_core</artifactId>
-            <version>${jmeter.core.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.sun</groupId>
-                    <artifactId>tools</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>io.opencensus</groupId>
-            <artifactId>opencensus-api</artifactId>
-            <version>${opencensus.version}</version>
-        </dependency>
 
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -142,32 +137,24 @@
         </dependency>
 
         <dependency>
-            <groupId>org.apache.jmeter</groupId>
-            <artifactId>ApacheJMeter_java</artifactId>
-            <version>${jmeter.core.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.sun</groupId>
-                    <artifactId>tools</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-tcnative-boringssl-static</artifactId>
             <version>${netty.ssl.version}</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.apache.jmeter/ApacheJMeter_components -->
+        <dependency>
+            <groupId>org.apache.jmeter</groupId>
+            <artifactId>ApacheJMeter_components</artifactId>
+            <version>${jmeter.core.version}</version>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
 
     <build>
         <defaultGoal>clean generate-sources compile install</defaultGoal>
-
+        <finalName>${project.artifactId}</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -200,7 +187,6 @@
                             <artifactSet>
                                 <includes>
                                     <include>io.grpc</include>
-                                    <include>io.opencensus</include>
                                     <include>com.google.guava</include>
                                     <include>io.perfmark</include>
                                     <include>com.google.protobuf</include>
@@ -211,6 +197,31 @@
                                     <include>kg.apc</include>
                                 </includes>
                             </artifactSet>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.7</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Sets the path to the file which contains the execution data. -->
+                            <dataFile>${project.build.directory}/jacoco.exec</dataFile>
+                            <!-- Sets the output directory for the code coverage report. -->
+                            <outputDirectory>${project.reporting.outputDirectory}/jacoco</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>

@@ -24,4 +24,8 @@ output
 .iml
 /.idea/
 dependency-reduced-pom.xml
+grpc-dummy-server.log
+jmeter.log
+src/test/resources/IntegrationTest.jmx
+jmeter-integration-test.jtl
 .factorypath
