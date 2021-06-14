@@ -49,9 +49,9 @@ public class ChannelFactory {
                 return NettyChannelBuilder.forAddress(endpoint.getHost(), endpoint.getPort())
                         .negotiationType(NegotiationType.TLS)
                         .sslContext(grpcSslContexts
-                            //force HTTP2 w/ ALPN support
+                            //force HTTP2 w/ ALPN or NPN support
                             .applicationProtocolConfig(
-                                new ApplicationProtocolConfig(Protocol.ALPN, SelectorFailureBehavior.NO_ADVERTISE,
+                                new ApplicationProtocolConfig(Protocol.NPN_AND_ALPN, SelectorFailureBehavior.NO_ADVERTISE,
                                 SelectedListenerFailureBehavior.ACCEPT, ApplicationProtocolNames.HTTP_2))
                             .build())
                         .intercept(metadataInterceptor(metadataHash));
