@@ -56,7 +56,7 @@ public class ChannelFactory {
             }
             return grpcSslContexts
                     .applicationProtocolConfig(
-                            new ApplicationProtocolConfig(ApplicationProtocolConfig.Protocol.ALPN, ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE,
+                            new ApplicationProtocolConfig(ApplicationProtocolConfig.Protocol.NPN_AND_ALPN, ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE,
                                     ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT, ApplicationProtocolNames.HTTP_2))
                     .build();
         } catch (SSLException e) {
