@@ -5,6 +5,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
+
+import org.apache.jmeter.services.FileServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,12 +38,19 @@ public class ProtocInvoker {
      */
     public static ProtocInvoker forConfig(String protoDiscoveryRoot, String libFolder) {
         Path discoveryRootPath = Paths.get(protoDiscoveryRoot);
+        if (!discoveryRootPath.isAbsolute()) {
+            discoveryRootPath = Paths.get(FileServer.getFileServer().getBaseDir(), protoDiscoveryRoot);
+        }
+
         ImmutableList.Builder<Path> includePaths = ImmutableList.builder();
 
         List<String> includePathsList = getProtocIncludes(libFolder);
 
         for (String includePathString : includePathsList) {
             Path path = Paths.get(includePathString);
+            if (!path.isAbsolute()) {
+                path = Paths.get(FileServer.getFileServer().getBaseDir(), includePathString);
+            }
             Preconditions.checkArgument(Files.exists(path), "Invalid proto include path: " + path);
             includePaths.add(path.toAbsolutePath());
         }
