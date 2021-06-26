@@ -4,9 +4,7 @@
 name: Release Jmeter gRPC Plugin
 
 on:
-  push:
-    tags:
-      - v*
+  push
 
 jobs:
   scan-code:
