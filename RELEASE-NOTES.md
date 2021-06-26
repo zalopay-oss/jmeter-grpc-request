@@ -6,7 +6,9 @@ Quick links:
 
 ## Upcoming release
 
-* Notes go here.
+* Add support for TLS NPN fallback
+* Add support for relative directories on lib and proto root
+* Other notes to go here
 
 ## v1.1.2
 
