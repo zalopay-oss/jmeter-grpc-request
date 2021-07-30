@@ -112,7 +112,7 @@ public class ClientCaller {
     public String buildRequest(String jsonData) {
         try {
             requestMessages = Reader.create(methodDescriptor.getInputType(), jsonData, registry).read();
-            return JsonFormat.printer().print(requestMessages.get(0));
+            return JsonFormat.printer().includingDefaultValueFields().print(requestMessages.get(0));
         } catch (Exception e) {
             shutdownNettyChannel();
             throw new RuntimeException("Caught exception while parsing request for rpc", e);
