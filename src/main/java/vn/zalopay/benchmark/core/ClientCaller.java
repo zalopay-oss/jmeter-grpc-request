@@ -91,7 +91,7 @@ public class ClientCaller {
             keyValue = part.split(":", 2);
 
             Preconditions.checkArgument(keyValue.length == 2,
-                    "Metadata entry must be defined in key1:url_encode(value1),key2:url_encode(value2) format: " + metadata);
+                    "Metadata entry must be defined in key1:value1,key2:value2 format: " + metadata);
 
             String value = keyValue[1];
             try {
