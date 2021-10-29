@@ -21,6 +21,9 @@ import vn.zalopay.benchmark.core.protobuf.ProtocInvoker;
 import vn.zalopay.benchmark.core.protobuf.ServiceResolver;
 import vn.zalopay.benchmark.core.specification.GrpcResponse;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -88,9 +91,15 @@ public class ClientCaller {
             keyValue = part.split(":", 2);
 
             Preconditions.checkArgument(keyValue.length == 2,
-                    "Metadata entry must be defined in key1:value1,key2:value2 format: " + metadata);
+                    "Metadata entry must be defined in key1:url_encode(value1),key2:url_encode(value2) format: " + metadata);
 
-            metadataHash.put(keyValue[0], keyValue[1]);
+            String value = keyValue[1];
+            try {
+                value = URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8.name());
+            } catch (UnsupportedEncodingException ignored) {
+            }
+
+            metadataHash.put(keyValue[0], value);
         }
 
         return metadataHash;

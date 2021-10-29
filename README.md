@@ -71,7 +71,7 @@ Run test:
 | 4   	| Proto Root Directory              	| Root directory contains proto files                                 	|
 | 5   	| Library Directory (Optional)      	| Using a different underlying library (googleapis)                   	|
 | 6   	| Full Method                       	| Full Method to test                                                 	|
-| 7   	| Metadata                          	| Store token, authentication method, format: key1:value1,key2:value2                                  	|
+| 7   	| Metadata                          	| Store token, authentication method, format: key1:url_encode(value1),key2:url_encode(value2)                                  	|
 | 8   	| Deadline                          	| How long gRPC clients are willing to wait for an RPC to complete  	|
 | 9   	| Send JSON Format With the Request 	| Data request with JSON format                                       	|
 
