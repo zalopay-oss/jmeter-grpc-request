@@ -16,6 +16,10 @@ import vn.zalopay.benchmark.core.specification.GrpcResponse;
 
 import javax.net.ssl.SSLException;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 import static org.mockito.Mockito.any;
 
 public class ClientCallerTest extends BaseTest {
@@ -101,6 +105,16 @@ public class ClientCallerTest extends BaseTest {
     @Test
     public void testCanSendGrpcUnaryRequestWithMetaData() {
         clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, METADATA);
+        clientCaller.buildRequest(REQUEST_JSON);
+        GrpcResponse resp = clientCaller.call("2000");
+        clientCaller.shutdownNettyChannel();
+        Assert.assertNotNull(resp);
+        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
+    }
+
+    @Test
+    public void testCanSendGrpcUnaryRequestWithEncodedMetaData() throws UnsupportedEncodingException {
+        clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, "tracestate:" + URLEncoder.encode("a=3,b:4", StandardCharsets.UTF_8.name()));
         clientCaller.buildRequest(REQUEST_JSON);
         GrpcResponse resp = clientCaller.call("2000");
         clientCaller.shutdownNettyChannel();
