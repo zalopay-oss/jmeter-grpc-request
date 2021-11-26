@@ -37,7 +37,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     private JComboBox<String> fullMethodField;
     private JButton fullMethodButton;
 
-    private JLabeledTextField metadataField;
+    private JTextField metadataField;
     private JLabeledTextField hostField;
     private JLabeledTextField portField;
     private JLabeledTextField deadlineField;
@@ -170,7 +170,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     }
 
     private JPanel getOptionConfigPanel() {
-        metadataField = new JLabeledTextField("Metadata:", 32); // $NON-NLS-1$
+        metadataField = new JTextField("Metadata", 32); // $NON-NLS-1$
         deadlineField = new JLabeledTextField("Deadline:", 7); // $NON-NLS-1$
 
         JPanel webServerPanel = new HorizontalPanel();
