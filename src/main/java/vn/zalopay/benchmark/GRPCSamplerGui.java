@@ -170,6 +170,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     }
 
     private JPanel getOptionConfigPanel() {
+        JLabel metadataLabel = new JLabel("Metadata:");
         metadataField = new JTextField("Metadata", 32); // $NON-NLS-1$
         deadlineField = new JLabeledTextField("Deadline:", 7); // $NON-NLS-1$
 
@@ -178,6 +179,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
                 BorderFactory.createEmptyBorder(9, 0, 0, 0),
                 BorderFactory.createTitledBorder("Optional Configuration")
         ));
+        webServerPanel.add(metadataLabel);
         webServerPanel.add(metadataField);
         webServerPanel.add(deadlineField);
         return webServerPanel;
