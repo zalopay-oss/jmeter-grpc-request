@@ -93,18 +93,18 @@ public class ClientCaller {
             try {
                 Map<String, Object> map = mapper.readValue(metadata, Map.class);
                 for (Map.Entry<String, Object> entry : map.entrySet()) {
-                    metadataHash.put(entry.getKey(), (String) entry.getValue());
+                    metadataHash.put(entry.getKey(), (String)entry.getValue());
                 }
             } catch (JsonProcessingException e) {
                 Preconditions.checkArgument(1 == 2,
-                        "Metadata entry must be valid JSON String or key1:value1,key2:value2 format if not JsonString: " + metadata);
+                        "Metadata entry must be valid JSON String or in key1:value1,key2:value2 format if not JsonString but found: " + metadata);
             }
         } else {
             String[] keyValue;
             for (String part : metadata.split(",")) {
                 keyValue = part.split(":", 2);
                 Preconditions.checkArgument(keyValue.length == 2,
-                        "Metadata entry must be defined in key1:value1,key2:value2 format if it is not JsonString: " + metadata);
+                        "Metadata entry must be valid JSON String or in key1:value1,key2:value2 format if not JsonString but found: " + metadata);
                 String value = keyValue[1];
                 try {
                     value = URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8.name());

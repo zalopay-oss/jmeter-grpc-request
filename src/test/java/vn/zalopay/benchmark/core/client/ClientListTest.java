@@ -28,8 +28,9 @@ public class ClientListTest extends BaseTest {
 
         // Action
         List<String> list = Arrays.asList(
-                "data_services_seg.SegmentServices/checkSeg",
-                "helloworld.Greeter/SayHello"
+                "helloworld.Greeter/SayHello",
+                "helloworld.Greeter/SayHelloWithJsonMetadata",
+                "data_services_seg.SegmentServices/checkSeg"
         );
 
         // Assertion
@@ -61,8 +62,9 @@ public class ClientListTest extends BaseTest {
 
         // Action
         List<String> list = Arrays.asList(
-                "data_services_seg.SegmentServices/checkSeg",
-                "helloworld.Greeter/SayHello"
+                "helloworld.Greeter/SayHello",
+                "helloworld.Greeter/SayHelloWithJsonMetadata",
+                "data_services_seg.SegmentServices/checkSeg"
         );
 
         // Assertion

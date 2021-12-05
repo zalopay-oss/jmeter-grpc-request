@@ -19,8 +19,7 @@ package server;
 import generated.io.grpc.examples.helloworld.GreeterGrpc;
 import generated.io.grpc.examples.helloworld.HelloReply;
 import generated.io.grpc.examples.helloworld.HelloRequest;
-import io.grpc.Server;
-import io.grpc.ServerBuilder;
+import io.grpc.*;
 import io.grpc.stub.StreamObserver;
 
 import java.io.IOException;
@@ -38,8 +37,9 @@ public class HelloWorldServer {
     private void start() throws IOException {
         /* The port on which the server should run */
         int port = 50051;
+        System.out.println("Adding Service :: GreeterImpl, GreeterInterceptor.....");
         server = ServerBuilder.forPort(port)
-                .addService(new GreeterImpl())
+                .addService(ServerInterceptors.intercept(new GreeterImpl(), new GreeterInterceptor()))
                 .build()
                 .start();
         logger.info("Server started, listening on " + port);
@@ -82,12 +82,31 @@ public class HelloWorldServer {
         server.blockUntilShutdown();
     }
 
+    static class GreeterInterceptor implements ServerInterceptor{
+        public static final Context.Key<Object> KEY1 =  Context.key("key1");
+        @Override
+        public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(ServerCall<ReqT, RespT> serverCall, Metadata metadata, ServerCallHandler<ReqT, RespT> serverCallHandler) {
+            Context context = Context.current();
+            context = context.withValue(KEY1, metadata.get(Metadata.Key.of("key1", Metadata.ASCII_STRING_MARSHALLER)));
+            return Contexts.interceptCall(context, serverCall, metadata, serverCallHandler);
+        }
+    }
+
     static class GreeterImpl extends GreeterGrpc.GreeterImplBase {
 
         @Override
         public void sayHello(HelloRequest req, StreamObserver<HelloReply> responseObserver) {
             HelloReply reply = HelloReply.newBuilder().setMessage("Hello " + req.getName()).build();
             logger.info(req.toString());
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        }
+
+        @Override
+        public void sayHelloWithJsonMetadata(HelloRequest request, StreamObserver<HelloReply> responseObserver) {
+            String message = "Hello " + request.getName() +" : Metadata : "+GreeterInterceptor.KEY1.get();
+            logger.info(message);
+            HelloReply reply = HelloReply.newBuilder().setMessage(message).build();
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
         }

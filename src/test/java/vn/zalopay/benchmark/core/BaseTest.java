@@ -30,6 +30,11 @@ public class BaseTest {
     protected static String REQUEST_JSON = "{\"shelf\":{\"id\":1599156420811,\"theme\":\"Hello server!!\"}}";
     protected static String FULL_METHOD = "bookstore.Bookstore/CreateShelf";
     protected static String METADATA = "";
+    // JSON METADATA TEST
+    protected static String METADATA_JSON = "{\"key1\":\"Value1\"}";
+    protected static String FULL_METHOD_WITH_METADATA = "helloworld.Greeter/SayHelloWithJsonMetadata";
+    protected static String METADATA_REQUEST_JSON = "{\"name\": \"User\"}";
+    protected static String EXPTECTED_RESPONSE_DATA = "{\n  \"message\": \"Hello User : Metadata : Value1\"\n}";
     protected ClientCaller clientCaller;
     private static Process bookStoreServer;
     private static Process helloWorldServer;
