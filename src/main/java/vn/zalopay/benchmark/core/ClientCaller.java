@@ -1,5 +1,7 @@
 package vn.zalopay.benchmark.core;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -86,20 +88,31 @@ public class ClientCaller {
         if (Strings.isNullOrEmpty(metadata))
             return metadataHash;
 
-        String[] keyValue;
-        for (String part : metadata.split(",")) {
-            keyValue = part.split(":", 2);
-
-            Preconditions.checkArgument(keyValue.length == 2,
-                    "Metadata entry must be defined in key1:value1,key2:value2 format: " + metadata);
-
-            String value = keyValue[1];
+        if (metadata.startsWith("{") && metadata.endsWith("}")) {
+            ObjectMapper mapper = new ObjectMapper();
             try {
-                value = URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8.name());
-            } catch (UnsupportedEncodingException ignored) {
+                Map<String, Object> map = mapper.readValue(metadata, Map.class);
+                for (Map.Entry<String, Object> entry : map.entrySet()) {
+                    metadataHash.put(entry.getKey(), (String) entry.getValue());
+                }
+            } catch (JsonProcessingException e) {
+                Preconditions.checkArgument(1 == 2,
+                        "Metadata entry must be valid JSON String or key1:value1,key2:value2 format if not JsonString: " + metadata);
             }
+        } else {
+            String[] keyValue;
+            for (String part : metadata.split(",")) {
+                keyValue = part.split(":", 2);
+                Preconditions.checkArgument(keyValue.length == 2,
+                        "Metadata entry must be defined in key1:value1,key2:value2 format if it is not JsonString: " + metadata);
+                String value = keyValue[1];
+                try {
+                    value = URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8.name());
+                } catch (UnsupportedEncodingException ignored) {
+                }
 
-            metadataHash.put(keyValue[0], value);
+                metadataHash.put(keyValue[0], value);
+            }
         }
 
         return metadataHash;
