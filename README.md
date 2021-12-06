@@ -71,7 +71,7 @@ Run test:
 | 4   	| Proto Root Directory              	| Root directory contains proto files                                 	|
 | 5   	| Library Directory (Optional)      	| Using a different underlying library (googleapis)                   	|
 | 6   	| Full Method                       	| Full Method to test                                                 	|
-| 7   	| Metadata                          	| Store token, authentication method, format: key1:value1,key2:value2, value should url encode with utf-8                                  	|
+| 7   	| Metadata                          	| Metadata can be use for Store token, authentication method, etc. <br/>Two Ways to use metadata, <br/><br/> &nbsp;<b>1. Comma separated Key:Value : </b><br/>&nbsp; - key1:value1,key2:value2<br/>&nbsp; - Value should url encode with utf-8 <br/><br/>&nbsp;2.<b> Json String : </b><br/>&nbsp;&nbsp; - {"key1":"Value1", "key2":"value2"} <br/><br/> <b>Note: <i>In gRPC Metadata value is (Key, value) both in format of (String, String), in case of nested Json Objects values, will go to request as a JsonString. </i></b>                              	|
 | 8   	| Deadline                          	| How long gRPC clients are willing to wait for an RPC to complete  	|
 | 9   	| Send JSON Format With the Request 	| Data request with JSON format                                       	|
 

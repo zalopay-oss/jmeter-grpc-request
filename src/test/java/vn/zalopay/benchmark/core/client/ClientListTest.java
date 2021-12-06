@@ -15,6 +15,7 @@ import java.nio.file.CopyOption;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Mockito.any;
@@ -28,11 +29,14 @@ public class ClientListTest extends BaseTest {
 
         // Action
         List<String> list = Arrays.asList(
-                "data_services_seg.SegmentServices/checkSeg",
-                "helloworld.Greeter/SayHello"
+                "helloworld.Greeter/SayHello",
+                "helloworld.Greeter/SayHelloWithJsonMetadata",
+                "data_services_seg.SegmentServices/checkSeg"
         );
 
         // Assertion
+        Collections.sort(list);
+        Collections.sort(methods);
         Assert.assertEquals(list, methods);
     }
 
@@ -51,6 +55,8 @@ public class ClientListTest extends BaseTest {
         );
 
         // Assertion
+        Collections.sort(list);
+        Collections.sort(methods);
         Assert.assertEquals(list, methods);
     }
 
@@ -61,11 +67,14 @@ public class ClientListTest extends BaseTest {
 
         // Action
         List<String> list = Arrays.asList(
-                "data_services_seg.SegmentServices/checkSeg",
-                "helloworld.Greeter/SayHello"
+                "helloworld.Greeter/SayHello",
+                "helloworld.Greeter/SayHelloWithJsonMetadata",
+                "data_services_seg.SegmentServices/checkSeg"
         );
 
         // Assertion
+        Collections.sort(list);
+        Collections.sort(methods);
         Assert.assertEquals(list, methods);
     }
 

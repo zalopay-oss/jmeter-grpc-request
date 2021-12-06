@@ -195,5 +195,29 @@ public class GRPCSamplerGuiTest extends BaseTest {
         frame.dispose();
     }
 
-
+    @Test
+    public void testJSONMetadataGrpcTestElement() throws InterruptedException {
+        GRPCSamplerGui grpRequestPluginGUI = new GRPCSamplerGui();
+        JFrame frame = new JFrame("Test");
+        frame.setPreferredSize(new Dimension(1024, 768));
+        frame.getContentPane().add(grpRequestPluginGUI, BorderLayout.CENTER);
+        frame.pack();
+        frame.setVisible(true);
+        GRPCSampler grpcSampler = (GRPCSampler) grpRequestPluginGUI.createTestElement();
+        grpcSampler.setComment("dummyComment");
+        grpcSampler.setProtoFolder(PROTO_FOLDER.toString());
+        grpcSampler.setLibFolder("");
+        grpcSampler.setMetadata(METADATA_JSON);
+        grpcSampler.setHost("localhost");
+        grpcSampler.setPort("50051");
+        grpcSampler.setFullMethod(FULL_METHOD_WITH_METADATA);
+        grpcSampler.setDeadline("2000");
+        grpcSampler.setTls(true);
+        grpcSampler.setTlsDisableVerification(true);
+        grpcSampler.setRequestJson(METADATA_REQUEST_JSON);
+        grpRequestPluginGUI.configure(grpcSampler);
+        Assert.assertNotNull(grpcSampler);
+        Assert.assertNotNull(grpRequestPluginGUI);
+        frame.dispose();
+    }
 }

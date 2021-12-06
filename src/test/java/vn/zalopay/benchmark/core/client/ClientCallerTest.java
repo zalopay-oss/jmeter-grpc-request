@@ -92,7 +92,7 @@ public class ClientCallerTest extends BaseTest {
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
     }
 
-    @Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = "Metadata entry must be defined in key1:value1,key2:value2 format: key1=1,key2:2")
+    @Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = "Metadata entry must be valid JSON String or in key1:value1,key2:value2 format if not JsonString but found: key1=1,key2:2")
     public void testCanThrowExceptionWithInvalidMetaData() {
         clientCaller = new ClientCaller(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(), FULL_METHOD, false, false, "key1=1,key2:2");
         clientCaller.buildRequest(REQUEST_JSON);

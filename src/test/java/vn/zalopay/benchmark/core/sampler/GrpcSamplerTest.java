@@ -159,4 +159,24 @@ public class GrpcSamplerTest extends BaseTest {
         Assert.assertEquals(sampleResult.getResponseCode(), "200");
         Assert.assertTrue(new String(sampleResult.getResponseData()).contains("\"theme\": \"Hello server"));
     }
+
+    @Test
+    public void testSampleRequestWithJsonMetadata() {
+        HostAndPort hostAndPort = HostAndPort.fromString("localhost:50051");
+        GRPCSampler grpcSampler = new GRPCSampler();
+        grpcSampler.setComment("dummyComment");
+        grpcSampler.setProtoFolder(PROTO_FOLDER.toString());
+        grpcSampler.setLibFolder("");
+        grpcSampler.setMetadata(METADATA_JSON);
+        grpcSampler.setHost(hostAndPort.getHost());
+        grpcSampler.setPort(Integer.toString(hostAndPort.getPort()));
+        grpcSampler.setFullMethod(FULL_METHOD_WITH_METADATA);
+        grpcSampler.setDeadline("2000");
+        grpcSampler.setTls(false);
+        grpcSampler.setTlsDisableVerification(false);
+        grpcSampler.setRequestJson(METADATA_REQUEST_JSON);
+        SampleResult sampleResult = grpcSampler.sample(null);
+        Assert.assertEquals(sampleResult.getResponseCode(), "200");
+        Assert.assertTrue(new String(sampleResult.getResponseData()).contains(EXPTECTED_RESPONSE_DATA));
+    }
 }
