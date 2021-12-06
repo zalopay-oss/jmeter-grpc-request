@@ -15,6 +15,7 @@ import java.nio.file.CopyOption;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Mockito.any;
@@ -34,6 +35,8 @@ public class ClientListTest extends BaseTest {
         );
 
         // Assertion
+        Collections.sort(list);
+        Collections.sort(methods);
         Assert.assertEquals(list, methods);
     }
 
@@ -52,6 +55,8 @@ public class ClientListTest extends BaseTest {
         );
 
         // Assertion
+        Collections.sort(list);
+        Collections.sort(methods);
         Assert.assertEquals(list, methods);
     }
 
@@ -68,6 +73,8 @@ public class ClientListTest extends BaseTest {
         );
 
         // Assertion
+        Collections.sort(list);
+        Collections.sort(methods);
         Assert.assertEquals(list, methods);
     }
 
