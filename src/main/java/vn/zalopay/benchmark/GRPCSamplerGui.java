@@ -1,9 +1,14 @@
 package vn.zalopay.benchmark;
 
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.common.base.Strings;
+import com.google.protobuf.DescriptorProtos;
+import com.google.protobuf.Descriptors;
 import kg.apc.jmeter.JMeterPluginsUtils;
 import kg.apc.jmeter.gui.BrowseAction;
 import kg.apc.jmeter.gui.GuiBuilderHelper;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.gui.util.HorizontalPanel;
 import org.apache.jmeter.gui.util.JSyntaxTextArea;
 import org.apache.jmeter.gui.util.JTextScrollPane;
@@ -15,12 +20,16 @@ import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vn.zalopay.benchmark.core.ClientList;
+import vn.zalopay.benchmark.core.protobuf.ProtoMethodName;
+import vn.zalopay.benchmark.core.protobuf.ProtocInvoker;
+import vn.zalopay.benchmark.core.protobuf.ServiceResolver;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
+import java.util.UUID;
 
 public class GRPCSamplerGui extends AbstractSamplerGui {
 
@@ -49,6 +58,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
 
     public GRPCSamplerGui() {
         super();
+        log.info("GRPCSamplerGui 埋点");
         initGui();
         initGuiValues();
     }
@@ -65,6 +75,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
 
     @Override
     public TestElement createTestElement() {
+        log.info("createTestElement 埋点");
         GRPCSampler sampler = new GRPCSampler();
         modifyTestElement(sampler);
         return sampler;
@@ -73,26 +84,43 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     @Override
     public void modifyTestElement(TestElement element) {
         configureTestElement(element);
-        if (!(element instanceof GRPCSampler))
+        if (!(element instanceof GRPCSampler)) {
             return;
+        }
         GRPCSampler sampler = (GRPCSampler) element;
         sampler.setProtoFolder(this.protoFolderField.getText());
         sampler.setLibFolder(this.libFolderField.getText());
         sampler.setMetadata(this.metadataField.getText());
         sampler.setHost(this.hostField.getText());
         sampler.setPort(this.portField.getText());
-        sampler.setFullMethod(this.fullMethodField.getSelectedItem().toString());
+        String fullMethod = this.fullMethodField.getSelectedItem().toString();
+        sampler.setFullMethod(fullMethod);
         sampler.setDeadline(this.deadlineField.getText());
         sampler.setTls(this.isTLSCheckBox.isSelected());
         sampler.setTlsDisableVerification(this.isTLSDisableVerificationCheckBox.isSelected());
-        sampler.setRequestJson(this.requestJsonArea.getText());
+        log.info("modifyTestElement 埋点");
+        String text = this.requestJsonArea.getText();
+//        try {
+//            log.info(text);
+//            log.info(fullMethod);
+//            if (StringUtils.isBlank(text) && StringUtils.isNotBlank(fullMethod)) {
+//                text = "{\"token\":\"cp_token_web_28bc76fb6d\",\"device-tag\":\"WCP\",\"identity\":\"cp_token_web_28bc76fb6d\"}";
+//            }
+//            log.info(text);
+//            sampler.setRequestJson(text);
+//            requestJsonArea.setText(text);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+        sampler.setRequestJson(text);
     }
 
     @Override
     public void configure(TestElement element) {
         super.configure(element);
-        if (!(element instanceof GRPCSampler))
+        if (!(element instanceof GRPCSampler)) {
             return;
+        }
         GRPCSampler sampler = (GRPCSampler) element;
         protoFolderField.setText(sampler.getProtoFolder());
         libFolderField.setText(sampler.getLibFolder());
@@ -103,6 +131,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
         deadlineField.setText(sampler.getDeadline());
         isTLSCheckBox.setSelected(sampler.isTls());
         isTLSDisableVerificationCheckBox.setSelected(sampler.isTlsDisableVerification());
+        log.info("configure埋点");
         requestJsonArea.setText(sampler.getRequestJson());
     }
 
@@ -123,9 +152,11 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
         isTLSCheckBox.setSelected(false);
         isTLSDisableVerificationCheckBox.setSelected(false);
         requestJsonArea.setText("");
+        log.info("initGuiValues 埋点");
     }
 
     private void initGui() {
+        log.info("initGui 埋点");
         setLayout(new BorderLayout(0, 5));
         setBorder(makeBorder());
 
@@ -156,6 +187,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     }
 
     private JPanel getRequestJSONPanel() {
+        log.info("getRequestJSONPanel 埋点");
         requestJsonArea = new JSyntaxTextArea(30, 50);
         requestJsonArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JSON);
 
@@ -170,6 +202,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     }
 
     private JPanel getOptionConfigPanel() {
+        log.info("getOptionConfigPanel 埋点");
         JLabel metadataLabel = new JLabel("Metadata:");
         metadataField = new JTextField("Metadata", 32); // $NON-NLS-1$
         deadlineField = new JLabeledTextField("Deadline:", 7); // $NON-NLS-1$
@@ -186,6 +219,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     }
 
     private JPanel getGRPCRequestPanel() {
+        log.info("getGRPCRequestPanel 埋点");
         JPanel requestPanel = new JPanel(new GridBagLayout());
 
         GridBagConstraints labelConstraints = new GridBagConstraints();
@@ -238,6 +272,40 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
             }
         });
 
+        fullMethodField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    if (StringUtils.isNotBlank(requestJsonArea.getText())) {
+                        return;
+                    }
+                    String fullMethod = fullMethodField.getSelectedItem().toString();
+                    ProtoMethodName grpcMethodName = ProtoMethodName.parseFullGrpcMethodName(fullMethod);
+                    Descriptors.MethodDescriptor methodDescriptor = serviceResolver().resolveServiceMethod(grpcMethodName);
+                    if (methodDescriptor != null) {
+                        Descriptors.Descriptor inputType = methodDescriptor.getInputType();
+                        List<Descriptors.FieldDescriptor> fields = inputType.getFields();
+                        JSONObject requestBody = new JSONObject(true);
+                        log.info(fields.size() + "大小");
+                        for (Descriptors.FieldDescriptor field : fields) {
+                            String name = field.getName();
+                            Object defaultValue = getValue(field);
+                            requestBody.put(name, defaultValue);
+                        }
+                        String text = requestBody.toString(
+                                SerializerFeature.PrettyFormat,         // 格式化Json字符串
+                                SerializerFeature.WriteMapNullValue,    // 对Null值进行输出
+                                SerializerFeature.WriteNullListAsEmpty  // Null List 输出为 []
+                        );
+                        log.info(text);
+                        requestJsonArea.setText(text);
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+
         // Container
         JPanel container = new JPanel(new BorderLayout());
         container.setBorder(BorderFactory.createCompoundBorder(
@@ -248,7 +316,95 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
         return container;
     }
 
+    private Object getValue(Descriptors.FieldDescriptor field) {
+        String name = field.getName();
+        String type = field.getType().name().toLowerCase();
+        if ("message".equals(type)) {
+            List<Descriptors.FieldDescriptor> fields = field.getMessageType().getFields();
+            JSONObject repeatedField = new JSONObject(true);
+            for (Descriptors.FieldDescriptor repeatedFieldDescriptor : fields) {
+                repeatedField.put(repeatedFieldDescriptor.getName(), this.getValue(repeatedFieldDescriptor));
+            }
+            return repeatedField;
+        } else {
+            return getDefaultValue(name, type);
+        }
+    }
+
+    private Object getDefaultValue(String name, String type) {
+        switch (type) {
+            case "string":
+                return interpretMockViaFieldName(name);
+            case "number":
+                return 10;
+            case "bool":
+                return true;
+            case "int32":
+                return 10;
+            case "int64":
+                return 20;
+            case "uint32":
+                return 100;
+            case "uint64":
+                return 100;
+            case "sint32":
+                return 100;
+            case "sint64":
+                return 1200;
+            case "fixed32":
+                return 1400;
+            case "fixed64":
+                return 1500;
+            case "sfixed32":
+                return 1600;
+            case "sfixed64":
+                return 1700;
+            case "double":
+                return 1.4;
+            case "float":
+                return 1.1;
+            case "bytes":
+                return "Hello";
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * Tries to guess a mock value from the field name.
+     * Default Hello.
+     */
+    private String interpretMockViaFieldName(String fieldName) {
+        String fieldNameLower = fieldName.toLowerCase();
+
+        if (fieldNameLower.startsWith("id") || fieldNameLower.endsWith("id")) {
+            return UUID.randomUUID().toString();
+        }
+
+        return "Hello";
+    }
+
+    public ServiceResolver serviceResolver() {
+        String protoFile = protoFolderField.getText();
+        String libFolder = libFolderField.getText();
+        if (!Strings.isNullOrEmpty(protoFile)) {
+            final DescriptorProtos.FileDescriptorSet fileDescriptorSet;
+            try {
+                ProtocInvoker invoker = ProtocInvoker.forConfig(protoFile, libFolder);
+                fileDescriptorSet = invoker.invoke();
+            } catch (Throwable t) {
+                throw new RuntimeException("Unable to resolve service by invoking protoc", t);
+            }
+
+            ServiceResolver serviceResolver = ServiceResolver.fromFileDescriptorSet(fileDescriptorSet);
+            return serviceResolver;
+        }
+
+        return null;
+    }
+
     private JPanel getWebServerPanel() {
+        log.info("getWebServerPanel 埋点");
         portField = new JLabeledTextField("Port Number:", 3); // $NON-NLS-1$
         hostField = new JLabeledTextField("Server Name or IP:", 11); // $NON-NLS-1$
         isTLSCheckBox = new JCheckBox("SSL/TLS");
@@ -278,7 +434,13 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
             methods.toArray(methodsArr);
 
             fullMethodField.setModel(new DefaultComboBoxModel<>(methodsArr));
-            fullMethodField.setSelectedIndex(0);
+            // TODO 优化老是被默认选中
+            try {
+                Object selectedItem = fullMethodField.getSelectedItem();
+                fullMethodField.setSelectedItem(selectedItem);
+            } catch (Exception e) {
+                fullMethodField.setSelectedIndex(0);
+            }
         }
     }
 
