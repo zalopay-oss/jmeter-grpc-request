@@ -32,7 +32,6 @@
     </properties>
 
     <dependencies>
-
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
@@ -40,14 +39,12 @@
             <scope>test</scope>
         </dependency>
 
-
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
-
 
         <dependency>
             <groupId>kg.apc</groupId>
@@ -127,7 +124,6 @@
             <artifactId>protoc-jar-maven-plugin</artifactId>
             <version>${os72.protoc.version}</version>
         </dependency>
-
 
         <dependency>
             <groupId>com.google.guava</groupId>

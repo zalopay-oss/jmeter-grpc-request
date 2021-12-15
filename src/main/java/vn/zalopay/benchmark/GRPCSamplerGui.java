@@ -58,7 +58,6 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
 
     public GRPCSamplerGui() {
         super();
-        log.info("GRPCSamplerGui 埋点");
         initGui();
         initGuiValues();
     }
@@ -75,7 +74,6 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
 
     @Override
     public TestElement createTestElement() {
-        log.info("createTestElement 埋点");
         GRPCSampler sampler = new GRPCSampler();
         modifyTestElement(sampler);
         return sampler;
@@ -93,26 +91,11 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
         sampler.setMetadata(this.metadataField.getText());
         sampler.setHost(this.hostField.getText());
         sampler.setPort(this.portField.getText());
-        String fullMethod = this.fullMethodField.getSelectedItem().toString();
-        sampler.setFullMethod(fullMethod);
+        sampler.setFullMethod(this.fullMethodField.getSelectedItem().toString());
         sampler.setDeadline(this.deadlineField.getText());
         sampler.setTls(this.isTLSCheckBox.isSelected());
         sampler.setTlsDisableVerification(this.isTLSDisableVerificationCheckBox.isSelected());
-        log.info("modifyTestElement 埋点");
-        String text = this.requestJsonArea.getText();
-//        try {
-//            log.info(text);
-//            log.info(fullMethod);
-//            if (StringUtils.isBlank(text) && StringUtils.isNotBlank(fullMethod)) {
-//                text = "{\"token\":\"cp_token_web_28bc76fb6d\",\"device-tag\":\"WCP\",\"identity\":\"cp_token_web_28bc76fb6d\"}";
-//            }
-//            log.info(text);
-//            sampler.setRequestJson(text);
-//            requestJsonArea.setText(text);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-        sampler.setRequestJson(text);
+        sampler.setRequestJson(this.requestJsonArea.getText());
     }
 
     @Override
@@ -131,7 +114,6 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
         deadlineField.setText(sampler.getDeadline());
         isTLSCheckBox.setSelected(sampler.isTls());
         isTLSDisableVerificationCheckBox.setSelected(sampler.isTlsDisableVerification());
-        log.info("configure埋点");
         requestJsonArea.setText(sampler.getRequestJson());
     }
 
@@ -152,11 +134,9 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
         isTLSCheckBox.setSelected(false);
         isTLSDisableVerificationCheckBox.setSelected(false);
         requestJsonArea.setText("");
-        log.info("initGuiValues 埋点");
     }
 
     private void initGui() {
-        log.info("initGui 埋点");
         setLayout(new BorderLayout(0, 5));
         setBorder(makeBorder());
 
@@ -187,7 +167,6 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     }
 
     private JPanel getRequestJSONPanel() {
-        log.info("getRequestJSONPanel 埋点");
         requestJsonArea = new JSyntaxTextArea(30, 50);
         requestJsonArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JSON);
 
@@ -202,7 +181,6 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     }
 
     private JPanel getOptionConfigPanel() {
-        log.info("getOptionConfigPanel 埋点");
         JLabel metadataLabel = new JLabel("Metadata:");
         metadataField = new JTextField("Metadata", 32); // $NON-NLS-1$
         deadlineField = new JLabeledTextField("Deadline:", 7); // $NON-NLS-1$
@@ -219,7 +197,6 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     }
 
     private JPanel getGRPCRequestPanel() {
-        log.info("getGRPCRequestPanel 埋点");
         JPanel requestPanel = new JPanel(new GridBagLayout());
 
         GridBagConstraints labelConstraints = new GridBagConstraints();
@@ -286,18 +263,16 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
                         Descriptors.Descriptor inputType = methodDescriptor.getInputType();
                         List<Descriptors.FieldDescriptor> fields = inputType.getFields();
                         JSONObject requestBody = new JSONObject(true);
-                        log.info(fields.size() + "大小");
                         for (Descriptors.FieldDescriptor field : fields) {
                             String name = field.getName();
                             Object defaultValue = getValue(field);
                             requestBody.put(name, defaultValue);
                         }
                         String text = requestBody.toString(
-                                SerializerFeature.PrettyFormat,         // 格式化Json字符串
-                                SerializerFeature.WriteMapNullValue,    // 对Null值进行输出
-                                SerializerFeature.WriteNullListAsEmpty  // Null List 输出为 []
+                                SerializerFeature.PrettyFormat,         // Formatting Json String
+                                SerializerFeature.WriteMapNullValue,    // Outputs Null values
+                                SerializerFeature.WriteNullListAsEmpty  // Null List output is []
                         );
-                        log.info(text);
                         requestJsonArea.setText(text);
                     }
                 } catch (Exception ex) {
@@ -328,6 +303,64 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
             return repeatedField;
         } else {
             return getDefaultValue(name, type);
+        }
+    }
+
+    public ServiceResolver serviceResolver() {
+        String protoFile = protoFolderField.getText();
+        String libFolder = libFolderField.getText();
+        if (!Strings.isNullOrEmpty(protoFile)) {
+            final DescriptorProtos.FileDescriptorSet fileDescriptorSet;
+            try {
+                ProtocInvoker invoker = ProtocInvoker.forConfig(protoFile, libFolder);
+                fileDescriptorSet = invoker.invoke();
+            } catch (Throwable t) {
+                throw new RuntimeException("Unable to resolve service by invoking protoc", t);
+            }
+
+            ServiceResolver serviceResolver = ServiceResolver.fromFileDescriptorSet(fileDescriptorSet);
+            return serviceResolver;
+        }
+
+        return null;
+    }
+
+    private JPanel getWebServerPanel() {
+        portField = new JLabeledTextField("Port Number:", 3); // $NON-NLS-1$
+        hostField = new JLabeledTextField("Server Name or IP:", 11); // $NON-NLS-1$
+        isTLSCheckBox = new JCheckBox("SSL/TLS");
+        isTLSDisableVerificationCheckBox = new JCheckBox("Disable SSL/TLS Cert Verification");
+        JPanel webServerPanel = new VerticalPanel();
+        webServerPanel.setBorder(BorderFactory.createTitledBorder("Web Server")); // $NON-NLS-1$
+
+        JPanel webserverHostPanel = new HorizontalPanel();
+        webserverHostPanel.add(hostField);
+        webserverHostPanel.add(portField);
+
+        JPanel webserverOtherPanel = new HorizontalPanel();
+        webserverOtherPanel.add(isTLSCheckBox);
+        webserverOtherPanel.add(isTLSDisableVerificationCheckBox);
+        webServerPanel.add(webserverHostPanel);
+        webServerPanel.add(webserverOtherPanel);
+        return webServerPanel;
+    }
+
+    private void getMethods(JComboBox<String> fullMethodField) {
+        String protoFolderText = protoFolderField.getText();
+        if (StringUtils.isNotBlank(protoFolderText)) {
+            List<String> methods = ClientList.listServices(protoFolderText, libFolderField.getText());
+
+            log.info("Full Methods: " + methods.toString());
+            String[] methodsArr = new String[methods.size()];
+            methods.toArray(methodsArr);
+
+            fullMethodField.setModel(new DefaultComboBoxModel<>(methodsArr));
+            try {
+                Object selectedItem = fullMethodField.getSelectedItem();
+                fullMethodField.setSelectedItem(selectedItem);
+            } catch (Exception e) {
+                fullMethodField.setSelectedIndex(0);
+            }
         }
     }
 
@@ -382,66 +415,6 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
         }
 
         return "Hello";
-    }
-
-    public ServiceResolver serviceResolver() {
-        String protoFile = protoFolderField.getText();
-        String libFolder = libFolderField.getText();
-        if (!Strings.isNullOrEmpty(protoFile)) {
-            final DescriptorProtos.FileDescriptorSet fileDescriptorSet;
-            try {
-                ProtocInvoker invoker = ProtocInvoker.forConfig(protoFile, libFolder);
-                fileDescriptorSet = invoker.invoke();
-            } catch (Throwable t) {
-                throw new RuntimeException("Unable to resolve service by invoking protoc", t);
-            }
-
-            ServiceResolver serviceResolver = ServiceResolver.fromFileDescriptorSet(fileDescriptorSet);
-            return serviceResolver;
-        }
-
-        return null;
-    }
-
-    private JPanel getWebServerPanel() {
-        log.info("getWebServerPanel 埋点");
-        portField = new JLabeledTextField("Port Number:", 3); // $NON-NLS-1$
-        hostField = new JLabeledTextField("Server Name or IP:", 11); // $NON-NLS-1$
-        isTLSCheckBox = new JCheckBox("SSL/TLS");
-        isTLSDisableVerificationCheckBox = new JCheckBox("Disable SSL/TLS Cert Verification");
-        JPanel webServerPanel = new VerticalPanel();
-        webServerPanel.setBorder(BorderFactory.createTitledBorder("Web Server")); // $NON-NLS-1$
-
-        JPanel webserverHostPanel = new HorizontalPanel();
-        webserverHostPanel.add(hostField);
-        webserverHostPanel.add(portField);
-
-        JPanel webserverOtherPanel = new HorizontalPanel();
-        webserverOtherPanel.add(isTLSCheckBox);
-        webserverOtherPanel.add(isTLSDisableVerificationCheckBox);
-        webServerPanel.add(webserverHostPanel);
-        webServerPanel.add(webserverOtherPanel);
-        return webServerPanel;
-    }
-
-    private void getMethods(JComboBox<String> fullMethodField) {
-        if (!Strings.isNullOrEmpty(protoFolderField.getText())) {
-            List<String> methods =
-                    ClientList.listServices(protoFolderField.getText(), libFolderField.getText());
-
-            log.info("Full Methods: " + methods.toString());
-            String[] methodsArr = new String[methods.size()];
-            methods.toArray(methodsArr);
-
-            fullMethodField.setModel(new DefaultComboBoxModel<>(methodsArr));
-            // TODO 优化老是被默认选中
-            try {
-                Object selectedItem = fullMethodField.getSelectedItem();
-                fullMethodField.setSelectedItem(selectedItem);
-            } catch (Exception e) {
-                fullMethodField.setSelectedIndex(0);
-            }
-        }
     }
 
 }
