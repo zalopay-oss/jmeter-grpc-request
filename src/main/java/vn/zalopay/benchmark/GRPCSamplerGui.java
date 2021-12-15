@@ -34,7 +34,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
 
     private static final Logger log = LoggerFactory.getLogger(GRPCSamplerGui.class);
     private static final long serialVersionUID = 240L;
-    private static final String WIKIPAGE = "GRPCSampler";
+    private static final String WIKIPAGE = "https://github.com/zalopay-oss/jmeter-grpc-request";
 
     private JTextField protoFolderField;
     private JButton protoBrowseButton;
