@@ -13,20 +13,20 @@ import java.util.List;
 public class ClientList {
 
     public static ServiceResolver getServiceResolver(String protoFile, String libFolder) {
-        if (!Strings.isNullOrEmpty(protoFile)) {
-            final DescriptorProtos.FileDescriptorSet fileDescriptorSet;
-            try {
+        try {
+            if (!Strings.isNullOrEmpty(protoFile)) {
+                final DescriptorProtos.FileDescriptorSet fileDescriptorSet;
                 ProtocInvoker invoker = ProtocInvoker.forConfig(protoFile, libFolder);
                 fileDescriptorSet = invoker.invoke();
-            } catch (Throwable t) {
-                throw new RuntimeException("Unable to resolve service by invoking protoc", t);
-            }
 
-            ServiceResolver serviceResolver = ServiceResolver.fromFileDescriptorSet(fileDescriptorSet);
-            return serviceResolver;
+                ServiceResolver serviceResolver = ServiceResolver.fromFileDescriptorSet(fileDescriptorSet);
+                return serviceResolver;
+            }
+        } catch (Throwable t) {
+            throw new RuntimeException("Unable to resolve service by invoking protoc", t);
         }
 
-        return null;
+        throw new RuntimeException("Unable to resolve service by invoking protoc");
     }
 
     public static List<String> listServices(ServiceResolver serviceResolver) {
