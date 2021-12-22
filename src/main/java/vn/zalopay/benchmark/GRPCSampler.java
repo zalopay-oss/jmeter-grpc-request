@@ -53,8 +53,7 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
                     getLibFolder(),
                     getFullMethod(),
                     isTls(),
-                    isTlsDisableVerification(),
-                    getMetadata());
+                    isTlsDisableVerification());
         }
     }
 
@@ -65,8 +64,9 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
         try {
             initGrpcClient();
             sampleResult.setSampleLabel(getName());
-            String grpcRequest = clientCaller.buildRequest(getRequestJson());
+            String grpcRequest = clientCaller.buildRequestAndMetadata(getRequestJson(),getMetadata());
             sampleResult.setSamplerData(grpcRequest);
+            sampleResult.setRequestHeaders(clientCaller.getMetadataString());
             sampleResult.sampleStart();
             grpcResponse = clientCaller.call(getDeadline());
             sampleResult.sampleEnd();
