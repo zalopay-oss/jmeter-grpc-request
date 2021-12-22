@@ -21,8 +21,7 @@ public class ServiceResolver {
      * Creates a resolver which searches the supplied {@link FileDescriptorSet}.
      */
     public static ServiceResolver fromFileDescriptorSet(FileDescriptorSet descriptorSet) {
-        ImmutableMap<String, FileDescriptorProto> descriptorProtoIndex =
-                computeDescriptorProtoIndex(descriptorSet);
+        ImmutableMap<String, FileDescriptorProto> descriptorProtoIndex = computeDescriptorProtoIndex(descriptorSet);
         Map<String, FileDescriptor> descriptorCache = new HashMap<>();
 
         ImmutableList.Builder<FileDescriptor> result = ImmutableList.builder();
