@@ -33,9 +33,14 @@ public class JMeterVariableUtils {
      * @return a ValueReplacer configured for the test tree
      */
     public static ValueReplacer getReplacer() {
-        ValueReplacer replacer = GuiPackage.getInstance().getReplacer();
+        GuiPackage guiPackage = GuiPackage.getInstance();
+        if (guiPackage == null) {
+            return new ValueReplacer();
+        }
+
+        ValueReplacer replacer = guiPackage.getReplacer();
         try {
-            Map<TestElement, JMeterGUIComponent> nodesToGui = (Map<TestElement, JMeterGUIComponent>) getPrivateField(GuiPackage.getInstance(), "nodesToGui");
+            Map<TestElement, JMeterGUIComponent> nodesToGui = (Map<TestElement, JMeterGUIComponent>) getPrivateField(guiPackage, "nodesToGui");
             nodesToGui.forEach((key, value) -> {
                 if (key instanceof Arguments) {
                     replacer.addVariables(((Arguments) key).getArgumentsAsMap());

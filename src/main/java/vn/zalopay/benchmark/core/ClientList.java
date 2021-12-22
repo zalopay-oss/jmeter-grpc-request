@@ -66,7 +66,7 @@ public class ClientList {
     }
 
     public static List<String> listServices(String protoFile, String libFolder) {
-        return listServices(getServiceResolver(protoFile, libFolder));
+        return listServices(getServiceResolver(protoFile, libFolder, true));
     }
 
 }
