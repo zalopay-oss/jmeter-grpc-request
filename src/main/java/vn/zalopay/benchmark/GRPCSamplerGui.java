@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import vn.zalopay.benchmark.core.ClientList;
 import vn.zalopay.benchmark.core.protobuf.ProtoMethodName;
 import vn.zalopay.benchmark.core.protobuf.ServiceResolver;
+import vn.zalopay.benchmark.util.JMeterVariableUtils;
 
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
@@ -34,7 +35,9 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
 
     private static final Logger log = LoggerFactory.getLogger(GRPCSamplerGui.class);
     private static final long serialVersionUID = 240L;
-    private static final String WIKIPAGE = "https://github.com/zalopay-oss/jmeter-grpc-request";
+    private static final String WIKI_PAGE = "https://github.com/zalopay-oss/jmeter-grpc-request";
+
+    private GRPCSampler grpcSampler;
 
     private JTextField protoFolderField;
     private JButton protoBrowseButton;
@@ -55,8 +58,6 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
 
     private JSyntaxTextArea requestJsonArea;
 
-    private ServiceResolver serviceResolver;
-
     public GRPCSamplerGui() {
         super();
         initGui();
@@ -75,9 +76,9 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
 
     @Override
     public TestElement createTestElement() {
-        GRPCSampler sampler = new GRPCSampler();
-        modifyTestElement(sampler);
-        return sampler;
+        grpcSampler = new GRPCSampler();
+        modifyTestElement(grpcSampler);
+        return grpcSampler;
     }
 
     @Override
@@ -86,17 +87,17 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
         if (!(element instanceof GRPCSampler)) {
             return;
         }
-        GRPCSampler sampler = (GRPCSampler) element;
-        sampler.setProtoFolder(this.protoFolderField.getText());
-        sampler.setLibFolder(this.libFolderField.getText());
-        sampler.setMetadata(this.metadataField.getText());
-        sampler.setHost(this.hostField.getText());
-        sampler.setPort(this.portField.getText());
-        sampler.setFullMethod(this.fullMethodField.getSelectedItem().toString());
-        sampler.setDeadline(this.deadlineField.getText());
-        sampler.setTls(this.isTLSCheckBox.isSelected());
-        sampler.setTlsDisableVerification(this.isTLSDisableVerificationCheckBox.isSelected());
-        sampler.setRequestJson(this.requestJsonArea.getText());
+        grpcSampler = (GRPCSampler) element;
+        grpcSampler.setProtoFolder(this.protoFolderField.getText());
+        grpcSampler.setLibFolder(this.libFolderField.getText());
+        grpcSampler.setMetadata(this.metadataField.getText());
+        grpcSampler.setHost(this.hostField.getText());
+        grpcSampler.setPort(this.portField.getText());
+        grpcSampler.setFullMethod(this.fullMethodField.getSelectedItem().toString());
+        grpcSampler.setDeadline(this.deadlineField.getText());
+        grpcSampler.setTls(this.isTLSCheckBox.isSelected());
+        grpcSampler.setTlsDisableVerification(this.isTLSDisableVerificationCheckBox.isSelected());
+        grpcSampler.setRequestJson(this.requestJsonArea.getText());
     }
 
     @Override
@@ -105,17 +106,17 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
         if (!(element instanceof GRPCSampler)) {
             return;
         }
-        GRPCSampler sampler = (GRPCSampler) element;
-        protoFolderField.setText(sampler.getProtoFolder());
-        libFolderField.setText(sampler.getLibFolder());
-        metadataField.setText(sampler.getMetadata());
-        hostField.setText(sampler.getHost());
-        portField.setText(sampler.getPort());
-        fullMethodField.setSelectedItem(sampler.getFullMethod());
-        deadlineField.setText(sampler.getDeadline());
-        isTLSCheckBox.setSelected(sampler.isTls());
-        isTLSDisableVerificationCheckBox.setSelected(sampler.isTlsDisableVerification());
-        requestJsonArea.setText(sampler.getRequestJson());
+        grpcSampler = (GRPCSampler) element;
+        protoFolderField.setText(grpcSampler.getProtoFolder());
+        libFolderField.setText(grpcSampler.getLibFolder());
+        metadataField.setText(grpcSampler.getMetadata());
+        hostField.setText(grpcSampler.getHost());
+        portField.setText(grpcSampler.getPort());
+        fullMethodField.setSelectedItem(grpcSampler.getFullMethod());
+        deadlineField.setText(grpcSampler.getDeadline());
+        isTLSCheckBox.setSelected(grpcSampler.isTls());
+        isTLSDisableVerificationCheckBox.setSelected(grpcSampler.isTlsDisableVerification());
+        requestJsonArea.setText(grpcSampler.getRequestJson());
     }
 
     @Override
@@ -143,7 +144,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
 
         // TOP panel
         Container topPanel = makeTitlePanel();
-        add(JMeterPluginsUtils.addHelpLinkToPanel(topPanel, WIKIPAGE), BorderLayout.NORTH);
+        add(JMeterPluginsUtils.addHelpLinkToPanel(topPanel, WIKI_PAGE), BorderLayout.NORTH);
         add(topPanel, BorderLayout.NORTH);
 
         // MAIN panel
@@ -303,9 +304,9 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     }
 
     private void getMethods(JComboBox<String> fullMethodField) {
-        String protoFolderText = protoFolderField.getText();
-        if (StringUtils.isNotBlank(protoFolderText)) {
-            serviceResolver = ClientList.getServiceResolver(protoFolderText, libFolderField.getText());
+        if (StringUtils.isNotBlank(grpcSampler.getProtoFolder())) {
+            JMeterVariableUtils.undoVariableReplacement(grpcSampler);
+            ServiceResolver serviceResolver = ClientList.getServiceResolver(grpcSampler.getProtoFolder(), grpcSampler.getLibFolder(), true);
             List<String> methods = ClientList.listServices(serviceResolver);
 
             log.info("Full Methods: " + methods.toString());
@@ -322,6 +323,8 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
         }
     }
 
+
+
     private void requestMock() {
         try {
             if (StringUtils.isNotBlank(requestJsonArea.getText())) {
@@ -329,9 +332,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
             }
             String fullMethod = fullMethodField.getSelectedItem().toString();
             ProtoMethodName grpcMethodName = ProtoMethodName.parseFullGrpcMethodName(fullMethod);
-            if (serviceResolver == null) {
-                serviceResolver = ClientList.getServiceResolver(protoFolderField.getText(), libFolderField.getText());
-            }
+            ServiceResolver serviceResolver = ClientList.getServiceResolver(grpcSampler.getProtoFolder(), grpcSampler.getLibFolder());
             Descriptors.MethodDescriptor methodDescriptor = serviceResolver.resolveServiceMethod(grpcMethodName);
             if (methodDescriptor != null) {
                 Descriptors.Descriptor inputType = methodDescriptor.getInputType();
@@ -350,7 +351,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
                 requestJsonArea.setText(text);
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            log.error("request mock error", ex);
         }
     }
 

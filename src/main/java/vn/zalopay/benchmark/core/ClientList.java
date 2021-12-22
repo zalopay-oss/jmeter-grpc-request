@@ -7,19 +7,44 @@ import com.google.protobuf.Descriptors.ServiceDescriptor;
 import vn.zalopay.benchmark.core.protobuf.ProtocInvoker;
 import vn.zalopay.benchmark.core.protobuf.ServiceResolver;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class ClientList {
 
+    private static final Map<String, ServiceResolver> serviceResolverMap = new HashMap<>();
+
     public static ServiceResolver getServiceResolver(String protoFile, String libFolder) {
+        return getServiceResolver(protoFile, libFolder, false);
+    }
+
+    /**
+     * Get Proto File ServiceResolver
+     *
+     * @param protoFile proto file root path
+     * @param libFolder lib file path
+     * @param reload    reload not cache
+     * @return proto file resolver
+     */
+    public static ServiceResolver getServiceResolver(String protoFile, String libFolder, boolean reload) {
         try {
+            String serviceResolverKey = protoFile + libFolder;
+            if (reload == false) {
+                ServiceResolver serviceResolver = serviceResolverMap.get(serviceResolverKey);
+                if (serviceResolver != null) {
+                    return serviceResolver;
+                }
+            }
+
             if (!Strings.isNullOrEmpty(protoFile)) {
                 final DescriptorProtos.FileDescriptorSet fileDescriptorSet;
                 ProtocInvoker invoker = ProtocInvoker.forConfig(protoFile, libFolder);
                 fileDescriptorSet = invoker.invoke();
 
                 ServiceResolver serviceResolver = ServiceResolver.fromFileDescriptorSet(fileDescriptorSet);
+                serviceResolverMap.put(serviceResolverKey, serviceResolver);
                 return serviceResolver;
             }
         } catch (Throwable t) {
