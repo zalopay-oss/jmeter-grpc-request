@@ -323,8 +323,6 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
         }
     }
 
-
-
     private void requestMock() {
         try {
             if (StringUtils.isNotBlank(requestJsonArea.getText())) {
@@ -332,6 +330,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
             }
             String fullMethod = fullMethodField.getSelectedItem().toString();
             ProtoMethodName grpcMethodName = ProtoMethodName.parseFullGrpcMethodName(fullMethod);
+            JMeterVariableUtils.undoVariableReplacement(grpcSampler);
             ServiceResolver serviceResolver = ClientList.getServiceResolver(grpcSampler.getProtoFolder(), grpcSampler.getLibFolder());
             Descriptors.MethodDescriptor methodDescriptor = serviceResolver.resolveServiceMethod(grpcMethodName);
             if (methodDescriptor != null) {

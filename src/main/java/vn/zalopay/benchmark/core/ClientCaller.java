@@ -1,7 +1,6 @@
 package vn.zalopay.benchmark.core;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -85,17 +84,17 @@ public class ClientCaller {
     private Map<String, String> buildHashMetadata(String metadata) {
         Map<String, String> metadataHash = new LinkedHashMap<>();
 
-        if (Strings.isNullOrEmpty(metadata))
+        if (Strings.isNullOrEmpty(metadata)) {
             return metadataHash;
+        }
 
         if (metadata.startsWith("{") && metadata.endsWith("}")) {
-            ObjectMapper mapper = new ObjectMapper();
             try {
-                Map<String, Object> map = mapper.readValue(metadata, Map.class);
+                Map<String, Object> map = JSONObject.parseObject(metadata);
                 for (Map.Entry<String, Object> entry : map.entrySet()) {
                     metadataHash.put(entry.getKey(), (String)entry.getValue());
                 }
-            } catch (JsonProcessingException e) {
+            } catch (Exception e) {
                 Preconditions.checkArgument(1 == 2,
                         "Metadata entry must be valid JSON String or in key1:value1,key2:value2 format if not JsonString but found: " + metadata);
             }

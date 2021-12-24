@@ -5,14 +5,11 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
-
 import org.apache.jmeter.services.FileServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 import java.nio.file.*;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -32,6 +29,16 @@ public class ProtocInvoker {
 
     private final ImmutableList<Path> protocIncludePaths;
     private final Path discoveryRoot;
+    private final int largeFolderLimit = 100;
+
+    /**
+     * Takes an optional path to pass to protoc as --proto_path. Uses the invocation-time proto root
+     * if none is passed.
+     */
+    private ProtocInvoker(Path discoveryRoot, ImmutableList<Path> protocIncludePaths) {
+        this.protocIncludePaths = protocIncludePaths;
+        this.discoveryRoot = discoveryRoot;
+    }
 
     /**
      * Creates a new {@link ProtocInvoker} with the supplied configuration.
@@ -59,31 +66,6 @@ public class ProtocInvoker {
     }
 
     /**
-     * Get paths lib protoc
-     */
-    private static List<String> getProtocIncludes(String libFolder) {
-        if (Objects.isNull(libFolder))
-            return Collections.emptyList();
-
-        List<String> protocIncludes = new LinkedList<>();
-        for (String pathString : libFolder.split(",")) {
-            Path includePath = Paths.get(pathString);
-            if (Files.exists(includePath))
-                protocIncludes.add(includePath.toString());
-        }
-        return protocIncludes;
-    }
-
-    /**
-     * Takes an optional path to pass to protoc as --proto_path. Uses the invocation-time proto root
-     * if none is passed.
-     */
-    private ProtocInvoker(Path discoveryRoot, ImmutableList<Path> protocIncludePaths) {
-        this.protocIncludePaths = protocIncludePaths;
-        this.discoveryRoot = discoveryRoot;
-    }
-
-    /**
      * Executes protoc on all .proto files in the subtree rooted at the supplied path and returns a
      * {@link FileDescriptorSet} which describes all the protos.
      */
@@ -103,38 +85,39 @@ public class ProtocInvoker {
             throw new ProtocInvocationException("Unable to create temporary file", e);
         }
 
-        ImmutableList<String> protocArgs = ImmutableList.<String>builder()
-                .addAll(scanProtoFiles(discoveryRoot))
-                .addAll(includePathArgs(wellKnownTypesInclude))
-                .add("--descriptor_set_out=" + descriptorPath.toAbsolutePath().toString())
-                .add("--include_imports")
-                .build();
-        invokeBinary(protocArgs);
+        // Large folder processing, solve CreateProcess error=206
+        final ImmutableSet<String> protoFilePaths = scanProtoFiles(discoveryRoot);
+        ImmutableList<String> protocArgs = null;
 
+        if (protoFilePaths.size() > largeFolderLimit) {
+            try {
+                File argumentsFile = createFileWithArguments(protoFilePaths.toArray(new String[0]));
+                protocArgs = ImmutableList.<String>builder()
+                        .add("@" + argumentsFile.getAbsolutePath())
+                        .addAll(includePathArgs(wellKnownTypesInclude))
+                        .add("--descriptor_set_out=" + descriptorPath.toAbsolutePath().toString())
+                        .add("--include_imports")
+                        .build();
+            } catch (IOException e) {
+                logger.error("Unable to create protoc parameter file", e);
+            }
+        }
+
+        if (protocArgs == null) {
+            protocArgs = ImmutableList.<String>builder()
+                    .addAll(protoFilePaths)
+                    .addAll(includePathArgs(wellKnownTypesInclude))
+                    .add("--descriptor_set_out=" + descriptorPath.toAbsolutePath().toString())
+                    .add("--include_imports")
+                    .build();
+        }
+
+        invokeBinary(protocArgs);
         try {
             return FileDescriptorSet.parseFrom(Files.readAllBytes(descriptorPath));
         } catch (IOException e) {
             throw new ProtocInvocationException("Unable to parse the generated descriptors", e);
         }
-    }
-
-    private ImmutableList<String> includePathArgs(Path wellKnownTypesInclude) {
-        ImmutableList.Builder<String> resultBuilder = ImmutableList.builder();
-        for (Path path : protocIncludePaths) {
-            resultBuilder.add("-I" + path.toString());
-        }
-
-        // Add the include path which makes sure that protoc finds the well known types. Note that we
-        // add this *after* the user types above in case users want to provide their own well known
-        // types.
-        resultBuilder.add("-I" + wellKnownTypesInclude.toString());
-
-        // Protoc requires that all files being compiled are present in the subtree rooted at one of
-        // the import paths (or the proto_root argument, which we don't use). Therefore, the safest
-        // thing to do is to add the discovery path itself as the *last* include.
-        resultBuilder.add("-I" + discoveryRoot.toAbsolutePath().toString());
-
-        return resultBuilder.build();
     }
 
     private void invokeBinary(ImmutableList<String> protocArgs) throws ProtocInvocationException {
@@ -168,6 +151,33 @@ public class ProtocInvoker {
         }
     }
 
+    /**
+     * Put args into a temp file to be referenced using the @ option in protoc command line.
+     *
+     * @param args
+     * @return the temporary file wth the arguments
+     * @throws IOException
+     */
+    private File createFileWithArguments(String[] args) throws IOException {
+        PrintWriter writer = null;
+        try {
+            final File tempFile = File.createTempFile("protoc", null, null);
+            tempFile.deleteOnExit();
+
+            writer = new PrintWriter(tempFile, "UTF-8");
+            for (final String arg : args) {
+                writer.println(arg);
+            }
+            writer.flush();
+
+            return tempFile;
+        } finally {
+            if (writer != null) {
+                writer.close();
+            }
+        }
+    }
+
     private ImmutableSet<String> scanProtoFiles(Path protoRoot) throws ProtocInvocationException {
         try (final Stream<Path> protoPaths = Files.walk(protoRoot)) {
             return ImmutableSet.copyOf(protoPaths
@@ -177,6 +187,43 @@ public class ProtocInvoker {
         } catch (IOException e) {
             throw new ProtocInvocationException("Unable to scan proto tree for files", e);
         }
+    }
+
+    private ImmutableList<String> includePathArgs(Path wellKnownTypesInclude) {
+        ImmutableList.Builder<String> resultBuilder = ImmutableList.builder();
+        for (Path path : protocIncludePaths) {
+            resultBuilder.add("-I" + path.toString());
+        }
+
+        // Add the include path which makes sure that protoc finds the well known types. Note that we
+        // add this *after* the user types above in case users want to provide their own well known
+        // types.
+        resultBuilder.add("-I" + wellKnownTypesInclude.toString());
+
+        // Protoc requires that all files being compiled are present in the subtree rooted at one of
+        // the import paths (or the proto_root argument, which we don't use). Therefore, the safest
+        // thing to do is to add the discovery path itself as the *last* include.
+        resultBuilder.add("-I" + discoveryRoot.toAbsolutePath().toString());
+
+        return resultBuilder.build();
+    }
+
+    /**
+     * Get paths lib protoc
+     */
+    private static List<String> getProtocIncludes(String libFolder) {
+        if (Objects.isNull(libFolder)) {
+            return Collections.emptyList();
+        }
+
+        List<String> protocIncludes = new LinkedList<>();
+        for (String pathString : libFolder.split(",")) {
+            Path includePath = Paths.get(pathString);
+            if (Files.exists(includePath)) {
+                protocIncludes.add(includePath.toString());
+            }
+        }
+        return protocIncludes;
     }
 
     /**
@@ -208,4 +255,5 @@ public class ProtocInvoker {
             super(message, cause);
         }
     }
+
 }
