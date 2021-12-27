@@ -28,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class ClientCaller {
     private Descriptors.MethodDescriptor methodDescriptor;
@@ -41,16 +42,16 @@ public class ClientCaller {
     private boolean disableTtlVerification;
     ChannelFactory channelFactory;
 
-    public ClientCaller(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean TLS, boolean TLS_DISABLE_VERIFICATION, String METADATA) {
-        this.init(HOST_PORT, TEST_PROTO_FILES, LIB_FOLDER, FULL_METHOD, TLS, TLS_DISABLE_VERIFICATION, METADATA);
+    public ClientCaller(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean TLS, boolean TLS_DISABLE_VERIFICATION) {
+        this.init(HOST_PORT, TEST_PROTO_FILES, LIB_FOLDER, FULL_METHOD, TLS, TLS_DISABLE_VERIFICATION);
     }
 
-    private void init(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean TLS, boolean TLS_DISABLE_VERIFICATION, String METADATA) {
+    private void init(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean TLS, boolean TLS_DISABLE_VERIFICATION) {
         try {
             tls = TLS;
             disableTtlVerification = TLS_DISABLE_VERIFICATION;
             hostAndPort = HostAndPort.fromString(HOST_PORT);
-            metadataMap = buildHashMetadata(METADATA);
+            metadataMap = new LinkedHashMap<>();
             channelFactory = ChannelFactory.create();
             ProtoMethodName grpcMethodName =
                     ProtoMethodName.parseFullGrpcMethodName(FULL_METHOD);
@@ -130,10 +131,15 @@ public class ClientCaller {
         return channel.isTerminated();
     }
 
-    public String buildRequest(String jsonData) {
+    public String buildRequestAndMetadata(String jsonData, String metadata) {
         try {
+            metadataMap.clear();
+            metadataMap.putAll(buildHashMetadata(metadata));
             requestMessages = Reader.create(methodDescriptor.getInputType(), jsonData, registry).read();
             return JsonFormat.printer().includingDefaultValueFields().print(requestMessages.get(0));
+        } catch (IllegalArgumentException e) {
+            shutdownNettyChannel();
+            throw e;
         } catch (Exception e) {
             shutdownNettyChannel();
             throw new RuntimeException("Caught exception while parsing request for rpc", e);
@@ -217,5 +223,12 @@ public class ClientCaller {
         } catch (Exception e) {
             throw new RuntimeException("Caught exception while parsing deadline to long", e);
         }
+    }
+
+    public String getMetadataString() {
+        return metadataMap.entrySet()
+                .stream()
+                .map(e -> e.getKey() + ": " + e.getValue())
+                .collect(Collectors.joining("\n"));
     }
 }
