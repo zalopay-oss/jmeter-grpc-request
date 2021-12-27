@@ -10,12 +10,14 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <guava.version>30.1.1-jre</guava.version>
         <lombok.version>1.18.10</lombok.version>
-        <jmeter.core.version>5.4.1</jmeter.core.version>
+        <jmeter.version>4.0</jmeter.version>
+        <jmeter.test.version>5.4.1</jmeter.test.version>
         <netty.version>4.1.65.Final</netty.version>
         <netty.ssl.version>2.0.39.Final</netty.ssl.version>
         <slf4j.version>1.7.26</slf4j.version>
@@ -36,11 +38,10 @@
             <artifactId>jmeter-plugins-cmn-jmeter</artifactId>
             <version>${cmn.jmeter.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.apache.jmeter</groupId>
             <artifactId>ApacheJMeter_core</artifactId>
-            <version>4.0</version>
+            <version>${jmeter.version}</version>
         </dependency>
 
         <dependency>
@@ -131,7 +132,7 @@
         <dependency>
             <groupId>org.apache.jmeter</groupId>
             <artifactId>ApacheJMeter_components</artifactId>
-            <version>${jmeter.core.version}</version>
+            <version>${jmeter.test.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
