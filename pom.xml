@@ -14,121 +14,74 @@
         <java.version>1.8</java.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <guava.version>30.1.1-jre</guava.version>
         <lombok.version>1.18.10</lombok.version>
         <jmeter.version>4.0</jmeter.version>
         <jmeter.test.version>5.4.1</jmeter.test.version>
-        <netty.version>4.1.65.Final</netty.version>
         <netty.ssl.version>2.0.39.Final</netty.ssl.version>
-        <slf4j.version>1.7.26</slf4j.version>
-        <junit.version>4.13.2</junit.version>
         <os72.protoc.version>3.11.4</os72.protoc.version>
         <grpc.version>1.38.0</grpc.version>
         <protobuf.version>3.17.1</protobuf.version>
-        <jcommander.version>1.48</jcommander.version>
         <cmn.jmeter.version>0.6</cmn.jmeter.version>
         <emulators.jmeter.version>0.4</emulators.jmeter.version>
         <mockito.version>3.10.0</mockito.version>
         <testng.version>7.4.0</testng.version>
+        <fastjson.version>1.2.76</fastjson.version>
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>kg.apc</groupId>
-            <artifactId>jmeter-plugins-cmn-jmeter</artifactId>
-            <version>${cmn.jmeter.version}</version>
-        </dependency>
+        <!-- jmeter-plugins -->
         <dependency>
             <groupId>org.apache.jmeter</groupId>
             <artifactId>ApacheJMeter_core</artifactId>
             <version>${jmeter.version}</version>
         </dependency>
-
         <dependency>
-            <groupId>com.github.os72</groupId>
-            <artifactId>protoc-jar-maven-plugin</artifactId>
-            <version>${os72.protoc.version}</version>
+            <groupId>kg.apc</groupId>
+            <artifactId>jmeter-plugins-cmn-jmeter</artifactId>
+            <version>${cmn.jmeter.version}</version>
         </dependency>
 
+        <!-- proto -->
+        <dependency>
+            <groupId>com.github.os72</groupId>
+            <artifactId>protoc-jar</artifactId>
+            <version>${os72.protoc.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-netty</artifactId>
+            <version>${grpc.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-protobuf</artifactId>
+            <version>${grpc.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-stub</artifactId>
+            <version>${grpc.version}</version>
+        </dependency>
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java-util</artifactId>
             <version>${protobuf.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-netty</artifactId>
-            <version>${grpc.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-netty-shaded</artifactId>
-            <version>${grpc.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-protobuf</artifactId>
-            <version>${grpc.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-stub</artifactId>
-            <version>${grpc.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
-            <version>${netty.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-all</artifactId>
-            <version>${grpc.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-services</artifactId>
-            <version>${grpc.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-tcnative-boringssl-static</artifactId>
-            <version>${netty.ssl.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.13.0</version>
-        </dependency>
-
+        <!-- json -->
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
-            <version>1.2.76</version>
+            <version>${fastjson.version}</version>
         </dependency>
 
         <!-- test -->
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>${testng.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.apache.jmeter</groupId>
             <artifactId>ApacheJMeter_components</artifactId>
@@ -142,9 +95,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <version>${testng.version}</version>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-tcnative-boringssl-static</artifactId>
+            <version>${netty.ssl.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -187,18 +140,26 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <filters>
+                                <filter>
+                                    <artifact>com.github.os72:protoc-jar</artifact>
+                                    <excludes>
+                                        <exclude>bin/2.4.1/**</exclude>
+                                        <exclude>bin/2.5.0/**</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                             <artifactSet>
                                 <includes>
                                     <include>io.grpc</include>
-                                    <include>com.google.guava</include>
+                                    <include>io.netty</include>
                                     <include>io.perfmark</include>
                                     <include>com.google.protobuf</include>
-                                    <include>io.netty</include>
-                                    <include>com.fasterxml.jackson.core</include>
+                                    <include>com.google.guava</include>
                                     <include>com.google.code.gson</include>
                                     <include>com.github.os72</include>
-                                    <include>kg.apc</include>
                                     <include>com.alibaba</include>
+                                    <include>kg.apc</include>
                                 </includes>
                             </artifactSet>
                         </configuration>

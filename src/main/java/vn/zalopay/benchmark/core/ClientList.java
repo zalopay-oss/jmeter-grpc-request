@@ -1,9 +1,9 @@
 package vn.zalopay.benchmark.core;
 
-import com.google.common.base.Strings;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors.MethodDescriptor;
 import com.google.protobuf.Descriptors.ServiceDescriptor;
+import org.apache.commons.lang3.StringUtils;
 import vn.zalopay.benchmark.core.protobuf.ProtocInvoker;
 import vn.zalopay.benchmark.core.protobuf.ServiceResolver;
 
@@ -38,7 +38,7 @@ public class ClientList {
                 }
             }
 
-            if (!Strings.isNullOrEmpty(protoFile)) {
+            if (StringUtils.isNotBlank(protoFile)) {
                 final DescriptorProtos.FileDescriptorSet fileDescriptorSet;
                 ProtocInvoker invoker = ProtocInvoker.forConfig(protoFile, libFolder);
                 fileDescriptorSet = invoker.invoke();
