@@ -2,7 +2,7 @@
 
 <p align="center"><img src="./dist/asset/jmeter-and-grpc.png" width="600px" alt="Apache JMeter and gRPC logo" /></p>
 
-<h4 align="center">This sampler JMeter lets you send an gRPC request to a server. </br> It's as simple as an HTTP Request.</h4>
+<h4 align="center">This sampler JMeter lets you send an gRPC request to a server. </br> It's as simple as a HTTP Request.</h4>
 <br>
 
 [![Javadocs](https://www.javadoc.io/badge/org.apache.jmeter/ApacheJMeter_core.svg)](https://www.javadoc.io/doc/org.apache.jmeter/ApacheJMeter_core)
