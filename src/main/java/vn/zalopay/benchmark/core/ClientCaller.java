@@ -1,5 +1,6 @@
 package vn.zalopay.benchmark.core;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -21,9 +22,13 @@ import vn.zalopay.benchmark.core.protobuf.ProtocInvoker;
 import vn.zalopay.benchmark.core.protobuf.ServiceResolver;
 import vn.zalopay.benchmark.core.specification.GrpcResponse;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class ClientCaller {
     private Descriptors.MethodDescriptor methodDescriptor;
@@ -37,16 +42,16 @@ public class ClientCaller {
     private boolean disableTtlVerification;
     ChannelFactory channelFactory;
 
-    public ClientCaller(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean TLS, boolean TLS_DISABLE_VERIFICATION, String METADATA) {
-        this.init(HOST_PORT, TEST_PROTO_FILES, LIB_FOLDER, FULL_METHOD, TLS, TLS_DISABLE_VERIFICATION, METADATA);
+    public ClientCaller(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean TLS, boolean TLS_DISABLE_VERIFICATION) {
+        this.init(HOST_PORT, TEST_PROTO_FILES, LIB_FOLDER, FULL_METHOD, TLS, TLS_DISABLE_VERIFICATION);
     }
 
-    private void init(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean TLS, boolean TLS_DISABLE_VERIFICATION, String METADATA) {
+    private void init(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean TLS, boolean TLS_DISABLE_VERIFICATION) {
         try {
             tls = TLS;
             disableTtlVerification = TLS_DISABLE_VERIFICATION;
             hostAndPort = HostAndPort.fromString(HOST_PORT);
-            metadataMap = buildHashMetadata(METADATA);
+            metadataMap = new LinkedHashMap<>();
             channelFactory = ChannelFactory.create();
             ProtoMethodName grpcMethodName =
                     ProtoMethodName.parseFullGrpcMethodName(FULL_METHOD);
@@ -80,17 +85,34 @@ public class ClientCaller {
     private Map<String, String> buildHashMetadata(String metadata) {
         Map<String, String> metadataHash = new LinkedHashMap<>();
 
-        if (Strings.isNullOrEmpty(metadata))
+        if (Strings.isNullOrEmpty(metadata)) {
             return metadataHash;
+        }
 
-        String[] keyValue;
-        for (String part : metadata.split(",")) {
-            keyValue = part.split(":", 2);
+        if (metadata.startsWith("{") && metadata.endsWith("}")) {
+            try {
+                Map<String, Object> map = JSONObject.parseObject(metadata);
+                for (Map.Entry<String, Object> entry : map.entrySet()) {
+                    metadataHash.put(entry.getKey(), (String)entry.getValue());
+                }
+            } catch (Exception e) {
+                Preconditions.checkArgument(1 == 2,
+                        "Metadata entry must be valid JSON String or in key1:value1,key2:value2 format if not JsonString but found: " + metadata);
+            }
+        } else {
+            String[] keyValue;
+            for (String part : metadata.split(",")) {
+                keyValue = part.split(":", 2);
+                Preconditions.checkArgument(keyValue.length == 2,
+                        "Metadata entry must be valid JSON String or in key1:value1,key2:value2 format if not JsonString but found: " + metadata);
+                String value = keyValue[1];
+                try {
+                    value = URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8.name());
+                } catch (UnsupportedEncodingException ignored) {
+                }
 
-            Preconditions.checkArgument(keyValue.length == 2,
-                    "Metadata entry must be defined in key1:value1,key2:value2 format: " + metadata);
-
-            metadataHash.put(keyValue[0], keyValue[1]);
+                metadataHash.put(keyValue[0], value);
+            }
         }
 
         return metadataHash;
@@ -109,10 +131,15 @@ public class ClientCaller {
         return channel.isTerminated();
     }
 
-    public String buildRequest(String jsonData) {
+    public String buildRequestAndMetadata(String jsonData, String metadata) {
         try {
+            metadataMap.clear();
+            metadataMap.putAll(buildHashMetadata(metadata));
             requestMessages = Reader.create(methodDescriptor.getInputType(), jsonData, registry).read();
-            return JsonFormat.printer().print(requestMessages.get(0));
+            return JsonFormat.printer().includingDefaultValueFields().print(requestMessages.get(0));
+        } catch (IllegalArgumentException e) {
+            shutdownNettyChannel();
+            throw e;
         } catch (Exception e) {
             shutdownNettyChannel();
             throw new RuntimeException("Caught exception while parsing request for rpc", e);
@@ -196,5 +223,12 @@ public class ClientCaller {
         } catch (Exception e) {
             throw new RuntimeException("Caught exception while parsing deadline to long", e);
         }
+    }
+
+    public String getMetadataString() {
+        return metadataMap.entrySet()
+                .stream()
+                .map(e -> e.getKey() + ": " + e.getValue())
+                .collect(Collectors.joining("\n"));
     }
 }

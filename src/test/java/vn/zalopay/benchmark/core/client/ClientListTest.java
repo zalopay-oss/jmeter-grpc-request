@@ -1,7 +1,6 @@
 package vn.zalopay.benchmark.core.client;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import org.apache.commons.io.FileUtils;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.Assert;
@@ -9,12 +8,12 @@ import org.testng.annotations.Test;
 import vn.zalopay.benchmark.core.BaseTest;
 import vn.zalopay.benchmark.core.ClientList;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.CopyOption;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Mockito.any;
@@ -28,11 +27,14 @@ public class ClientListTest extends BaseTest {
 
         // Action
         List<String> list = Arrays.asList(
-                "data_services_seg.SegmentServices/checkSeg",
-                "helloworld.Greeter/SayHello"
+                "helloworld.Greeter/SayHello",
+                "helloworld.Greeter/SayHelloWithJsonMetadata",
+                "data_services_seg.SegmentServices/checkSeg"
         );
 
         // Assertion
+        Collections.sort(list);
+        Collections.sort(methods);
         Assert.assertEquals(list, methods);
     }
 
@@ -51,6 +53,8 @@ public class ClientListTest extends BaseTest {
         );
 
         // Assertion
+        Collections.sort(list);
+        Collections.sort(methods);
         Assert.assertEquals(list, methods);
     }
 
@@ -61,11 +65,14 @@ public class ClientListTest extends BaseTest {
 
         // Action
         List<String> list = Arrays.asList(
-                "data_services_seg.SegmentServices/checkSeg",
-                "helloworld.Greeter/SayHello"
+                "helloworld.Greeter/SayHello",
+                "helloworld.Greeter/SayHelloWithJsonMetadata",
+                "data_services_seg.SegmentServices/checkSeg"
         );
 
         // Assertion
+        Collections.sort(list);
+        Collections.sort(methods);
         Assert.assertEquals(list, methods);
     }
 

@@ -62,6 +62,38 @@ public final class GreeterGrpc {
      return getSayHelloMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<generated.io.grpc.examples.helloworld.HelloRequest,
+      generated.io.grpc.examples.helloworld.HelloReply> getSayHelloWithJsonMetadataMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "SayHelloWithJsonMetadata",
+      requestType = generated.io.grpc.examples.helloworld.HelloRequest.class,
+      responseType = generated.io.grpc.examples.helloworld.HelloReply.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<generated.io.grpc.examples.helloworld.HelloRequest,
+      generated.io.grpc.examples.helloworld.HelloReply> getSayHelloWithJsonMetadataMethod() {
+    io.grpc.MethodDescriptor<generated.io.grpc.examples.helloworld.HelloRequest, generated.io.grpc.examples.helloworld.HelloReply> getSayHelloWithJsonMetadataMethod;
+    if ((getSayHelloWithJsonMetadataMethod = GreeterGrpc.getSayHelloWithJsonMetadataMethod) == null) {
+      synchronized (GreeterGrpc.class) {
+        if ((getSayHelloWithJsonMetadataMethod = GreeterGrpc.getSayHelloWithJsonMetadataMethod) == null) {
+          GreeterGrpc.getSayHelloWithJsonMetadataMethod = getSayHelloWithJsonMetadataMethod = 
+              io.grpc.MethodDescriptor.<generated.io.grpc.examples.helloworld.HelloRequest, generated.io.grpc.examples.helloworld.HelloReply>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(
+                  "helloworld.Greeter", "SayHelloWithJsonMetadata"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  generated.io.grpc.examples.helloworld.HelloRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  generated.io.grpc.examples.helloworld.HelloReply.getDefaultInstance()))
+                  .setSchemaDescriptor(new GreeterMethodDescriptorSupplier("SayHelloWithJsonMetadata"))
+                  .build();
+          }
+        }
+     }
+     return getSayHelloWithJsonMetadataMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -102,6 +134,13 @@ public final class GreeterGrpc {
       asyncUnimplementedUnaryCall(getSayHelloMethod(), responseObserver);
     }
 
+    /**
+     */
+    public void sayHelloWithJsonMetadata(generated.io.grpc.examples.helloworld.HelloRequest request,
+        io.grpc.stub.StreamObserver<generated.io.grpc.examples.helloworld.HelloReply> responseObserver) {
+      asyncUnimplementedUnaryCall(getSayHelloWithJsonMetadataMethod(), responseObserver);
+    }
+
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
@@ -111,6 +150,13 @@ public final class GreeterGrpc {
                 generated.io.grpc.examples.helloworld.HelloRequest,
                 generated.io.grpc.examples.helloworld.HelloReply>(
                   this, METHODID_SAY_HELLO)))
+          .addMethod(
+            getSayHelloWithJsonMetadataMethod(),
+            asyncUnaryCall(
+              new MethodHandlers<
+                generated.io.grpc.examples.helloworld.HelloRequest,
+                generated.io.grpc.examples.helloworld.HelloReply>(
+                  this, METHODID_SAY_HELLO_WITH_JSON_METADATA)))
           .build();
     }
   }
@@ -146,6 +192,14 @@ public final class GreeterGrpc {
       asyncUnaryCall(
           getChannel().newCall(getSayHelloMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     */
+    public void sayHelloWithJsonMetadata(generated.io.grpc.examples.helloworld.HelloRequest request,
+        io.grpc.stub.StreamObserver<generated.io.grpc.examples.helloworld.HelloReply> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(getSayHelloWithJsonMetadataMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -177,6 +231,13 @@ public final class GreeterGrpc {
     public generated.io.grpc.examples.helloworld.HelloReply sayHello(generated.io.grpc.examples.helloworld.HelloRequest request) {
       return blockingUnaryCall(
           getChannel(), getSayHelloMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public generated.io.grpc.examples.helloworld.HelloReply sayHelloWithJsonMetadata(generated.io.grpc.examples.helloworld.HelloRequest request) {
+      return blockingUnaryCall(
+          getChannel(), getSayHelloWithJsonMetadataMethod(), getCallOptions(), request);
     }
   }
 
@@ -211,9 +272,18 @@ public final class GreeterGrpc {
       return futureUnaryCall(
           getChannel().newCall(getSayHelloMethod(), getCallOptions()), request);
     }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<generated.io.grpc.examples.helloworld.HelloReply> sayHelloWithJsonMetadata(
+        generated.io.grpc.examples.helloworld.HelloRequest request) {
+      return futureUnaryCall(
+          getChannel().newCall(getSayHelloWithJsonMetadataMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_SAY_HELLO = 0;
+  private static final int METHODID_SAY_HELLO_WITH_JSON_METADATA = 1;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -234,6 +304,10 @@ public final class GreeterGrpc {
       switch (methodId) {
         case METHODID_SAY_HELLO:
           serviceImpl.sayHello((generated.io.grpc.examples.helloworld.HelloRequest) request,
+              (io.grpc.stub.StreamObserver<generated.io.grpc.examples.helloworld.HelloReply>) responseObserver);
+          break;
+        case METHODID_SAY_HELLO_WITH_JSON_METADATA:
+          serviceImpl.sayHelloWithJsonMetadata((generated.io.grpc.examples.helloworld.HelloRequest) request,
               (io.grpc.stub.StreamObserver<generated.io.grpc.examples.helloworld.HelloReply>) responseObserver);
           break;
         default:
@@ -298,6 +372,7 @@ public final class GreeterGrpc {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
               .setSchemaDescriptor(new GreeterFileDescriptorSupplier())
               .addMethod(getSayHelloMethod())
+              .addMethod(getSayHelloWithJsonMetadataMethod())
               .build();
         }
       }
