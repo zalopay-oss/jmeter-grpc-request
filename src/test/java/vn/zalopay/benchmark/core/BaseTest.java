@@ -2,7 +2,6 @@ package vn.zalopay.benchmark.core;
 
 import kg.apc.emulators.TestJMeterUtils;
 import org.mockito.Mockito;
-import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeMethod;
@@ -13,7 +12,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class BaseTest extends PowerMockTestCase {
+public class BaseTest {
     private static final String GRPC_DUMMY_SERVER_JAR = "gprc-server-1.0-SNAPSHOT.jar";
     private static final Path GRPC_DUMMY_SERVER_FOLDER = Paths.get(System.getProperty("user.dir"), "/dist/benchmark/grpc-server/dist");
     protected static final Path TEMP_JMETER_HOME = Paths.get(System.getProperty("user.dir"), "src", "test", "resources");
@@ -35,7 +34,7 @@ public class BaseTest extends PowerMockTestCase {
     protected static String METADATA_JSON = "{\"key1\":\"Value1\"}";
     protected static String FULL_METHOD_WITH_METADATA = "helloworld.Greeter/SayHelloWithJsonMetadata";
     protected static String METADATA_REQUEST_JSON = "{\"name\": \"User\"}";
-    protected static String EXPTECTED_RESPONSE_DATA = "{\n  \"message\": \"Hello User : Metadata : Value1\"\n}";
+    protected static String EXPECTED_RESPONSE_DATA = "{\n  \"message\": \"Hello User : Metadata : Value1\"\n}";
     protected ClientCaller clientCaller;
     private static Process bookStoreServer;
     private static Process helloWorldServer;

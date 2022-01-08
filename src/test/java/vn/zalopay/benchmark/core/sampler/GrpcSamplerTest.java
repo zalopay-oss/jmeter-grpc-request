@@ -177,6 +177,6 @@ public class GrpcSamplerTest extends BaseTest {
         grpcSampler.setRequestJson(METADATA_REQUEST_JSON);
         SampleResult sampleResult = grpcSampler.sample(null);
         Assert.assertEquals(sampleResult.getResponseCode(), "200");
-        Assert.assertTrue(new String(sampleResult.getResponseData()).contains(EXPTECTED_RESPONSE_DATA));
+        Assert.assertTrue(new String(sampleResult.getResponseData()).contains(EXPECTED_RESPONSE_DATA));
     }
 }
