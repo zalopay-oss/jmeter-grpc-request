@@ -24,6 +24,7 @@
         <cmn.jmeter.version>0.6</cmn.jmeter.version>
         <emulators.jmeter.version>0.4</emulators.jmeter.version>
         <mockito.version>3.10.0</mockito.version>
+        <powermock.version>2.0.9</powermock.version>
         <testng.version>7.4.0</testng.version>
         <fastjson.version>1.2.76</fastjson.version>
     </properties>
@@ -103,6 +104,18 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-testng</artifactId>
+            <version>${powermock.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito2</artifactId>
+            <version>${powermock.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

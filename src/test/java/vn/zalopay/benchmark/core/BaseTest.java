@@ -2,6 +2,7 @@ package vn.zalopay.benchmark.core;
 
 import kg.apc.emulators.TestJMeterUtils;
 import org.mockito.Mockito;
+import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeMethod;
@@ -12,7 +13,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class BaseTest {
+public class BaseTest extends PowerMockTestCase {
     private static final String GRPC_DUMMY_SERVER_JAR = "gprc-server-1.0-SNAPSHOT.jar";
     private static final Path GRPC_DUMMY_SERVER_FOLDER = Paths.get(System.getProperty("user.dir"), "/dist/benchmark/grpc-server/dist");
     protected static final Path TEMP_JMETER_HOME = Paths.get(System.getProperty("user.dir"), "src", "test", "resources");
