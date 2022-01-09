@@ -163,7 +163,7 @@ public class ClientCallerTest extends BaseTest {
     public void testCanSendGrpcUnaryRequestWithSSLAndEnableSSLVerificationAndErrorUnsupportedOperationException() {
         try (MockedConstruction<ApplicationProtocolConfig> applicationProtocolConfigMockedConstruction = mockConstructionWithAnswer(ApplicationProtocolConfig.class, (invocation) ->
         {
-            // Simulate JDK not supported ALPN 
+            // Simulate JDK not supported ALPN
             if (countMockFailedALPN == 0) {
                 countMockFailedALPN++;
                 throw new UnsupportedOperationException("Dummy UnsupportedOperationException");
