@@ -6,9 +6,9 @@ import io.grpc.netty.GrpcSslContexts;
 import io.netty.handler.ssl.ApplicationProtocolConfig;
 import io.netty.handler.ssl.ApplicationProtocolNames;
 import io.netty.handler.ssl.SslContextBuilder;
+import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import vn.zalopay.benchmark.core.BaseTest;
@@ -20,10 +20,14 @@ import javax.net.ssl.SSLException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mockConstructionWithAnswer;
+
 
 public class ClientCallerTest extends BaseTest {
+    static int countMockFailedALPN = 0;
 
     @Test
     public void testCanSendGrpcUnaryRequest() {
@@ -156,26 +160,35 @@ public class ClientCallerTest extends BaseTest {
     }
 
     @Test
-    public void testCanSendGrpcUnaryRequestWithSSLAndEnableSSLVerificationAndErrorUnsupportedOperationException() throws Exception {
-        PowerMockito.whenNew(ApplicationProtocolConfig.class).withArguments(ApplicationProtocolConfig.Protocol.NPN_AND_ALPN,
-                ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE,
-                ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
-                ApplicationProtocolNames.HTTP_2).thenThrow(new UnsupportedOperationException("Dummy Exception"));
-        PowerMockito.whenNew(ApplicationProtocolConfig.class).withArguments(ApplicationProtocolConfig.Protocol.ALPN,
-                ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE,
-                ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
-                ApplicationProtocolNames.HTTP_2).then((i) -> new ApplicationProtocolConfig(ApplicationProtocolConfig.Protocol.ALPN,
-                ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE,
-                ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
-                ApplicationProtocolNames.HTTP_2));
-
-        clientCaller = new ClientCaller(HOST_PORT_TLS, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(),
-                LIB_FOLDER.toString(), FULL_METHOD, true, false);
-        clientCaller.buildRequestAndMetadata(REQUEST_JSON, METADATA);
-        GrpcResponse resp = clientCaller.call("10000");
-        clientCaller.shutdownNettyChannel();
-        Assert.assertNotNull(resp);
-        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
+    public void testCanSendGrpcUnaryRequestWithSSLAndEnableSSLVerificationAndErrorUnsupportedOperationException() {
+        try (MockedConstruction<ApplicationProtocolConfig> applicationProtocolConfigMockedConstruction = mockConstructionWithAnswer(ApplicationProtocolConfig.class, (invocation) ->
+        {
+            // Simulate JDK not supported ALPN 
+            if (countMockFailedALPN == 0) {
+                countMockFailedALPN++;
+                throw new UnsupportedOperationException("Dummy UnsupportedOperationException");
+            }
+            switch (invocation.getMethod().getName()) {
+                case "protocol":
+                    return ApplicationProtocolConfig.Protocol.ALPN;
+                case "selectorFailureBehavior":
+                    return ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE;
+                case "selectedListenerFailureBehavior":
+                    return ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT;
+                case "supportedProtocols":
+                    return Arrays.asList(ApplicationProtocolNames.HTTP_2);
+                default:
+                    throw new UnsupportedOperationException("Dummy UnsupportedOperationException");
+            }
+        })) {
+            clientCaller = new ClientCaller(HOST_PORT_TLS, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(),
+                    LIB_FOLDER.toString(), FULL_METHOD, true, false);
+            clientCaller.buildRequestAndMetadata(REQUEST_JSON, METADATA);
+            GrpcResponse resp = clientCaller.call("10000");
+            clientCaller.shutdownNettyChannel();
+            Assert.assertNotNull(resp);
+            Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
+        }
     }
 
     @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while parsing deadline to long")
