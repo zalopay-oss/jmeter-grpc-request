@@ -9,7 +9,6 @@ import vn.zalopay.benchmark.core.BaseTest;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.lang.reflect.Field;
 
 
