@@ -109,6 +109,10 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
     }
 
     private void errorResult(GrpcResponse grpcResponse, SampleResult sampleResult, Exception e) {
+        if (sampleResult.getStartTime() == 0) {
+            // Prints exceptions that occur before the request is initiated
+            e.printStackTrace();
+        }
         sampleResult.sampleEnd();
         sampleResult.setSuccessful(false);
         sampleResult.setResponseData(String.format("Exception: %s. %s", e.getCause().getMessage(), grpcResponse.getGrpcMessageString()), "UTF-8");
@@ -120,7 +124,6 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
     /**
      * GETTER AND SETTER
      */
-
     public String getMetadata() {
         return getPropertyAsString(METADATA);
     }
