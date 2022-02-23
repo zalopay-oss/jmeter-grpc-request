@@ -60,8 +60,8 @@
 | 序号	| 选项									| 描述																																																						|
 |-----	|:-----------------------------------	|:---------------------------------------------------------------------																																						|
 | 1		| Server Name or IP						| gRPC服务器地址（域名或IP）																																																|
-| 2		| Port Number							| gRPC服务器端口 (80/ 443)																																																	|
-| 3		| SSL/TLS								| 开启SSL/TLS认证																																																			|
+| 2		| Port Number							| gRPC服务器端口 (80/443)																																																	|
+| 3		| SSL/TLS								| 开启SSL/TLS认证（https）																																																			|
 | 4     | Disable SSL/TLS Cert Verification     | 禁用SSL/TLS证书校验（自签证书需开启）                                                                                                                                                                                                            |
 | 5		| Proto Root Directory					| proto文件的根路径																																																			|
 | 6		| Library Directory (Optional)			| proto文件解析需要依赖的额外库的文件夹路径 (googleapis)																																									|
