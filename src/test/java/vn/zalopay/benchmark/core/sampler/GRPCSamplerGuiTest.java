@@ -152,7 +152,7 @@ public class GRPCSamplerGuiTest extends BaseTest {
         grpcSampler.setRequestJson("dummyRequest");
         grpRequestPluginGUI.configure(grpcSampler);
         fullMethodButton.doClick();
-        Assert.assertEquals(fullMethodComboBox.getSelectedItem(), "bookstore.Bookstore/ListShelves");
+        Assert.assertEquals(fullMethodComboBox.getSelectedItem(), "bookstore.Bookstore/CreateShelf");
         Assert.assertNotNull(grpcSampler);
         Assert.assertNotNull(grpRequestPluginGUI);
         frame.dispose();

@@ -8,6 +8,8 @@
 [![Javadocs](https://www.javadoc.io/badge/org.apache.jmeter/ApacheJMeter_core.svg)](https://www.javadoc.io/doc/org.apache.jmeter/ApacheJMeter_core)
 [![Stack Overflow](https://img.shields.io/:stack%20overflow-jmeter-brightgreen.svg)](https://stackoverflow.com/questions/tagged/jmeter)
 
+[简体中文](./README.zh-CN.md) | English
+
 ## What is it
 
 This is a simpler of JMeter used to test for any gRPC server, it is not necessary to generate gRPC classes or to compile the protos binary for the service. Just a very simple for input:
@@ -68,12 +70,13 @@ Run test:
 | 1   	| Server Name or IP                 	| Domain/IP for gRPC server                                         	|
 | 2   	| Port Number                       	| Port for gRPC server (80/ 443)                                      	|
 | 3   	| SSL/TLS                           	| SSL/TLS to authenticate the server                                  	|
-| 4   	| Proto Root Directory              	| Root directory contains proto files                                 	|
-| 5   	| Library Directory (Optional)      	| Using a different underlying library (googleapis)                   	|
-| 6   	| Full Method                       	| Full Method to test                                                 	|
-| 7   	| Metadata                          	| Metadata can be use for Store token, authentication method, etc. <br/>Two Ways to use metadata, <br/><br/> &nbsp;<b>1. Comma separated Key:Value : </b><br/>&nbsp; - key1:value1,key2:value2<br/>&nbsp; - Value should url encode with utf-8 <br/><br/>&nbsp;2.<b> Json String : </b><br/>&nbsp;&nbsp; - {"key1":"Value1", "key2":"value2"} <br/><br/> <b>Note: <i>In gRPC Metadata value is (Key, value) both in format of (String, String), in case of nested Json Objects values, will go to request as a JsonString. </i></b>                              	|
-| 8   	| Deadline                          	| How long gRPC clients are willing to wait for an RPC to complete  	|
-| 9   	| Send JSON Format With the Request 	| Data request with JSON format                                       	|
+| 4     | Disable SSL/TLS Cert Verification     | Disable SSL/TLS certificate verification (enable this function when using self-signed certificates)                                      |
+| 5   	| Proto Root Directory              	| Root directory contains proto files                                 	|
+| 6   	| Library Directory (Optional)      	| Using a different underlying library (googleapis)                   	|
+| 7   	| Full Method                       	| Full Method to test                                                 	|
+| 8   	| Metadata                          	| Metadata can be use for Store token, authentication method, etc. <br/>Two Ways to use metadata, <br/><br/> &nbsp;<b>1. Comma separated Key:Value : </b><br/>&nbsp; - key1:value1,key2:value2<br/>&nbsp; - Value should url encode with utf-8 <br/><br/>&nbsp;2.<b> Json String : </b><br/>&nbsp;&nbsp; - {"key1":"Value1", "key2":"value2"} <br/><br/> <b>Note: <i>In gRPC Metadata value is (Key, value) both in format of (String, String), in case of nested Json Objects values, will go to request as a JsonString. </i></b>                              	|
+| 9   	| Deadline                          	| How long gRPC clients are willing to wait for an RPC to complete  	|
+| 10   	| Send JSON Format With the Request 	| Data request with JSON format                                       	|
 
 ## Running the examples
 

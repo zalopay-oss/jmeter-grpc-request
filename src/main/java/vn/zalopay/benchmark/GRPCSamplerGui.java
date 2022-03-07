@@ -6,6 +6,7 @@ import com.google.protobuf.Descriptors;
 import kg.apc.jmeter.JMeterPluginsUtils;
 import kg.apc.jmeter.gui.BrowseAction;
 import kg.apc.jmeter.gui.GuiBuilderHelper;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.gui.util.HorizontalPanel;
 import org.apache.jmeter.gui.util.JSyntaxTextArea;
@@ -28,6 +29,7 @@ import javax.swing.event.PopupMenuListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -44,6 +46,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     private static final String WIKI_PAGE = "https://github.com/zalopay-oss/jmeter-grpc-request";
 
     private GRPCSampler grpcSampler;
+    private String[] protoMethods;
 
     private JTextField protoFolderField;
     private JButton protoBrowseButton;
@@ -166,7 +169,6 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     /**
      * Helper function
      */
-
     private void addToPanel(JPanel panel, GridBagConstraints constraints, int col, int row,
                             JComponent component) {
         constraints.gridx = col;
@@ -197,6 +199,13 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     private JPanel getRequestJSONPanel() {
         requestJsonArea = JSyntaxTextArea.getInstance(30, 50);
         requestJsonArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JSON);
+        requestJsonArea.setBracketMatchingEnabled(true);
+        requestJsonArea.setPaintMatchedBracketPair(true);
+        requestJsonArea.setAutoIndentEnabled(true);
+        requestJsonArea.setMarkOccurrences(true);
+        requestJsonArea.setPaintMarkOccurrencesBorder(true);
+        requestJsonArea.setPaintTabLines(true);
+        requestJsonArea.setShowMatchedBracketPopup(true);
 
         JPanel webServerPanel = new JPanel(new BorderLayout());
         webServerPanel.setBorder(BorderFactory.createCompoundBorder(
@@ -267,13 +276,14 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
         addToPanel(requestPanel, labelConstraints, 0, row, new JLabel("Full Method: ", JLabel.RIGHT));
         addToPanel(requestPanel, editConstraints, 1, row, fullMethodField = new JComboBox<>());
         fullMethodField.setEditable(true);
+        fullMethodField.setMaximumRowCount(12);
         addToPanel(requestPanel, labelConstraints, 2, row, fullMethodButton = new JButton("Listing..."));
 
         fullMethodButton.addActionListener(new ActionListener() {
             // fullMethodButton click listener
             @Override
             public void actionPerformed(ActionEvent e) {
-                getMethods(fullMethodField);
+                reloadProtoMethods();
             }
         });
         fullMethodField.addPopupMenuListener(new PopupMenuListener() {
@@ -283,6 +293,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
             // fullMethod list checked listener
             @Override
             public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+                // Request Mock Auto Create
                 requestMock();
             }
             @Override
@@ -294,6 +305,30 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if ("comboBoxEdited".equals(e.getActionCommand())) {
+                    // fullMethodField Drop - down box edit auto-complement
+                    String fullMethod = fullMethodField.getSelectedItem().toString();
+                    if (StringUtils.isBlank(fullMethod)) {
+                        return;
+                    }
+
+                    String[] protoMethods = getProtoMethods(false);
+                    try {
+                        for (String protoMethod : protoMethods) {
+                            boolean startsWith = protoMethod.startsWith(fullMethod);
+                            if (startsWith == true) {
+                                fullMethodField.setSelectedItem(protoMethod);
+                                if (protoMethod.equals(fullMethod) == false) {
+                                    fullMethodField.showPopup();
+                                }
+
+                                break;
+                            }
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+
+                    // Request Mock Auto Create
                     requestMock();
                 }
             }
@@ -309,24 +344,34 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
         return container;
     }
 
-    private void getMethods(JComboBox<String> fullMethodField) {
-        if (StringUtils.isNotBlank(grpcSampler.getProtoFolder())) {
-            JMeterVariableUtils.undoVariableReplacement(grpcSampler);
-            ServiceResolver serviceResolver = ClientList.getServiceResolver(grpcSampler.getProtoFolder(), grpcSampler.getLibFolder(), true);
-            List<String> methods = ClientList.listServices(serviceResolver);
-
-            log.info("Full Methods: " + methods.toString());
-            String[] methodsArr = new String[methods.size()];
-            methods.toArray(methodsArr);
-
-            fullMethodField.setModel(new DefaultComboBoxModel<>(methodsArr));
-            try {
-                Object selectedItem = fullMethodField.getSelectedItem();
-                fullMethodField.setSelectedItem(selectedItem);
-            } catch (Exception e) {
-                fullMethodField.setSelectedIndex(0);
+    private void reloadProtoMethods() {
+        Object selectedItem = fullMethodField.getSelectedItem();
+        getProtoMethods(true);
+        try {
+            if (selectedItem != null && StringUtils.isBlank(selectedItem.toString())) {
+                selectedItem = fullMethodField.getSelectedItem();
             }
+            fullMethodField.setSelectedItem(selectedItem);
+        } catch (Exception e) {
+            fullMethodField.setSelectedIndex(0);
+        } finally {
+            fullMethodField.showPopup();
         }
+    }
+
+    private String[] getProtoMethods(boolean reload) {
+        if (StringUtils.isNotBlank(grpcSampler.getProtoFolder()) && (ArrayUtils.isEmpty(protoMethods) || reload == true)) {
+            JMeterVariableUtils.undoVariableReplacement(grpcSampler);
+            ServiceResolver serviceResolver = ClientList.getServiceResolver(grpcSampler.getProtoFolder(), grpcSampler.getLibFolder(), reload);
+            List<String> methodList = ClientList.listServices(serviceResolver);
+            protoMethods = new String[methodList.size()];
+            methodList.toArray(protoMethods);
+            Arrays.sort(protoMethods);
+            fullMethodField.setModel(new DefaultComboBoxModel<>(protoMethods));
+            log.info("Full Methods Length: {}", protoMethods.length);
+        }
+
+        return protoMethods;
     }
 
     private void requestMock() {
@@ -345,7 +390,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
                 JSONObject requestBody = new JSONObject(true);
                 for (Descriptors.FieldDescriptor field : fields) {
                     String name = field.getName();
-                    Object defaultValue = getValue(field);
+                    Object defaultValue = getMockValue(field);
                     requestBody.put(name, defaultValue);
                 }
                 String text = requestBody.toString(
@@ -360,25 +405,25 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
         }
     }
 
-    private Object getValue(Descriptors.FieldDescriptor field) {
+    private Object getMockValue(Descriptors.FieldDescriptor field) {
         String name = field.getName();
         String type = field.getType().name().toLowerCase();
         if ("message".equals(type)) {
             List<Descriptors.FieldDescriptor> fields = field.getMessageType().getFields();
             JSONObject repeatedField = new JSONObject(true);
             for (Descriptors.FieldDescriptor repeatedFieldDescriptor : fields) {
-                repeatedField.put(repeatedFieldDescriptor.getName(), this.getValue(repeatedFieldDescriptor));
+                repeatedField.put(repeatedFieldDescriptor.getName(), this.getMockValue(repeatedFieldDescriptor));
             }
             return repeatedField;
         } else {
-            return getDefaultValue(name, type);
+            return getMockDefaultValue(name, type);
         }
     }
 
-    private Object getDefaultValue(String name, String type) {
+    private Object getMockDefaultValue(String name, String type) {
         switch (type) {
             case "string":
-                return interpretMockViaFieldName(name);
+                return fieldNameGenerateMock(name);
             case "bool":
                 return true;
             case "number":
@@ -412,10 +457,11 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     }
 
     /**
-     * Tries to guess a mock value from the field name.
-     * Default Hello.
+     * Mock generation from fieldName.
+     *
+     * <p>Default: Hello</p>
      */
-    private String interpretMockViaFieldName(String fieldName) {
+    private String fieldNameGenerateMock(String fieldName) {
         String fieldNameLower = fieldName.toLowerCase();
 
         if (fieldNameLower.startsWith("id") || fieldNameLower.endsWith("id")) {
