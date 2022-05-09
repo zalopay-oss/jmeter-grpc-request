@@ -1,5 +1,6 @@
 package vn.zalopay.benchmark;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.protobuf.Descriptors;
@@ -33,17 +34,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.List;
-
 public class GRPCSamplerGui extends AbstractSamplerGui {
 
     private static final Logger log = LoggerFactory.getLogger(GRPCSamplerGui.class);
     private static final long serialVersionUID = 240L;
+
     private static final String WIKI_PAGE = "https://github.com/zalopay-oss/jmeter-grpc-request";
+    private static final String GOOGLE_PROTOBUF_PACKAGE_PREFIX = "google.protobuf";
+    private static final String GOOGLE_PROTOBUF_DEFAULT_KEY = "value";
 
     private GRPCSampler grpcSampler;
     private String[] protoMethods;
@@ -393,11 +391,18 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
                     Object defaultValue = getMockValue(field);
                     requestBody.put(name, defaultValue);
                 }
-                String text = requestBody.toString(
-                        SerializerFeature.PrettyFormat,         // Formatting Json String
-                        SerializerFeature.WriteMapNullValue,    // Outputs Null values
-                        SerializerFeature.WriteNullListAsEmpty  // Null List output is []
-                );
+
+                String text = null;
+                if (inputType.getFullName().startsWith(GOOGLE_PROTOBUF_PACKAGE_PREFIX)) {
+                    text = requestBody.getString(GOOGLE_PROTOBUF_DEFAULT_KEY);
+                } else {
+                    text = requestBody.toString(
+                            SerializerFeature.PrettyFormat,         // Formatting Json String
+                            SerializerFeature.WriteMapNullValue,    // Outputs Null values
+                            SerializerFeature.WriteNullListAsEmpty  // Null List output is []
+                    );
+                }
+
                 requestJsonArea.setText(text);
             }
         } catch (Exception ex) {
@@ -414,6 +419,11 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
             for (Descriptors.FieldDescriptor repeatedFieldDescriptor : fields) {
                 repeatedField.put(repeatedFieldDescriptor.getName(), this.getMockValue(repeatedFieldDescriptor));
             }
+
+            if (field.isRepeated()) {
+                return new JSONArray().fluentAdd(repeatedField);
+            }
+
             return repeatedField;
         } else {
             return getMockDefaultValue(name, type);
