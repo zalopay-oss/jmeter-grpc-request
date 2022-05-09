@@ -61,6 +61,8 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
     public SampleResult sample(Entry ignored) {
         GrpcResponse grpcResponse = new GrpcResponse();
         SampleResult sampleResult = new SampleResult();
+
+        // Console prints unknown exceptions - Intercepts unknown exceptions and sends them to the console to print instead of throwing the results into the GRPC response.
         try {
             initGrpcClient();
             sampleResult.setSampleLabel(getName());
@@ -68,16 +70,28 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
             sampleResult.setSamplerData(grpcRequest);
             sampleResult.setRequestHeaders(clientCaller.getMetadataString());
             sampleResult.sampleStart();
+        } catch (Exception e) {
+            log.error("An unknown error occurred before the GRPC request was initiated, and the stack trace is as follows: ", e);
+            sampleResult.setSuccessful(false);
+            sampleResult.setResponseCode("500");
+            sampleResult.setDataType(SampleResult.TEXT);
+            sampleResult.setResponseMessage("GRPCSampler Exception: An unknown exception occurred before the GRPC request was initiated. See the console print log for a detailed stack trace.");
+            return sampleResult;
+        }
+
+        // Initiate a GRPC request
+        try {
             grpcResponse = clientCaller.call(getDeadline());
             sampleResult.sampleEnd();
             sampleResult.setSuccessful(true);
-            sampleResult.setResponseData(grpcResponse.getGrpcMessageString().getBytes(StandardCharsets.UTF_8));
+            sampleResult.setResponseCodeOK();
             sampleResult.setResponseMessage("Success");
             sampleResult.setDataType(SampleResult.TEXT);
-            sampleResult.setResponseCodeOK();
+            sampleResult.setResponseData(grpcResponse.getGrpcMessageString().getBytes(StandardCharsets.UTF_8));
         } catch (RuntimeException e) {
             errorResult(grpcResponse, sampleResult, e);
         }
+
         return sampleResult;
     }
 
