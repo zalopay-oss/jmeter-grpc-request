@@ -102,7 +102,6 @@ public class ProtocInvoker {
                         .add("--include_imports")
                         .add("-v" + protocVersion)
                         .build();
-                logger.info("protoc Args {}", protocArgs);
             } catch (IOException e) {
                 logger.error("Unable to create protoc parameter file", e);
             }
@@ -116,7 +115,6 @@ public class ProtocInvoker {
                     .add("--include_imports")
                     .add("-v" + protocVersion)
                     .build();
-            logger.info("protoc Args {}", protocArgs);
         }
 
         invokeBinary(protocArgs);
