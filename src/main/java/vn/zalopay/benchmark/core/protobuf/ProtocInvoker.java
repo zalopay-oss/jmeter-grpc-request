@@ -33,6 +33,21 @@ public class ProtocInvoker {
     private final Path discoveryRoot;
     private final int largeFolderLimit = 100;
 
+    private static final String PROTOC_ENV_VARIABLE_NAME = "JM_PROTOC_VERSION";
+    private static final String PROTOC_VERSION = getProtocVersion();
+
+    /**
+     * Takes a protoc version from environmental variable. If not available, uses version 3.20.1 (latest at the moment)
+     * @return the protoc version string
+     */
+    private static String getProtocVersion() {
+        String version = System.getenv(PROTOC_ENV_VARIABLE_NAME);
+        if (version != null && version.trim().length() > 0) {
+            return version;
+        }
+        return "3.20.1";
+    }
+
     /**
      * Takes an optional path to pass to protoc as --proto_path. Uses the invocation-time proto root
      * if none is passed.
@@ -96,6 +111,7 @@ public class ProtocInvoker {
             try {
                 File argumentsFile = createFileWithArguments(protoFilePaths.toArray(new String[0]));
                 protocArgs = ImmutableList.<String>builder()
+                        .add("-v" + PROTOC_VERSION)
                         .add("@" + argumentsFile.getAbsolutePath())
                         .addAll(includePathArgs(wellKnownTypesInclude))
                         .add("--descriptor_set_out=" + descriptorPath.toAbsolutePath().toString())
@@ -109,6 +125,7 @@ public class ProtocInvoker {
 
         if (protocArgs == null) {
             protocArgs = ImmutableList.<String>builder()
+                    .add("-v" + PROTOC_VERSION)
                     .addAll(protoFilePaths)
                     .addAll(includePathArgs(wellKnownTypesInclude))
                     .add("--descriptor_set_out=" + descriptorPath.toAbsolutePath().toString())
