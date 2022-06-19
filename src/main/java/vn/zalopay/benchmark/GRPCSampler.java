@@ -124,6 +124,10 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
             clientCaller.shutdownNettyChannel();
             clientCaller = null;
         }
+        // clear state of grpc config for rerun with new config in GUI mode
+        if (grpcRequestConfig != null) {
+            grpcRequestConfig = null;
+        }
     }
 
     private String whoAmI() {
