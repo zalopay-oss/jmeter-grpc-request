@@ -1,11 +1,13 @@
 package vn.zalopay.benchmark.core.protobuf;
 
 import com.github.os72.protocjar.Protoc;
+import com.github.os72.protocjar.ProtocVersion;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import org.apache.jmeter.services.FileServer;
+import org.apache.jmeter.util.JMeterUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,6 +90,7 @@ public class ProtocInvoker {
         // Large folder processing, solve CreateProcess error=206
         final ImmutableSet<String> protoFilePaths = scanProtoFiles(discoveryRoot);
         ImmutableList<String> protocArgs = null;
+        String protocVersion = JMeterUtils.getPropDefault("grpc.request.protoc.version", ProtocVersion.PROTOC_VERSION.mVersion);
 
         if (protoFilePaths.size() > largeFolderLimit) {
             try {
@@ -97,6 +100,7 @@ public class ProtocInvoker {
                         .addAll(includePathArgs(wellKnownTypesInclude))
                         .add("--descriptor_set_out=" + descriptorPath.toAbsolutePath().toString())
                         .add("--include_imports")
+                        .add("-v" + protocVersion)
                         .build();
             } catch (IOException e) {
                 logger.error("Unable to create protoc parameter file", e);
@@ -109,6 +113,7 @@ public class ProtocInvoker {
                     .addAll(includePathArgs(wellKnownTypesInclude))
                     .add("--descriptor_set_out=" + descriptorPath.toAbsolutePath().toString())
                     .add("--include_imports")
+                    .add("-v" + protocVersion)
                     .build();
         }
 

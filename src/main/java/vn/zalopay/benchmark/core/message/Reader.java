@@ -1,6 +1,7 @@
 package vn.zalopay.benchmark.core.message;
 
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
@@ -8,6 +9,7 @@ import com.google.protobuf.util.JsonFormat;
 import vn.zalopay.benchmark.exception.GrpcPluginException;
 
 public class Reader {
+
     private final JsonFormat.Parser jsonParser;
     private final Descriptors.Descriptor descriptor;
     private String payload;
@@ -26,8 +28,10 @@ public class Reader {
     public ImmutableList<DynamicMessage> read() {
         ImmutableList.Builder<DynamicMessage> resultBuilder = ImmutableList.builder();
         try {
+            // Parses from JSON into a protobuf message.
             DynamicMessage.Builder nextMessage = DynamicMessage.newBuilder(descriptor);
             jsonParser.merge(payload, nextMessage);
+
             // Clean up and prepare for next message.
             resultBuilder.add(nextMessage.build());
             return resultBuilder.build();
@@ -35,4 +39,5 @@ public class Reader {
             throw new GrpcPluginException("Unable to read messages from: " + payload, e);
         }
     }
+
 }

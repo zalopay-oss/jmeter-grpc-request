@@ -136,7 +136,7 @@ public class ClientCaller {
             metadataMap.clear();
             metadataMap.putAll(buildHashMetadata(metadata));
             requestMessages = Reader.create(methodDescriptor.getInputType(), jsonData, registry).read();
-            return JsonFormat.printer().includingDefaultValueFields().print(requestMessages.get(0));
+            return JsonFormat.printer().includingDefaultValueFields().usingTypeRegistry(registry).print(requestMessages.get(0));
         } catch (IllegalArgumentException e) {
             shutdownNettyChannel();
             throw e;
