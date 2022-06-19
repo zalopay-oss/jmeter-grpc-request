@@ -49,7 +49,7 @@ public class ClientCaller {
                 requestConfig.getFullMethod(), requestConfig.isTls(), requestConfig.isTlsDisableVerification(),
                 requestConfig.getAwaitTerminationTimeout());
     }
-    
+
     private void init(String hostPort, String testProtoFiles, String libFolder, String fullMethod, boolean tls,
                       boolean tlsDisableVerification, int awaitTerminationTimeout) {
         try {
