@@ -13,6 +13,7 @@ import io.grpc.CallOptions;
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 import vn.zalopay.benchmark.core.channel.ComponentObserver;
+import vn.zalopay.benchmark.core.config.GrpcRequestConfig;
 import vn.zalopay.benchmark.core.grpc.ChannelFactory;
 import vn.zalopay.benchmark.core.grpc.DynamicGrpcClient;
 import vn.zalopay.benchmark.core.message.Reader;
@@ -43,28 +44,29 @@ public class ClientCaller {
     private int awaitTerminationTimeout;
     ChannelFactory channelFactory;
 
-    public ClientCaller(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean TLS
-            , boolean TLS_DISABLE_VERIFICATION, String AWAIT_TERMINATION_TIMEOUT) {
-        this.init(HOST_PORT, TEST_PROTO_FILES, LIB_FOLDER, FULL_METHOD, TLS, TLS_DISABLE_VERIFICATION, AWAIT_TERMINATION_TIMEOUT);
+    public ClientCaller(GrpcRequestConfig requestConfig) {
+        this.init(requestConfig.getHostPort(), requestConfig.getTestProtoFile(), requestConfig.getLibFolder(),
+                requestConfig.getFullMethod(), requestConfig.isTls(), requestConfig.isTlsDisableVerification(),
+                requestConfig.getAwaitTerminationTimeout());
     }
-
-    private void init(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean TLS,
-                      boolean TLS_DISABLE_VERIFICATION, String AWAIT_TERMINATION_TIMEOUT) {
+    
+    private void init(String hostPort, String testProtoFiles, String libFolder, String fullMethod, boolean tls,
+                      boolean tlsDisableVerification, int awaitTerminationTimeout) {
         try {
-            awaitTerminationTimeout = Integer.parseInt(AWAIT_TERMINATION_TIMEOUT);
-            tls = TLS;
-            disableTtlVerification = TLS_DISABLE_VERIFICATION;
-            hostAndPort = HostAndPort.fromString(HOST_PORT);
+            this.awaitTerminationTimeout = awaitTerminationTimeout;
+            this.tls = tls;
+            disableTtlVerification = tlsDisableVerification;
+            hostAndPort = HostAndPort.fromString(hostPort);
             metadataMap = new LinkedHashMap<>();
             channelFactory = ChannelFactory.create();
             ProtoMethodName grpcMethodName =
-                    ProtoMethodName.parseFullGrpcMethodName(FULL_METHOD);
+                    ProtoMethodName.parseFullGrpcMethodName(fullMethod);
 
             // Fetch the appropriate file descriptors for the service.
             final DescriptorProtos.FileDescriptorSet fileDescriptorSet;
 
             try {
-                fileDescriptorSet = ProtocInvoker.forConfig(TEST_PROTO_FILES, LIB_FOLDER).invoke();
+                fileDescriptorSet = ProtocInvoker.forConfig(testProtoFiles, libFolder).invoke();
             } catch (Throwable t) {
                 shutdownNettyChannel();
                 throw new RuntimeException("Unable to resolve service by invoking protoc", t);

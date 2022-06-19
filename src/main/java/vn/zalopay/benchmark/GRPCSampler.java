@@ -7,6 +7,7 @@ import org.apache.jmeter.testelement.ThreadListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vn.zalopay.benchmark.core.ClientCaller;
+import vn.zalopay.benchmark.core.config.GrpcRequestConfig;
 import vn.zalopay.benchmark.core.specification.GrpcResponse;
 
 import java.nio.charset.StandardCharsets;
@@ -27,9 +28,11 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
     public static final String TLS = "GRPCSampler.tls";
     public static final String TLS_DISABLE_VERIFICATION = "GRPCSampler.tlsDisableVerification";
     public static final String CHANNEL_SHUTDOWN_AWAIT_TIME = "GRPCSampler.channelAwaitTermination";
-    private transient ClientCaller clientCaller = null;
+    private transient ClientCaller clientCaller;
+    private GrpcRequestConfig grpcRequestConfig;
 
     public GRPCSampler() {
+        super();
         trace("init GRPCSampler");
     }
 
@@ -46,9 +49,9 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
                 getTitle(), s, this.toString());
     }
 
-    private void initGrpcClient() {
-        if (clientCaller == null) {
-            clientCaller = new ClientCaller(
+    private void initGrpcConfigRequest() {
+        if (grpcRequestConfig == null)
+            grpcRequestConfig = new GrpcRequestConfig(
                     getHostPort(),
                     getProtoFolder(),
                     getLibFolder(),
@@ -57,6 +60,11 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
                     isTlsDisableVerification(),
                     getChannelShutdownAwaitTime()
             );
+    }
+
+    private void initGrpcClient() {
+        if (clientCaller == null) {
+            clientCaller = new ClientCaller(grpcRequestConfig);
         }
     }
 
@@ -105,12 +113,13 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
 
     @Override
     public void threadStarted() {
-        log.debug("{}\ttestStarted", whoAmI());
+        initGrpcConfigRequest();
+        log.debug("\ttestStarted: {} - {}", whoAmI(), grpcRequestConfig.toString());
     }
 
     @Override
     public void threadFinished() {
-        log.debug("{}\ttestEnded", whoAmI());
+        log.debug("\ttestEnded: {}", whoAmI());
         if (clientCaller != null) {
             clientCaller.shutdownNettyChannel();
             clientCaller = null;

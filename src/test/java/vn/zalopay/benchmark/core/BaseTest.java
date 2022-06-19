@@ -6,6 +6,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeSuite;
+import vn.zalopay.benchmark.core.config.GrpcRequestConfig;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,7 +16,7 @@ import java.nio.file.Paths;
 public class BaseTest {
     private static final String GRPC_DUMMY_SERVER_JAR = "gprc-server-1.0-SNAPSHOT.jar";
     private static final Path GRPC_DUMMY_SERVER_FOLDER = Paths.get(System.getProperty("user.dir"), "/dist/benchmark/grpc-server/dist");
-    protected static String DEFAULT_CHANNEL_SHUTDOWN_TIME = "5";
+    protected static String DEFAULT_CHANNEL_SHUTDOWN_TIME = "5000";
     protected static final Path TEMP_JMETER_HOME = Paths.get(System.getProperty("user.dir"), "src", "test", "resources");
     protected static final Path JMETER_PROPERTIES_FILE = Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "jmeter.properties");
     protected static final Path PROTO_WITH_EXTERNAL_IMPORT_FOLDER =
@@ -31,6 +32,9 @@ public class BaseTest {
     protected static String REQUEST_JSON = "{\"shelf\":{\"id\":1599156420811,\"theme\":\"Hello server!!\"}}";
     protected static String FULL_METHOD = "bookstore.Bookstore/CreateShelf";
     protected static String METADATA = "";
+    protected static final GrpcRequestConfig DEFAULT_GRPC_REQUEST_CONFIG =
+            new GrpcRequestConfig(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(),
+                    FULL_METHOD, false, false, DEFAULT_CHANNEL_SHUTDOWN_TIME);
     // JSON METADATA TEST
     protected static String METADATA_JSON = "{\"key1\":\"Value1\"}";
     protected static String FULL_METHOD_WITH_METADATA = "helloworld.Greeter/SayHelloWithJsonMetadata";
