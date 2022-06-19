@@ -40,14 +40,18 @@ public class ClientCaller {
     private Map<String, String> metadataMap;
     private boolean tls;
     private boolean disableTtlVerification;
+    private int awaitTerminationTimeout;
     ChannelFactory channelFactory;
 
-    public ClientCaller(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean TLS, boolean TLS_DISABLE_VERIFICATION) {
-        this.init(HOST_PORT, TEST_PROTO_FILES, LIB_FOLDER, FULL_METHOD, TLS, TLS_DISABLE_VERIFICATION);
+    public ClientCaller(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean TLS
+            , boolean TLS_DISABLE_VERIFICATION, String AWAIT_TERMINATION_TIMEOUT) {
+        this.init(HOST_PORT, TEST_PROTO_FILES, LIB_FOLDER, FULL_METHOD, TLS, TLS_DISABLE_VERIFICATION, AWAIT_TERMINATION_TIMEOUT);
     }
 
-    private void init(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean TLS, boolean TLS_DISABLE_VERIFICATION) {
+    private void init(String HOST_PORT, String TEST_PROTO_FILES, String LIB_FOLDER, String FULL_METHOD, boolean TLS,
+                      boolean TLS_DISABLE_VERIFICATION, String AWAIT_TERMINATION_TIMEOUT) {
         try {
+            awaitTerminationTimeout = Integer.parseInt(AWAIT_TERMINATION_TIMEOUT);
             tls = TLS;
             disableTtlVerification = TLS_DISABLE_VERIFICATION;
             hostAndPort = HostAndPort.fromString(HOST_PORT);
@@ -93,7 +97,7 @@ public class ClientCaller {
             try {
                 Map<String, Object> map = JSONObject.parseObject(metadata);
                 for (Map.Entry<String, Object> entry : map.entrySet()) {
-                    metadataHash.put(entry.getKey(), (String)entry.getValue());
+                    metadataHash.put(entry.getKey(), (String) entry.getValue());
                 }
             } catch (Exception e) {
                 Preconditions.checkArgument(1 == 2,
@@ -210,7 +214,7 @@ public class ClientCaller {
         try {
             if (channel != null) {
                 channel.shutdown();
-                channel.awaitTermination(5, TimeUnit.SECONDS);
+                channel.awaitTermination(awaitTerminationTimeout, TimeUnit.MILLISECONDS);
             }
         } catch (InterruptedException e) {
             throw new RuntimeException("Caught exception while shutting down channel", e);

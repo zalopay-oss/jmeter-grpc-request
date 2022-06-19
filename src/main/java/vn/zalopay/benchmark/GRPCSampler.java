@@ -26,6 +26,7 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
     public static final String DEADLINE = "GRPCSampler.deadline";
     public static final String TLS = "GRPCSampler.tls";
     public static final String TLS_DISABLE_VERIFICATION = "GRPCSampler.tlsDisableVerification";
+    public static final String CHANNEL_SHUTDOWN_AWAIT_TIME = "GRPCSampler.channelAwaitTermination";
     private transient ClientCaller clientCaller = null;
 
     public GRPCSampler() {
@@ -41,7 +42,7 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
 
     private void trace(String s) {
         String threadName = Thread.currentThread().getName();
-        log.debug("{} ({}) {} {} {}", threadName,
+        log.debug("{} ({}) {} {}", threadName,
                 getTitle(), s, this.toString());
     }
 
@@ -53,7 +54,9 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
                     getLibFolder(),
                     getFullMethod(),
                     isTls(),
-                    isTlsDisableVerification());
+                    isTlsDisableVerification(),
+                    getChannelShutdownAwaitTime()
+            );
         }
     }
 
@@ -66,7 +69,7 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
         try {
             initGrpcClient();
             sampleResult.setSampleLabel(getName());
-            String grpcRequest = clientCaller.buildRequestAndMetadata(getRequestJson(),getMetadata());
+            String grpcRequest = clientCaller.buildRequestAndMetadata(getRequestJson(), getMetadata());
             sampleResult.setSamplerData(grpcRequest);
             sampleResult.setRequestHeaders(clientCaller.getMetadataString());
             sampleResult.sampleStart();
@@ -219,6 +222,15 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
     public void setPort(String port) {
         setProperty(PORT, port);
     }
+
+    public String getChannelShutdownAwaitTime() {
+        return getPropertyAsString(CHANNEL_SHUTDOWN_AWAIT_TIME, "1000");
+    }
+
+    public void setChannelShutdownAwaitTime(String awaitShutdownTime) {
+        setProperty(CHANNEL_SHUTDOWN_AWAIT_TIME, awaitShutdownTime);
+    }
+
 
     private String getHostPort() {
         return getHost() + ":" + getPort();
