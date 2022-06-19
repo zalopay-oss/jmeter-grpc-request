@@ -95,7 +95,7 @@ jobs:
       - name: Check download artifact
         run: |
           ls -la
-          ls -la /home/runner/work/jmeter-grpc-request/jmeter-grpc-request
+          ls -la /home/runner/work/jmeter-grpc-request/jmeter-grpc-request/target
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v1
         env:
@@ -103,4 +103,4 @@ jobs:
         with:
           body_path: README.md
           files: |
-            jmeter-grpc-request.jar
+            ./target/jmeter-grpc-request.jar
