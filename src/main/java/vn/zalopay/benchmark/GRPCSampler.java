@@ -75,6 +75,7 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
 
         // Console prints unknown exceptions - Intercepts unknown exceptions and sends them to the console to print instead of throwing the results into the GRPC response.
         try {
+            initGrpcConfigRequest();
             initGrpcClient();
             sampleResult.setSampleLabel(getName());
             String grpcRequest = clientCaller.buildRequestAndMetadata(getRequestJson(), getMetadata());
@@ -113,8 +114,7 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
 
     @Override
     public void threadStarted() {
-        initGrpcConfigRequest();
-        log.debug("\ttestStarted: {} - {}", whoAmI(), grpcRequestConfig.toString());
+        log.debug("\ttestStarted: {}", whoAmI());
     }
 
     @Override
