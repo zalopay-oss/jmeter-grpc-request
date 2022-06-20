@@ -7,6 +7,7 @@ import org.apache.jmeter.testelement.ThreadListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vn.zalopay.benchmark.core.ClientCaller;
+import vn.zalopay.benchmark.core.config.GrpcRequestConfig;
 import vn.zalopay.benchmark.core.specification.GrpcResponse;
 
 import java.nio.charset.StandardCharsets;
@@ -26,9 +27,12 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
     public static final String DEADLINE = "GRPCSampler.deadline";
     public static final String TLS = "GRPCSampler.tls";
     public static final String TLS_DISABLE_VERIFICATION = "GRPCSampler.tlsDisableVerification";
-    private transient ClientCaller clientCaller = null;
+    public static final String CHANNEL_SHUTDOWN_AWAIT_TIME = "GRPCSampler.channelAwaitTermination";
+    private transient ClientCaller clientCaller;
+    private GrpcRequestConfig grpcRequestConfig;
 
     public GRPCSampler() {
+        super();
         trace("init GRPCSampler");
     }
 
@@ -41,19 +45,26 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
 
     private void trace(String s) {
         String threadName = Thread.currentThread().getName();
-        log.debug("{} ({}) {} {} {}", threadName,
+        log.debug("{} ({}) {} {}", threadName,
                 getTitle(), s, this.toString());
     }
 
-    private void initGrpcClient() {
-        if (clientCaller == null) {
-            clientCaller = new ClientCaller(
+    private void initGrpcConfigRequest() {
+        if (grpcRequestConfig == null)
+            grpcRequestConfig = new GrpcRequestConfig(
                     getHostPort(),
                     getProtoFolder(),
                     getLibFolder(),
                     getFullMethod(),
                     isTls(),
-                    isTlsDisableVerification());
+                    isTlsDisableVerification(),
+                    getChannelShutdownAwaitTime()
+            );
+    }
+
+    private void initGrpcClient() {
+        if (clientCaller == null) {
+            clientCaller = new ClientCaller(grpcRequestConfig);
         }
     }
 
@@ -64,9 +75,10 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
 
         // Console prints unknown exceptions - Intercepts unknown exceptions and sends them to the console to print instead of throwing the results into the GRPC response.
         try {
+            initGrpcConfigRequest();
             initGrpcClient();
             sampleResult.setSampleLabel(getName());
-            String grpcRequest = clientCaller.buildRequestAndMetadata(getRequestJson(),getMetadata());
+            String grpcRequest = clientCaller.buildRequestAndMetadata(getRequestJson(), getMetadata());
             sampleResult.setSamplerData(grpcRequest);
             sampleResult.setRequestHeaders(clientCaller.getMetadataString());
             sampleResult.sampleStart();
@@ -102,15 +114,19 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
 
     @Override
     public void threadStarted() {
-        log.debug("{}\ttestStarted", whoAmI());
+        log.debug("\ttestStarted: {}", whoAmI());
     }
 
     @Override
     public void threadFinished() {
-        log.debug("{}\ttestEnded", whoAmI());
+        log.debug("\ttestEnded: {}", whoAmI());
         if (clientCaller != null) {
             clientCaller.shutdownNettyChannel();
             clientCaller = null;
+        }
+        // clear state of grpc config for rerun with new config in GUI mode
+        if (grpcRequestConfig != null) {
+            grpcRequestConfig = null;
         }
     }
 
@@ -219,6 +235,15 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
     public void setPort(String port) {
         setProperty(PORT, port);
     }
+
+    public String getChannelShutdownAwaitTime() {
+        return getPropertyAsString(CHANNEL_SHUTDOWN_AWAIT_TIME, "1000");
+    }
+
+    public void setChannelShutdownAwaitTime(String awaitShutdownTime) {
+        setProperty(CHANNEL_SHUTDOWN_AWAIT_TIME, awaitShutdownTime);
+    }
+
 
     private String getHostPort() {
         return getHost() + ":" + getPort();

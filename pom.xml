@@ -25,7 +25,7 @@
         <emulators.jmeter.version>0.4</emulators.jmeter.version>
         <mockito.version>3.10.0</mockito.version>
         <testng.version>7.4.0</testng.version>
-        <fastjson.version>1.2.76</fastjson.version>
+        <fastjson.version>1.2.83</fastjson.version>
     </properties>
 
     <dependencies>
