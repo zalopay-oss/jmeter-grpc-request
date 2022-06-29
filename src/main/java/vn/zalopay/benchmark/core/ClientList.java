@@ -47,8 +47,8 @@ public class ClientList {
                 serviceResolverMap.put(serviceResolverKey, serviceResolver);
                 return serviceResolver;
             }
-        } catch (Throwable t) {
-            throw new RuntimeException("Unable to resolve service by invoking protoc", t);
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to resolve service by invoking protoc", e);
         }
 
         throw new RuntimeException("Unable to resolve service by invoking protoc");
