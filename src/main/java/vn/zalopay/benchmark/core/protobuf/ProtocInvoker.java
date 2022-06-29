@@ -127,32 +127,30 @@ public class ProtocInvoker {
 
     private void invokeBinary(ImmutableList<String> protocArgs) throws ProtocInvocationException {
         int status;
-        String[] protocLogLines;
+        String[] protocInfoLogLines;
+        String[] protocErrorLogLines;
 
         // The "protoc" library unconditionally writes to stdout. So, we replace stdout right before
         // calling into the library in order to gather its output.
         PrintStream stdoutBackup = System.out;
+        PrintStream stderrBackup = System.err;
         try {
             ByteArrayOutputStream protocStdout = new ByteArrayOutputStream();
+            ByteArrayOutputStream protocStderr = new ByteArrayOutputStream();
             System.setOut(new PrintStream(protocStdout));
-
+            System.setErr(new PrintStream(protocStderr));
             status = Protoc.runProtoc(protocArgs.toArray(new String[0]));
-            protocLogLines = protocStdout.toString().split("\n");
+            protocInfoLogLines = protocStdout.toString().split("\n");
+            protocErrorLogLines = protocStderr.toString().split("\n");
         } catch (IOException | InterruptedException e) {
             throw new ProtocInvocationException("Unable to execute protoc binary", e);
         } finally {
             // Restore stdout.
             System.setOut(stdoutBackup);
+            System.setErr(stderrBackup);
         }
         if (status != 0) {
-            // If protoc failed, we dump its output as a warning.
-            logger.warn("Protoc invocation failed with status: " + status);
-            for (String line : protocLogLines) {
-                logger.warn("[Protoc log] " + line);
-            }
-
-            throw new ProtocInvocationException(
-                    String.format("Got exit code [%d] from protoc with args [%s]", status, protocArgs));
+            protocInvokerErrorHandler(protocArgs, status, protocInfoLogLines, protocErrorLogLines);
         }
     }
 
@@ -261,4 +259,23 @@ public class ProtocInvoker {
         }
     }
 
+    private void protocInvokerErrorHandler(ImmutableList<String> protocArgs, int status, String[] protocInfoLogLines,
+                                           String[] protocErrorLogLines) throws ProtocInvocationException {
+        // If protoc failed, we dump its output as a warning.
+        logger.error("Protoc invocation failed with status: " + status);
+        for (String line : protocInfoLogLines) {
+            logger.error("[Protoc log] " + line);
+        }
+
+        for (String line : protocErrorLogLines) {
+            logger.error("[Protoc error log] " + line);
+        }
+
+        throw new ProtocInvocationException(
+                String.format("Got error exit code [%d] from protoc: protoc command [%s] has " +
+                                "error" +
+                                " [%s]",
+                        status,
+                        String.join("\n", protocInfoLogLines), String.join("\n", protocErrorLogLines)));
+    }
 }

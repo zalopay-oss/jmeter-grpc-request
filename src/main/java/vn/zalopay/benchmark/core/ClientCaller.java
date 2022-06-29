@@ -67,9 +67,9 @@ public class ClientCaller {
 
             try {
                 fileDescriptorSet = ProtocInvoker.forConfig(testProtoFiles, libFolder).invoke();
-            } catch (Throwable t) {
+            } catch (Exception e) {
                 shutdownNettyChannel();
-                throw new RuntimeException("Unable to resolve service by invoking protoc", t);
+                throw new RuntimeException("Unable to resolve service by invoking protoc", e);
             }
 
             // Set up the dynamic client and make the call.

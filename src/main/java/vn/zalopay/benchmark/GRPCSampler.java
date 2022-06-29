@@ -84,10 +84,8 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
             sampleResult.sampleStart();
         } catch (Exception e) {
             log.error("An unknown error occurred before the GRPC request was initiated, and the stack trace is as follows: ", e);
-            sampleResult.setSuccessful(false);
-            sampleResult.setResponseCode("500");
-            sampleResult.setDataType(SampleResult.TEXT);
-            sampleResult.setResponseMessage("GRPCSampler Exception: An unknown exception occurred before the GRPC request was initiated. See the console print log for a detailed stack trace.");
+            startSamplerToStopIfCatchException(sampleResult);
+            generateErrorResultInInitGRPCRequest(sampleResult, e);
             return sampleResult;
         }
 
@@ -101,7 +99,8 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
             sampleResult.setDataType(SampleResult.TEXT);
             sampleResult.setResponseData(grpcResponse.getGrpcMessageString().getBytes(StandardCharsets.UTF_8));
         } catch (RuntimeException e) {
-            errorResult(grpcResponse, sampleResult, e);
+            startSamplerToStopIfCatchException(sampleResult);
+            generateErrorResult(grpcResponse, sampleResult, e);
         }
 
         return sampleResult;
@@ -138,7 +137,18 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
                 getName();
     }
 
-    private void errorResult(GrpcResponse grpcResponse, SampleResult sampleResult, Exception e) {
+    private void generateErrorResultInInitGRPCRequest(SampleResult sampleResult, Exception e) {
+        String msg = String.format("GRPCSampler Exception: An unknown exception occurred before the GRPC " +
+                "request was initiated. %s", e.getCause().getMessage());
+        sampleResult.setSampleLabel("Error When Initiated gRPC");
+        sampleResult.setSuccessful(false);
+        sampleResult.setResponseCode("500");
+        sampleResult.setDataType(SampleResult.TEXT);
+        sampleResult.setResponseData(msg.getBytes(StandardCharsets.UTF_8));
+        sampleResult.setResponseMessage(msg);
+    }
+
+    private void generateErrorResult(GrpcResponse grpcResponse, SampleResult sampleResult, Exception e) {
         try {
             sampleResult.setSuccessful(false);
             sampleResult.setResponseCode("500");
@@ -151,6 +161,11 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
             e.printStackTrace();
             log.error("GrpcMessage: {}", grpcResponse.getGrpcMessageString());
         }
+    }
+
+    private void startSamplerToStopIfCatchException(SampleResult sampleResult) {
+        if (sampleResult.getStartTime() == 0L)
+            sampleResult.sampleStart();
     }
 
     /**
