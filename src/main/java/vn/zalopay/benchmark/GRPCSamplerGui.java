@@ -329,9 +329,9 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
                     try {
                         for (String protoMethod : protoMethods) {
                             boolean startsWith = protoMethod.startsWith(fullMethod);
-                            if (startsWith == true) {
+                            if (startsWith) {
                                 fullMethodField.setSelectedItem(protoMethod);
-                                if (protoMethod.equals(fullMethod) == false) {
+                                if (!protoMethod.equals(fullMethod)) {
                                     fullMethodField.showPopup();
                                 }
 
@@ -374,7 +374,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     }
 
     private String[] getProtoMethods(boolean reload) {
-        if (StringUtils.isNotBlank(grpcSampler.getProtoFolder()) && (ArrayUtils.isEmpty(protoMethods) || reload == true)) {
+        if (StringUtils.isNotBlank(grpcSampler.getProtoFolder()) && (ArrayUtils.isEmpty(protoMethods) || reload)) {
             JMeterVariableUtils.undoVariableReplacement(grpcSampler);
             ServiceResolver serviceResolver = ClientList.getServiceResolver(grpcSampler.getProtoFolder(), grpcSampler.getLibFolder(), reload);
             List<String> methodList = ClientList.listServices(serviceResolver);
