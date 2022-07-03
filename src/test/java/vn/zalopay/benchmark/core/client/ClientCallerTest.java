@@ -270,7 +270,8 @@ public class ClientCallerTest extends BaseTest {
         clientCaller = new ClientCaller(grpcRequestConfig);
     }
 
-    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while waiting for rpc")
+    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while " +
+            "waiting for rpc.*")
     public void testThrowExceptionWithTimeoutRequest() {
         clientCaller = new ClientCaller(DEFAULT_GRPC_REQUEST_CONFIG);
         clientCaller.buildRequestAndMetadata(REQUEST_JSON, METADATA);
@@ -280,7 +281,8 @@ public class ClientCallerTest extends BaseTest {
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
     }
 
-    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while waiting for rpc")
+    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while " +
+            "waiting for rpc.*")
     public void testThrowExceptionWithTimeoutRequestServerStream() {
         GrpcRequestConfig grpcRequestConfig = new GrpcRequestConfig(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(),
                 "bookstore.Bookstore/GetShelfStreamServer", false, false, DEFAULT_CHANNEL_SHUTDOWN_TIME);
@@ -292,7 +294,8 @@ public class ClientCallerTest extends BaseTest {
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
     }
 
-    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while waiting for rpc")
+    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while " +
+            "waiting for rpc.*")
     public void testThrowExceptionWithTimeoutRequestClientStream() {
         GrpcRequestConfig grpcRequestConfig = new GrpcRequestConfig(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(),
                 "bookstore.Bookstore/GetShelfStreamClient", false, false, DEFAULT_CHANNEL_SHUTDOWN_TIME);
@@ -304,7 +307,8 @@ public class ClientCallerTest extends BaseTest {
         Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
     }
 
-    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while waiting for rpc")
+    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while " +
+            "waiting for rpc.*")
     public void testThrowExceptionWithTimeoutRequestBidiStream() {
         GrpcRequestConfig grpcRequestConfig = new GrpcRequestConfig(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(),
                 "bookstore.Bookstore/GetShelfStreamBidi", false, false, DEFAULT_CHANNEL_SHUTDOWN_TIME);

@@ -161,9 +161,10 @@ public class ClientCaller {
         StreamObserver<DynamicMessage> streamObserver = ComponentObserver.of(Writer.create(output, registry));
         try {
             dynamicClient.blockingUnaryCall(requestMessages, streamObserver, callOptions(deadline)).get();
-        } catch (Throwable t) {
+        } catch (Exception e) {
             shutdownNettyChannel();
-            throw new RuntimeException("Caught exception while waiting for rpc", t);
+            throw new RuntimeException(String.format("Caught exception while waiting for rpc %s",
+                    getDetailedErrorSendGRPC(e)), e);
         }
         return output;
     }
@@ -174,9 +175,10 @@ public class ClientCaller {
         StreamObserver<DynamicMessage> streamObserver = ComponentObserver.of(Writer.create(output, registry));
         try {
             dynamicClient.callServerStreaming(requestMessages, streamObserver, callOptions(deadline)).get();
-        } catch (Throwable t) {
+        } catch (Exception e) {
             shutdownNettyChannel();
-            throw new RuntimeException("Caught exception while waiting for rpc", t);
+            throw new RuntimeException(String.format("Caught exception while waiting for rpc %s",
+                    getDetailedErrorSendGRPC(e)), e);
         }
         return output;
     }
@@ -187,9 +189,10 @@ public class ClientCaller {
         StreamObserver<DynamicMessage> streamObserver = ComponentObserver.of(Writer.create(output, registry));
         try {
             dynamicClient.callClientStreaming(requestMessages, streamObserver, callOptions(deadline)).get();
-        } catch (Throwable t) {
+        } catch (Exception e) {
             shutdownNettyChannel();
-            throw new RuntimeException("Caught exception while waiting for rpc", t);
+            throw new RuntimeException(String.format("Caught exception while waiting for rpc %s",
+                    getDetailedErrorSendGRPC(e)), e);
         }
         return output;
     }
@@ -200,9 +203,10 @@ public class ClientCaller {
         StreamObserver<DynamicMessage> streamObserver = ComponentObserver.of(Writer.create(output, registry));
         try {
             dynamicClient.callBidiStreaming(requestMessages, streamObserver, callOptions(deadline)).get();
-        } catch (Throwable t) {
+        } catch (Exception e) {
             shutdownNettyChannel();
-            throw new RuntimeException("Caught exception while waiting for rpc", t);
+            throw new RuntimeException(String.format("Caught exception while waiting for rpc %s",
+                    getDetailedErrorSendGRPC(e)), e);
         }
         return output;
     }
@@ -239,5 +243,17 @@ public class ClientCaller {
                 .stream()
                 .map(e -> e.getKey() + ": " + e.getValue())
                 .collect(Collectors.joining("\n"));
+    }
+
+    private String getDetailedErrorSendGRPC(Exception e) {
+        StringBuilder sb = new StringBuilder();
+        Throwable t = e.getCause();
+        while (t != null) {
+            sb.append("\n");
+            sb.append(t.toString() + ".");
+            sb.append("\n");
+            t = t.getCause();
+        }
+        return sb.toString();
     }
 }
