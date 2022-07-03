@@ -25,8 +25,11 @@ import vn.zalopay.benchmark.core.protobuf.ServiceResolver;
 import vn.zalopay.benchmark.util.JMeterVariableUtils;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
+import javax.swing.text.Document;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -60,6 +63,8 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     private JLabeledTextField portField;
     private JLabeledTextField deadlineField;
     private JLabeledTextField channelFactoryShutdownTimeField;
+    private JLabeledTextField maxInboundMessageSize;
+    private JLabeledTextField maxInboundMetadataSize;
 
     private JCheckBox isTLSCheckBox;
     private JCheckBox isTLSDisableVerificationCheckBox;
@@ -126,6 +131,8 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
         isTLSCheckBox.setSelected(grpcSampler.isTls());
         isTLSDisableVerificationCheckBox.setSelected(grpcSampler.isTlsDisableVerification());
         channelFactoryShutdownTimeField.setText(grpcSampler.getChannelShutdownAwaitTime());
+        maxInboundMessageSize.setText(grpcSampler.getChannelMaxInboundMessageSize());
+        maxInboundMetadataSize.setText(grpcSampler.getChannelMaxInboundMetadataSize());
         requestJsonArea.setText(grpcSampler.getRequestJson());
     }
 
@@ -146,6 +153,8 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
         isTLSCheckBox.setSelected(false);
         isTLSDisableVerificationCheckBox.setSelected(false);
         channelFactoryShutdownTimeField.setText("1000");
+        maxInboundMessageSize.setText("4194304");
+        maxInboundMetadataSize.setText("8192");
         requestJsonArea.setText("");
     }
 
@@ -230,7 +239,8 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
         metadataField = new JTextField("Metadata", 32); // $NON-NLS-1$
         deadlineField = new JLabeledTextField("Deadline In Millisecond:", 7); // $NON-NLS-1$
         channelFactoryShutdownTimeField = new JLabeledTextField("Channel Await Termination In Millisecond:", 5);
-
+        maxInboundMessageSize = new JLabeledTextField("Maximum message size allowed for a single gRPC frame");
+        maxInboundMetadataSize = new JLabeledTextField("Maximum size of metadata allowed to be received:");
         JPanel metadataServerPanel = new HorizontalPanel();
 
         metadataServerPanel.add(metadataLabel);
@@ -242,6 +252,8 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
 
         optionalPanel.add(metadataServerPanel);
         optionalPanel.add(timeOutOptionServerPanel);
+        optionalPanel.add(maxInboundMessageSize);
+        optionalPanel.add(maxInboundMetadataSize);
         return optionalPanel;
     }
 
@@ -298,6 +310,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
                 reloadProtoMethods();
             }
         });
+
         fullMethodField.addPopupMenuListener(new PopupMenuListener() {
             @Override
             public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
@@ -314,6 +327,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
             public void popupMenuCanceled(PopupMenuEvent e) {
             }
         });
+
         fullMethodField.addActionListener(new ActionListener() {
             // fullMethod edit enter listener
             @Override
@@ -325,7 +339,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
                         return;
                     }
 
-                    String[] protoMethods = getProtoMethods(false);
+                    String[] protoMethods = getProtoMethods(true);
                     try {
                         for (String protoMethod : protoMethods) {
                             boolean startsWith = protoMethod.startsWith(fullMethod);
@@ -339,9 +353,8 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
                             }
                         }
                     } catch (Exception ex) {
-                        ex.printStackTrace();
+                        log.error("Error in reload service name {}", e);
                     }
-
                     // Request Mock Auto Create
                     requestMock();
                 }
