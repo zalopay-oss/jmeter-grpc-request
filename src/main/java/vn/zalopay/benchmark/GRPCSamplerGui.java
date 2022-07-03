@@ -374,8 +374,8 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     }
 
     private void reloadProtoMethods() {
-        Object selectedItem = fullMethodField.getSelectedItem();
         getProtoMethods(true);
+        Object selectedItem = fullMethodField.getSelectedItem();
         try {
             if (selectedItem != null && StringUtils.isBlank(selectedItem.toString())) {
                 selectedItem = fullMethodField.getSelectedItem();
@@ -389,6 +389,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     }
 
     private String[] getProtoMethods(boolean reload) {
+        grpcSampler.setProtoFolder(protoFolderField.getText());
         if (StringUtils.isNotBlank(grpcSampler.getProtoFolder()) && (ArrayUtils.isEmpty(protoMethods) || reload)) {
             JMeterVariableUtils.undoVariableReplacement(grpcSampler);
             ServiceResolver serviceResolver = ClientList.getServiceResolver(grpcSampler.getProtoFolder(), grpcSampler.getLibFolder(), reload);
