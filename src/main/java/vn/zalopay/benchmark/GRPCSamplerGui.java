@@ -111,6 +111,8 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
         grpcSampler.setTls(this.isTLSCheckBox.isSelected());
         grpcSampler.setTlsDisableVerification(this.isTLSDisableVerificationCheckBox.isSelected());
         grpcSampler.setChannelShutdownAwaitTime(this.channelFactoryShutdownTimeField.getText());
+        grpcSampler.setChannelMaxInboundMessageSize(this.maxInboundMessageSize.getText());
+        grpcSampler.setChannelMaxInboundMetadataSize(this.maxInboundMetadataSize.getText());
         grpcSampler.setRequestJson(this.requestJsonArea.getText());
     }
 
