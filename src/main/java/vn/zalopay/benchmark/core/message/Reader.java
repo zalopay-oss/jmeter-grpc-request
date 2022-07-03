@@ -1,7 +1,6 @@
 package vn.zalopay.benchmark.core.message;
 
 
-import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;

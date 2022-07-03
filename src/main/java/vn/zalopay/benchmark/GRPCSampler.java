@@ -54,15 +54,16 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
 
     private void initGrpcConfigRequest() {
         if (grpcRequestConfig == null)
-            grpcRequestConfig = new GrpcRequestConfig(
-                    getHostPort(),
-                    getProtoFolder(),
-                    getLibFolder(),
-                    getFullMethod(),
-                    isTls(),
-                    isTlsDisableVerification(),
-                    getChannelShutdownAwaitTime()
-            );
+            grpcRequestConfig = GrpcRequestConfig.builder().hostPort(getHostPort())
+                    .protoFolder(getProtoFolder())
+                    .libFolder(getLibFolder())
+                    .fullMethod(getFullMethod())
+                    .tls(isTls())
+                    .tlsDisableVerification(isTlsDisableVerification())
+                    .awaitTerminationTimeout(getChannelShutdownAwaitTime())
+                    .maxInboundMessageSize(getChannelMaxInboundMessageSize())
+                    .maxInboundMetadataSize(getChannelMaxInboundMetadataSize())
+                    .build();
     }
 
     private void initGrpcClient() {
@@ -268,8 +269,8 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
         setProperty(PORT, port);
     }
 
-    public String getChannelShutdownAwaitTime() {
-        return getPropertyAsString(CHANNEL_SHUTDOWN_AWAIT_TIME, "1000");
+    public int getChannelShutdownAwaitTime() {
+        return getPropertyAsInt(CHANNEL_SHUTDOWN_AWAIT_TIME, 5000);
     }
 
     public void setChannelShutdownAwaitTime(String awaitShutdownTime) {
@@ -277,16 +278,16 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
     }
 
 
-    public String getChannelMaxInboundMessageSize() {
-        return getPropertyAsString(CHANNEL_MAX_INBOUND_MESSAGE_SIZE, "4194304");
+    public int getChannelMaxInboundMessageSize() {
+        return getPropertyAsInt(CHANNEL_MAX_INBOUND_MESSAGE_SIZE, 4194304);
     }
 
     public void setChannelMaxInboundMessageSize(String channelMaxInboundMessageSize) {
         setProperty(CHANNEL_MAX_INBOUND_MESSAGE_SIZE, channelMaxInboundMessageSize);
     }
 
-    public String getChannelMaxInboundMetadataSize() {
-        return getPropertyAsString(CHANNEL_MAX_INBOUND_METADATA_SIZE, "8192");
+    public int getChannelMaxInboundMetadataSize() {
+        return getPropertyAsInt(CHANNEL_MAX_INBOUND_METADATA_SIZE, 8192);
     }
 
     public void setChannelMaxInboundMetadataSize(String channelMaxInboundMetadataSize) {

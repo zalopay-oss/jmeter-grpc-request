@@ -7,9 +7,9 @@ import org.testng.annotations.Test;
 public class GrpcRequestConfigTest {
     @Test
     public void canConvertConfigObjectToString() {
-        GrpcRequestConfig grpcRequestConfig = new GrpcRequestConfig("a", "b", "c", "d", true, true, "a");
+        GrpcRequestConfig grpcRequestConfig = new GrpcRequestConfig("a", "b", "c", "d", true, true, 1000);
         String grpcRequestConfigString = grpcRequestConfig.toString();
-        Assert.assertEquals(grpcRequestConfigString, "GrpcRequestConfig{maxInboundMessageSize=4194304, maxInboundMetadataSize=8192, hostPort='a', testProtoFile='b', libFolder='c', fullMethod='d', tls=true, tlsDisableVerification=true, awaitTerminationTimeout=5000}");
+        Assert.assertEquals(grpcRequestConfigString, "GrpcRequestConfig{maxInboundMessageSize=4194304, maxInboundMetadataSize=8192, hostPort='a', testProtoFile='b', libFolder='c', fullMethod='d', tls=true, tlsDisableVerification=true, awaitTerminationTimeout=1000}");
     }
 
     @Test

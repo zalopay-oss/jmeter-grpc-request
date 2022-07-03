@@ -42,10 +42,12 @@ public class ClientCaller {
     private boolean tls;
     private boolean disableTtlVerification;
     private int awaitTerminationTimeout;
+    private GrpcRequestConfig requestConfig;
     ChannelFactory channelFactory;
 
     public ClientCaller(GrpcRequestConfig requestConfig) {
-        this.init(requestConfig.getHostPort(), requestConfig.getTestProtoFile(), requestConfig.getLibFolder(),
+        this.requestConfig = requestConfig;
+        this.init(requestConfig.getHostPort(), requestConfig.getProtoFolder(), requestConfig.getLibFolder(),
                 requestConfig.getFullMethod(), requestConfig.isTls(), requestConfig.isTlsDisableVerification(),
                 requestConfig.getAwaitTerminationTimeout());
     }
@@ -125,7 +127,8 @@ public class ClientCaller {
     }
 
     public void createDynamicClient() {
-        channel = channelFactory.createChannel(hostAndPort, tls, disableTtlVerification, metadataMap);
+        channel = channelFactory.createChannel(hostAndPort, tls, disableTtlVerification, metadataMap,
+                requestConfig.getMaxInboundMessageSize(), requestConfig.getMaxInboundMetadataSize());
         dynamicClient = DynamicGrpcClient.create(methodDescriptor, channel);
     }
 

@@ -29,13 +29,15 @@ public class ChannelFactory {
     }
 
     public ManagedChannel createChannel(HostAndPort endpoint, boolean tls, boolean disableTtlVerification,
-            Map<String, String> metadataHash) {
-        ManagedChannelBuilder managedChannelBuilder = createChannelBuilder(endpoint, tls, disableTtlVerification,
+            Map<String, String> metadataHash, int maxInboundMessageSize,int maxInboundMetadataSize) {
+        NettyChannelBuilder managedChannelBuilder = createChannelBuilder(endpoint, tls, disableTtlVerification,
                 metadataHash);
+        managedChannelBuilder.maxInboundMessageSize(maxInboundMessageSize);
+        managedChannelBuilder.maxInboundMetadataSize(maxInboundMetadataSize);
         return managedChannelBuilder.build();
     }
 
-    private ManagedChannelBuilder createChannelBuilder(HostAndPort endpoint, boolean tls,
+    private NettyChannelBuilder createChannelBuilder(HostAndPort endpoint, boolean tls,
             boolean disableTtlVerification, Map<String, String> metadataHash) {
         if (!tls) {
             return NettyChannelBuilder.forAddress(endpoint.getHost(), endpoint.getPort())
@@ -45,7 +47,7 @@ public class ChannelFactory {
         return createSSLMessageChannel(endpoint, disableTtlVerification, metadataHash);
     }
 
-    private ManagedChannelBuilder createSSLMessageChannel(HostAndPort endpoint, boolean disableTtlVerification,
+    private NettyChannelBuilder createSSLMessageChannel(HostAndPort endpoint, boolean disableTtlVerification,
             Map<String, String> metadataHash) {
         return NettyChannelBuilder.forAddress(endpoint.getHost(), endpoint.getPort())
                 .negotiationType(NegotiationType.TLS)
