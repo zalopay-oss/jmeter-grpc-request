@@ -19,8 +19,8 @@
         <jmeter.test.version>5.4.1</jmeter.test.version>
         <netty.ssl.version>2.0.53.Final</netty.ssl.version>
         <os72.protoc.version>3.11.4</os72.protoc.version>
-        <grpc.version>1.38.0</grpc.version>
-        <protobuf.version>3.17.1</protobuf.version>
+        <grpc.version>1.46.0</grpc.version>
+        <protobuf.version>3.21.2</protobuf.version>
         <cmn.jmeter.version>0.6</cmn.jmeter.version>
         <emulators.jmeter.version>0.4</emulators.jmeter.version>
         <mockito.version>3.10.0</mockito.version>
