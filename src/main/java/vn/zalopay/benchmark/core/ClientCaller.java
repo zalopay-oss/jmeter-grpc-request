@@ -148,28 +148,28 @@ public class ClientCaller {
 
     public GrpcResponse call(String deadlineMs) {
         long deadline = parsingDeadlineTime(deadlineMs);
-        GrpcResponse output = new GrpcResponse();
-        StreamObserver<DynamicMessage> streamObserver = ComponentObserver.of(Writer.create(output, registry));
+        GrpcResponse grpcResponse = new GrpcResponse();
+        StreamObserver<DynamicMessage> streamObserver = ComponentObserver.of(Writer.create(grpcResponse, registry));
         try {
             dynamicClient.blockingUnaryCall(requestMessages, streamObserver, callOptions(deadline)).get();
         } catch (Throwable t) {
             shutdownNettyChannel();
-            throw new RuntimeException("Caught exception while waiting for rpc", t);
         }
-        return output;
+
+        return grpcResponse;
     }
 
     public GrpcResponse callServerStreaming(String deadlineMs) {
         long deadline = parsingDeadlineTime(deadlineMs);
-        GrpcResponse output = new GrpcResponse();
-        StreamObserver<DynamicMessage> streamObserver = ComponentObserver.of(Writer.create(output, registry));
+        GrpcResponse grpcResponse = new GrpcResponse();
+        StreamObserver<DynamicMessage> streamObserver = ComponentObserver.of(Writer.create(grpcResponse, registry));
         try {
             dynamicClient.callServerStreaming(requestMessages, streamObserver, callOptions(deadline)).get();
         } catch (Throwable t) {
             shutdownNettyChannel();
-            throw new RuntimeException("Caught exception while waiting for rpc", t);
         }
-        return output;
+
+        return grpcResponse;
     }
 
     public GrpcResponse callClientStreaming(String deadlineMs) {

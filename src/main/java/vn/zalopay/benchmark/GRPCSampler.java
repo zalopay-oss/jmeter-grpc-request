@@ -1,5 +1,6 @@
 package vn.zalopay.benchmark;
 
+import jodd.exception.ExceptionUtil;
 import org.apache.jmeter.samplers.AbstractSampler;
 import org.apache.jmeter.samplers.Entry;
 import org.apache.jmeter.samplers.SampleResult;
@@ -59,7 +60,6 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
 
     @Override
     public SampleResult sample(Entry ignored) {
-        GrpcResponse grpcResponse = new GrpcResponse();
         SampleResult sampleResult = new SampleResult();
 
         // Console prints unknown exceptions - Intercepts unknown exceptions and sends them to the console to print instead of throwing the results into the GRPC response.
@@ -80,16 +80,19 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
         }
 
         // Initiate a GRPC request
-        try {
-            grpcResponse = clientCaller.call(getDeadline());
-            sampleResult.sampleEnd();
+        GrpcResponse grpcResponse = clientCaller.call(getDeadline());
+        sampleResult.sampleEnd();
+        sampleResult.setDataType(SampleResult.TEXT);
+        if (grpcResponse.isSuccess()) {
             sampleResult.setSuccessful(true);
             sampleResult.setResponseCodeOK();
             sampleResult.setResponseMessage("Success");
-            sampleResult.setDataType(SampleResult.TEXT);
             sampleResult.setResponseData(grpcResponse.getGrpcMessageString().getBytes(StandardCharsets.UTF_8));
-        } catch (RuntimeException e) {
-            errorResult(grpcResponse, sampleResult, e);
+        } else {
+            sampleResult.setSuccessful(false);
+            sampleResult.setResponseCode("500");
+            sampleResult.setResponseMessage("Exception: " + grpcResponse.getThrowable().getMessage());
+            sampleResult.setResponseData(ExceptionUtil.exceptionStackTraceToString(grpcResponse.getThrowable()), "UTF-8");
         }
 
         return sampleResult;
@@ -120,21 +123,6 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
                 Integer.toHexString(hashCode()) +
                 "-" +
                 getName();
-    }
-
-    private void errorResult(GrpcResponse grpcResponse, SampleResult sampleResult, Exception e) {
-        try {
-            sampleResult.setSuccessful(false);
-            sampleResult.setResponseCode("500");
-            sampleResult.setDataType(SampleResult.TEXT);
-            sampleResult.sampleEnd();
-            sampleResult.setResponseMessage("Exception: " + e.getCause().getMessage());
-            sampleResult.setResponseData(String.format("Exception: %s. %s", e.getCause().getMessage(), grpcResponse.getGrpcMessageString()), "UTF-8");
-        } catch (Exception ex) {
-            // Prints exceptions that occur before the request is initiated
-            e.printStackTrace();
-            log.error("GrpcMessage: {}", grpcResponse.getGrpcMessageString());
-        }
     }
 
     /**
