@@ -29,7 +29,9 @@ public class GrpcSamplerTest extends BaseTest {
         grpcSampler.setDeadline("2000");
         grpcSampler.setTls(false);
         grpcSampler.setTlsDisableVerification(false);
+        grpcSampler.setChannelShutdownAwaitTime("5000");
         grpcSampler.setRequestJson(REQUEST_JSON);
+        grpcSampler.threadStarted();
         SampleResult sampleResult = grpcSampler.sample(null);
         Assert.assertEquals(sampleResult.getResponseCode(), "200");
         Assert.assertTrue(new String(sampleResult.getResponseData()).contains("\"theme\": \"Hello server"));
@@ -48,8 +50,10 @@ public class GrpcSamplerTest extends BaseTest {
         grpcSampler.setFullMethod(FULL_METHOD);
         grpcSampler.setDeadline("2000");
         grpcSampler.setTls(false);
+        grpcSampler.setChannelShutdownAwaitTime("5000");
         grpcSampler.setTlsDisableVerification(false);
         grpcSampler.setRequestJson(REQUEST_JSON);
+        grpcSampler.threadStarted();
         SampleResult sampleResult1 = grpcSampler.sample(null);
         SampleResult sampleResult2 = grpcSampler.sample(null);
         SampleResult sampleResult3 = grpcSampler.sample(null);
@@ -174,7 +178,9 @@ public class GrpcSamplerTest extends BaseTest {
         grpcSampler.setDeadline("2000");
         grpcSampler.setTls(false);
         grpcSampler.setTlsDisableVerification(false);
+        grpcSampler.setChannelShutdownAwaitTime("5000");
         grpcSampler.setRequestJson(METADATA_REQUEST_JSON);
+        grpcSampler.threadStarted();
         SampleResult sampleResult = grpcSampler.sample(null);
         Assert.assertEquals(sampleResult.getResponseCode(), "200");
         Assert.assertTrue(new String(sampleResult.getResponseData()).contains(EXPECTED_RESPONSE_DATA));

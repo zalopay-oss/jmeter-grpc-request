@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>vn.zalopay.benchmark</groupId>
     <artifactId>jmeter-grpc-request</artifactId>
-    <version>1.1.2</version>
+    <version>1.1.3</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -24,7 +24,7 @@
         <emulators.jmeter.version>0.4</emulators.jmeter.version>
         <mockito.version>3.10.0</mockito.version>
         <testng.version>7.4.0</testng.version>
-        <fastjson.version>1.2.76</fastjson.version>
+        <fastjson.version>1.2.83</fastjson.version>
     </properties>
 
     <dependencies>

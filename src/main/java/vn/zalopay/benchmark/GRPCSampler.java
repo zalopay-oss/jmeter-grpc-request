@@ -1,6 +1,5 @@
 package vn.zalopay.benchmark;
 
-import jodd.exception.ExceptionUtil;
 import org.apache.jmeter.samplers.AbstractSampler;
 import org.apache.jmeter.samplers.Entry;
 import org.apache.jmeter.samplers.SampleResult;
@@ -8,6 +7,7 @@ import org.apache.jmeter.testelement.ThreadListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vn.zalopay.benchmark.core.ClientCaller;
+import vn.zalopay.benchmark.core.config.GrpcRequestConfig;
 import vn.zalopay.benchmark.core.specification.GrpcResponse;
 
 import java.nio.charset.StandardCharsets;
@@ -27,9 +27,12 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
     public static final String DEADLINE = "GRPCSampler.deadline";
     public static final String TLS = "GRPCSampler.tls";
     public static final String TLS_DISABLE_VERIFICATION = "GRPCSampler.tlsDisableVerification";
-    private transient ClientCaller clientCaller = null;
+    public static final String CHANNEL_SHUTDOWN_AWAIT_TIME = "GRPCSampler.channelAwaitTermination";
+    private transient ClientCaller clientCaller;
+    private GrpcRequestConfig grpcRequestConfig;
 
     public GRPCSampler() {
+        super();
         trace("init GRPCSampler");
     }
 
@@ -42,57 +45,62 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
 
     private void trace(String s) {
         String threadName = Thread.currentThread().getName();
-        log.debug("{} ({}) {} {} {}", threadName,
+        log.debug("{} ({}) {} {}", threadName,
                 getTitle(), s, this.toString());
     }
 
-    private void initGrpcClient() {
-        if (clientCaller == null) {
-            clientCaller = new ClientCaller(
+    private void initGrpcConfigRequest() {
+        if (grpcRequestConfig == null)
+            grpcRequestConfig = new GrpcRequestConfig(
                     getHostPort(),
                     getProtoFolder(),
                     getLibFolder(),
                     getFullMethod(),
                     isTls(),
-                    isTlsDisableVerification());
+                    isTlsDisableVerification(),
+                    getChannelShutdownAwaitTime()
+            );
+    }
+
+    private void initGrpcClient() {
+        if (clientCaller == null) {
+            clientCaller = new ClientCaller(grpcRequestConfig);
         }
     }
 
     @Override
     public SampleResult sample(Entry ignored) {
+        GrpcResponse grpcResponse = new GrpcResponse();
         SampleResult sampleResult = new SampleResult();
 
         // Console prints unknown exceptions - Intercepts unknown exceptions and sends them to the console to print instead of throwing the results into the GRPC response.
         try {
+            initGrpcConfigRequest();
             initGrpcClient();
             sampleResult.setSampleLabel(getName());
-            String grpcRequest = clientCaller.buildRequestAndMetadata(getRequestJson(),getMetadata());
+            String grpcRequest = clientCaller.buildRequestAndMetadata(getRequestJson(), getMetadata());
             sampleResult.setSamplerData(grpcRequest);
             sampleResult.setRequestHeaders(clientCaller.getMetadataString());
             sampleResult.sampleStart();
         } catch (Exception e) {
             log.error("An unknown error occurred before the GRPC request was initiated, and the stack trace is as follows: ", e);
-            sampleResult.setSuccessful(false);
-            sampleResult.setResponseCode("500");
-            sampleResult.setDataType(SampleResult.TEXT);
-            sampleResult.setResponseMessage("GRPCSampler Exception: An unknown exception occurred before the GRPC request was initiated. See the console print log for a detailed stack trace.");
+            startSamplerToStopIfCatchException(sampleResult);
+            generateErrorResultInInitGRPCRequest(sampleResult, e);
             return sampleResult;
         }
 
         // Initiate a GRPC request
-        GrpcResponse grpcResponse = clientCaller.call(getDeadline());
-        sampleResult.sampleEnd();
-        sampleResult.setDataType(SampleResult.TEXT);
-        if (grpcResponse.isSuccess()) {
+        try {
+            grpcResponse = clientCaller.call(getDeadline());
+            sampleResult.sampleEnd();
             sampleResult.setSuccessful(true);
             sampleResult.setResponseCodeOK();
             sampleResult.setResponseMessage("Success");
+            sampleResult.setDataType(SampleResult.TEXT);
             sampleResult.setResponseData(grpcResponse.getGrpcMessageString().getBytes(StandardCharsets.UTF_8));
-        } else {
-            sampleResult.setSuccessful(false);
-            sampleResult.setResponseCode("500");
-            sampleResult.setResponseMessage("Exception: " + grpcResponse.getThrowable().getMessage());
-            sampleResult.setResponseData(ExceptionUtil.exceptionStackTraceToString(grpcResponse.getThrowable()), "UTF-8");
+        } catch (RuntimeException e) {
+            startSamplerToStopIfCatchException(sampleResult);
+            generateErrorResult(grpcResponse, sampleResult, e);
         }
 
         return sampleResult;
@@ -105,15 +113,19 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
 
     @Override
     public void threadStarted() {
-        log.debug("{}\ttestStarted", whoAmI());
+        log.debug("\ttestStarted: {}", whoAmI());
     }
 
     @Override
     public void threadFinished() {
-        log.debug("{}\ttestEnded", whoAmI());
+        log.debug("\ttestEnded: {}", whoAmI());
         if (clientCaller != null) {
             clientCaller.shutdownNettyChannel();
             clientCaller = null;
+        }
+        // clear state of grpc config for rerun with new config in GUI mode
+        if (grpcRequestConfig != null) {
+            grpcRequestConfig = null;
         }
     }
 
@@ -123,6 +135,37 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
                 Integer.toHexString(hashCode()) +
                 "-" +
                 getName();
+    }
+
+    private void generateErrorResultInInitGRPCRequest(SampleResult sampleResult, Exception e) {
+        String msg = String.format("GRPCSampler Exception: An unknown exception occurred before the GRPC " +
+                "request was initiated. %s", e.getCause().getMessage());
+        sampleResult.setSampleLabel("Error When Initiated gRPC");
+        sampleResult.setSuccessful(false);
+        sampleResult.setResponseCode("500");
+        sampleResult.setDataType(SampleResult.TEXT);
+        sampleResult.setResponseData(msg.getBytes(StandardCharsets.UTF_8));
+        sampleResult.setResponseMessage(msg);
+    }
+
+    private void generateErrorResult(GrpcResponse grpcResponse, SampleResult sampleResult, Exception e) {
+        try {
+            sampleResult.setSuccessful(false);
+            sampleResult.setResponseCode("500");
+            sampleResult.setDataType(SampleResult.TEXT);
+            sampleResult.sampleEnd();
+            sampleResult.setResponseMessage("Exception: " + e.getCause().getMessage());
+            sampleResult.setResponseData(String.format("Exception: %s. %s", e.getCause().getMessage(), grpcResponse.getGrpcMessageString()), "UTF-8");
+        } catch (Exception ex) {
+            // Prints exceptions that occur before the request is initiated
+            e.printStackTrace();
+            log.error("GrpcMessage: {}", grpcResponse.getGrpcMessageString());
+        }
+    }
+
+    private void startSamplerToStopIfCatchException(SampleResult sampleResult) {
+        if (sampleResult.getStartTime() == 0L)
+            sampleResult.sampleStart();
     }
 
     /**
@@ -207,6 +250,15 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
     public void setPort(String port) {
         setProperty(PORT, port);
     }
+
+    public String getChannelShutdownAwaitTime() {
+        return getPropertyAsString(CHANNEL_SHUTDOWN_AWAIT_TIME, "1000");
+    }
+
+    public void setChannelShutdownAwaitTime(String awaitShutdownTime) {
+        setProperty(CHANNEL_SHUTDOWN_AWAIT_TIME, awaitShutdownTime);
+    }
+
 
     private String getHostPort() {
         return getHost() + ":" + getPort();

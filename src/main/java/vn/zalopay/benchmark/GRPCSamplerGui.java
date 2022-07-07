@@ -59,6 +59,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     private JLabeledTextField hostField;
     private JLabeledTextField portField;
     private JLabeledTextField deadlineField;
+    private JLabeledTextField channelFactoryShutdownTimeField;
 
     private JCheckBox isTLSCheckBox;
     private JCheckBox isTLSDisableVerificationCheckBox;
@@ -104,6 +105,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
         grpcSampler.setDeadline(this.deadlineField.getText());
         grpcSampler.setTls(this.isTLSCheckBox.isSelected());
         grpcSampler.setTlsDisableVerification(this.isTLSDisableVerificationCheckBox.isSelected());
+        grpcSampler.setChannelShutdownAwaitTime(this.channelFactoryShutdownTimeField.getText());
         grpcSampler.setRequestJson(this.requestJsonArea.getText());
     }
 
@@ -123,6 +125,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
         deadlineField.setText(grpcSampler.getDeadline());
         isTLSCheckBox.setSelected(grpcSampler.isTls());
         isTLSDisableVerificationCheckBox.setSelected(grpcSampler.isTlsDisableVerification());
+        channelFactoryShutdownTimeField.setText(grpcSampler.getChannelShutdownAwaitTime());
         requestJsonArea.setText(grpcSampler.getRequestJson());
     }
 
@@ -142,6 +145,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
         deadlineField.setText("1000");
         isTLSCheckBox.setSelected(false);
         isTLSDisableVerificationCheckBox.setSelected(false);
+        channelFactoryShutdownTimeField.setText("1000");
         requestJsonArea.setText("");
     }
 
@@ -216,19 +220,29 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     }
 
     private JPanel getOptionConfigPanel() {
-        JLabel metadataLabel = new JLabel("Metadata:");
-        metadataField = new JTextField("Metadata", 32); // $NON-NLS-1$
-        deadlineField = new JLabeledTextField("Deadline:", 7); // $NON-NLS-1$
-
-        JPanel webServerPanel = new HorizontalPanel();
-        webServerPanel.setBorder(BorderFactory.createCompoundBorder(
+        JPanel optionalPanel = new VerticalPanel();
+        optionalPanel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createEmptyBorder(9, 0, 0, 0),
                 BorderFactory.createTitledBorder("Optional Configuration")
         ));
-        webServerPanel.add(metadataLabel);
-        webServerPanel.add(metadataField);
-        webServerPanel.add(deadlineField);
-        return webServerPanel;
+
+        JLabel metadataLabel = new JLabel("Metadata:");
+        metadataField = new JTextField("Metadata", 32); // $NON-NLS-1$
+        deadlineField = new JLabeledTextField("Deadline In Millisecond:", 7); // $NON-NLS-1$
+        channelFactoryShutdownTimeField = new JLabeledTextField("Channel Await Termination In Millisecond:", 5);
+
+        JPanel metadataServerPanel = new HorizontalPanel();
+
+        metadataServerPanel.add(metadataLabel);
+        metadataServerPanel.add(metadataField);
+
+        JPanel timeOutOptionServerPanel = new HorizontalPanel();
+        timeOutOptionServerPanel.add(deadlineField);
+        timeOutOptionServerPanel.add(channelFactoryShutdownTimeField);
+
+        optionalPanel.add(metadataServerPanel);
+        optionalPanel.add(timeOutOptionServerPanel);
+        return optionalPanel;
     }
 
     private JPanel getGRPCRequestPanel() {
@@ -288,12 +302,14 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
             @Override
             public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
             }
+
             // fullMethod list checked listener
             @Override
             public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
                 // Request Mock Auto Create
                 requestMock();
             }
+
             @Override
             public void popupMenuCanceled(PopupMenuEvent e) {
             }
@@ -313,9 +329,9 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
                     try {
                         for (String protoMethod : protoMethods) {
                             boolean startsWith = protoMethod.startsWith(fullMethod);
-                            if (startsWith == true) {
+                            if (startsWith) {
                                 fullMethodField.setSelectedItem(protoMethod);
-                                if (protoMethod.equals(fullMethod) == false) {
+                                if (!protoMethod.equals(fullMethod)) {
                                     fullMethodField.showPopup();
                                 }
 
@@ -358,7 +374,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     }
 
     private String[] getProtoMethods(boolean reload) {
-        if (StringUtils.isNotBlank(grpcSampler.getProtoFolder()) && (ArrayUtils.isEmpty(protoMethods) || reload == true)) {
+        if (StringUtils.isNotBlank(grpcSampler.getProtoFolder()) && (ArrayUtils.isEmpty(protoMethods) || reload)) {
             JMeterVariableUtils.undoVariableReplacement(grpcSampler);
             ServiceResolver serviceResolver = ClientList.getServiceResolver(grpcSampler.getProtoFolder(), grpcSampler.getLibFolder(), reload);
             List<String> methodList = ClientList.listServices(serviceResolver);
