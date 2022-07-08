@@ -107,11 +107,12 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
             sampleResult.setSuccessful(false);
             sampleResult.setResponseCode(" 500");
             String responseMessage = " ";
-            String responseData = " ";
+            String responseData = "";
             if (throwable instanceof StatusRuntimeException) {
-                Status.Code code = ((StatusRuntimeException) throwable).getStatus().getCode();
+                Status status = ((StatusRuntimeException) throwable).getStatus();
+                Status.Code code = status.getCode();
                 responseMessage += code.value() + " " + code.name();
-                responseData += code.value() + " " + throwable.getMessage();
+                responseData = status.getDescription();
             } else {
                 responseMessage += ExceptionUtils.getPrintExceptionToStr(throwable, 0);
                 responseData = responseMessage;

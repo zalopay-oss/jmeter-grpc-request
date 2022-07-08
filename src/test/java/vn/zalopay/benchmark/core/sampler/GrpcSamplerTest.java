@@ -108,7 +108,7 @@ public class GrpcSamplerTest extends BaseTest {
         grpcSampler.threadFinished();
         grpcSampler.clear();
         Assert.assertEquals(sampleResult.getResponseCode(), " 500");
-        Assert.assertTrue(new String(sampleResult.getResponseData()).contains(" 4 DEADLINE_EXCEEDED:"));
+        Assert.assertTrue(sampleResult.getResponseMessage().contains("4 DEADLINE_EXCEEDED"));
     }
 
     @Test
