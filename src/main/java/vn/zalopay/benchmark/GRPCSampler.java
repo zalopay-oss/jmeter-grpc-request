@@ -113,7 +113,7 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
                 responseMessage += code.value() + " " + code.name();
                 responseData += code.value() + " " + throwable.getMessage();
             } else {
-                responseMessage = ExceptionUtils.getPrintExceptionToStr(throwable, 0);
+                responseMessage += ExceptionUtils.getPrintExceptionToStr(throwable, 0);
                 responseData = responseMessage;
             }
 

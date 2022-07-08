@@ -107,8 +107,8 @@ public class GrpcSamplerTest extends BaseTest {
         SampleResult sampleResult = grpcSampler.sample(null);
         grpcSampler.threadFinished();
         grpcSampler.clear();
-        Assert.assertEquals(sampleResult.getResponseCode(), "500");
-        Assert.assertTrue(new String(sampleResult.getResponseData()).contains("io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED:"));
+        Assert.assertEquals(sampleResult.getResponseCode(), " 500");
+        Assert.assertTrue(new String(sampleResult.getResponseData()).contains(" 4 DEADLINE_EXCEEDED:"));
     }
 
     @Test
@@ -137,7 +137,7 @@ public class GrpcSamplerTest extends BaseTest {
         SampleResult sampleResult = grpcSampler.sample(null);
         grpcSampler.threadFinished();
         grpcSampler.clear();
-        Assert.assertEquals(sampleResult.getResponseCode(), "500");
+        Assert.assertEquals(sampleResult.getResponseCode(), " 500");
         Assert.assertTrue(new String(sampleResult.getResponseMessage()).contains(" The stack trace is null"));
     }
 
