@@ -138,7 +138,7 @@ public class GrpcSamplerTest extends BaseTest {
         grpcSampler.threadFinished();
         grpcSampler.clear();
         Assert.assertEquals(sampleResult.getResponseCode(), "500");
-        Assert.assertTrue(new String(sampleResult.getResponseData()).contains("Exception: io.grpc.StatusRuntimeException"));
+        Assert.assertTrue(new String(sampleResult.getResponseMessage()).contains(" The stack trace is null"));
     }
 
     @Test
