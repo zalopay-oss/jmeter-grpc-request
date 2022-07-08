@@ -38,7 +38,6 @@ public class Writer<T extends Message> implements StreamObserver<T> {
     public void onError(Throwable throwable) {
         grpcResponse.setSuccess(false);
         grpcResponse.setThrowable(throwable);
-        LOGGER.error(throwable.getMessage());
     }
 
     @Override

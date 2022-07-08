@@ -1,6 +1,7 @@
 package vn.zalopay.benchmark;
 
-import jodd.exception.ExceptionUtil;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import org.apache.jmeter.samplers.AbstractSampler;
 import org.apache.jmeter.samplers.Entry;
 import org.apache.jmeter.samplers.SampleResult;
@@ -85,7 +86,7 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
             sampleResult.sampleStart();
         } catch (Exception e) {
             sampleResult.setSuccessful(false);
-            sampleResult.setResponseCode("400");
+            sampleResult.setResponseCode(" 400");
             sampleResult.setDataType(SampleResult.TEXT);
             sampleResult.setResponseMessage(" GRPCSampler parsing exception: An unknown exception occurred before the GRPC request was initiated, See response body for the stack trace.");
             sampleResult.setResponseData(ExceptionUtils.getPrintExceptionToStr(e, null), "UTF-8");
@@ -99,14 +100,25 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
         if (grpcResponse.isSuccess()) {
             sampleResult.setSuccessful(true);
             sampleResult.setResponseCodeOK();
-            sampleResult.setResponseMessage("Success");
+            sampleResult.setResponseMessage(" success");
             sampleResult.setResponseData(grpcResponse.getGrpcMessageString().getBytes(StandardCharsets.UTF_8));
         } else {
             Throwable throwable = grpcResponse.getThrowable();
             sampleResult.setSuccessful(false);
-            sampleResult.setResponseCode("500");
-            sampleResult.setResponseMessage(" " + ExceptionUtils.getPrintExceptionToStr(throwable, 0));
-            sampleResult.setResponseData(ExceptionUtils.getPrintExceptionToStr(throwable, null), "UTF-8");
+            sampleResult.setResponseCode(" 500");
+            String responseMessage = " ";
+            String responseData = " ";
+            if (throwable instanceof StatusRuntimeException) {
+                Status.Code code = ((StatusRuntimeException) throwable).getStatus().getCode();
+                responseMessage += code.value() + " " + code.name();
+                responseData += code.value() + " " + throwable.getMessage();
+            } else {
+                responseMessage = ExceptionUtils.getPrintExceptionToStr(throwable, 0);
+                responseData = responseMessage;
+            }
+
+            sampleResult.setResponseMessage(responseMessage);
+            sampleResult.setResponseData(responseData, "UTF-8");
         }
 
         return sampleResult;
