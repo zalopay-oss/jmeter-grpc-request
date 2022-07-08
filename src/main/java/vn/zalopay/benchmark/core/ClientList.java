@@ -3,7 +3,9 @@ package vn.zalopay.benchmark.core;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors.MethodDescriptor;
 import com.google.protobuf.Descriptors.ServiceDescriptor;
+
 import org.apache.commons.lang3.StringUtils;
+
 import vn.zalopay.benchmark.core.protobuf.ProtocInvoker;
 import vn.zalopay.benchmark.core.protobuf.ServiceResolver;
 
@@ -25,10 +27,11 @@ public class ClientList {
      *
      * @param protoFile proto file root path
      * @param libFolder lib file path
-     * @param reload    reload not cache
+     * @param reload reload not cache
      * @return proto file resolver
      */
-    public static ServiceResolver getServiceResolver(String protoFile, String libFolder, boolean reload) {
+    public static ServiceResolver getServiceResolver(
+            String protoFile, String libFolder, boolean reload) {
         try {
             String serviceResolverKey = protoFile + libFolder;
             if (reload == false) {
@@ -43,7 +46,8 @@ public class ClientList {
                 ProtocInvoker invoker = ProtocInvoker.forConfig(protoFile, libFolder);
                 fileDescriptorSet = invoker.invoke();
 
-                ServiceResolver serviceResolver = ServiceResolver.fromFileDescriptorSet(fileDescriptorSet);
+                ServiceResolver serviceResolver =
+                        ServiceResolver.fromFileDescriptorSet(fileDescriptorSet);
                 serviceResolverMap.put(serviceResolverKey, serviceResolver);
                 return serviceResolver;
             }
@@ -68,5 +72,4 @@ public class ClientList {
     public static List<String> listServices(String protoFile, String libFolder) {
         return listServices(getServiceResolver(protoFile, libFolder, true));
     }
-
 }

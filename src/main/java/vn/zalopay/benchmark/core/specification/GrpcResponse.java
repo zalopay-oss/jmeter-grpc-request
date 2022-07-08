@@ -15,9 +15,7 @@ public class GrpcResponse {
     }
 
     public String getGrpcMessageString() {
-        if (output.size() == 1)
-            return output.get(0).toString();
+        if (output.size() == 1) return output.get(0).toString();
         return output.toString();
     }
-
 }

@@ -1,6 +1,5 @@
 package vn.zalopay.benchmark.core.config;
 
-
 public class GrpcRequestConfig {
     private int maxInboundMessageSize = 4194304;
     private int maxInboundMetadataSize = 8192;
@@ -12,10 +11,16 @@ public class GrpcRequestConfig {
     private boolean tlsDisableVerification;
     private int awaitTerminationTimeout = 5000;
 
-    public GrpcRequestConfig() {
-    }
+    public GrpcRequestConfig() {}
 
-    public GrpcRequestConfig(String hostPort, String testProtoFile, String libFolder, String fullMethod, boolean tls, boolean tlsDisableVerification, String awaitTerminationTimeout) {
+    public GrpcRequestConfig(
+            String hostPort,
+            String testProtoFile,
+            String libFolder,
+            String fullMethod,
+            boolean tls,
+            boolean tlsDisableVerification,
+            String awaitTerminationTimeout) {
         this.hostPort = hostPort;
         this.testProtoFile = testProtoFile;
         this.libFolder = libFolder;
@@ -24,7 +29,6 @@ public class GrpcRequestConfig {
         this.tlsDisableVerification = tlsDisableVerification;
         this.awaitTerminationTimeout = convertAwaitTerminationTimeout(awaitTerminationTimeout);
     }
-
 
     public String getHostPort() {
         return hostPort;
@@ -66,23 +70,35 @@ public class GrpcRequestConfig {
         return maxInboundMessageSize;
     }
 
-
     public int getMaxInboundMetadataSize() {
         return maxInboundMetadataSize;
     }
 
     @Override
     public String toString() {
-        return "GrpcRequestConfig{" +
-                "maxInboundMessageSize=" + maxInboundMessageSize +
-                ", maxInboundMetadataSize=" + maxInboundMetadataSize +
-                ", hostPort='" + hostPort + '\'' +
-                ", testProtoFile='" + testProtoFile + '\'' +
-                ", libFolder='" + libFolder + '\'' +
-                ", fullMethod='" + fullMethod + '\'' +
-                ", tls=" + tls +
-                ", tlsDisableVerification=" + tlsDisableVerification +
-                ", awaitTerminationTimeout=" + awaitTerminationTimeout +
-                '}';
+        return "GrpcRequestConfig{"
+                + "maxInboundMessageSize="
+                + maxInboundMessageSize
+                + ", maxInboundMetadataSize="
+                + maxInboundMetadataSize
+                + ", hostPort='"
+                + hostPort
+                + '\''
+                + ", testProtoFile='"
+                + testProtoFile
+                + '\''
+                + ", libFolder='"
+                + libFolder
+                + '\''
+                + ", fullMethod='"
+                + fullMethod
+                + '\''
+                + ", tls="
+                + tls
+                + ", tlsDisableVerification="
+                + tlsDisableVerification
+                + ", awaitTerminationTimeout="
+                + awaitTerminationTimeout
+                + '}';
     }
 }

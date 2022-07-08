@@ -11,23 +11,22 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * A locator used to read proto file descriptors and extract method definitions.
- */
+/** A locator used to read proto file descriptors and extract method definitions. */
 public class ServiceResolver {
     private final ImmutableList<FileDescriptor> fileDescriptors;
 
-    /**
-     * Creates a resolver which searches the supplied {@link FileDescriptorSet}.
-     */
+    /** Creates a resolver which searches the supplied {@link FileDescriptorSet}. */
     public static ServiceResolver fromFileDescriptorSet(FileDescriptorSet descriptorSet) {
-        ImmutableMap<String, FileDescriptorProto> descriptorProtoIndex = computeDescriptorProtoIndex(descriptorSet);
+        ImmutableMap<String, FileDescriptorProto> descriptorProtoIndex =
+                computeDescriptorProtoIndex(descriptorSet);
         Map<String, FileDescriptor> descriptorCache = new HashMap<>();
 
         ImmutableList.Builder<FileDescriptor> result = ImmutableList.builder();
         for (FileDescriptorProto descriptorProto : descriptorSet.getFileList()) {
             try {
-                result.add(descriptorFromProto(descriptorProto, descriptorProtoIndex, descriptorCache));
+                result.add(
+                        descriptorFromProto(
+                                descriptorProto, descriptorProtoIndex, descriptorCache));
             } catch (DescriptorValidationException e) {
                 continue;
             }
@@ -37,15 +36,13 @@ public class ServiceResolver {
 
     public Iterable<ServiceDescriptor> listServices() {
         ArrayList<ServiceDescriptor> serviceDescriptors = new ArrayList<ServiceDescriptor>();
-        for (FileDescriptor fileDescriptor: fileDescriptors) {
+        for (FileDescriptor fileDescriptor : fileDescriptors) {
             serviceDescriptors.addAll(fileDescriptor.getServices());
         }
         return serviceDescriptors;
     }
 
-    /**
-     * Lists all the known message types.
-     */
+    /** Lists all the known message types. */
     public ImmutableSet<Descriptor> listMessageTypes() {
         ImmutableSet.Builder<Descriptor> resultBuilder = ImmutableSet.builder();
         fileDescriptors.forEach(d -> resultBuilder.addAll(d.getMessageTypes()));
@@ -62,9 +59,7 @@ public class ServiceResolver {
      */
     public MethodDescriptor resolveServiceMethod(ProtoMethodName method) {
         return resolveServiceMethod(
-                method.getServiceName(),
-                method.getMethodName(),
-                method.getPackageName());
+                method.getServiceName(), method.getMethodName(), method.getPackageName());
     }
 
     private MethodDescriptor resolveServiceMethod(
@@ -94,9 +89,7 @@ public class ServiceResolver {
         throw new IllegalArgumentException("Unable to find service with name: " + serviceName);
     }
 
-    /**
-     * Returns a map from descriptor proto name as found inside the descriptors to protos.
-     */
+    /** Returns a map from descriptor proto name as found inside the descriptors to protos. */
     private static ImmutableMap<String, FileDescriptorProto> computeDescriptorProtoIndex(
             FileDescriptorSet fileDescriptorSet) {
         ImmutableMap.Builder<String, FileDescriptorProto> resultBuilder = ImmutableMap.builder();
@@ -107,14 +100,15 @@ public class ServiceResolver {
     }
 
     /**
-     * Recursively constructs file descriptors for all dependencies of the supplied proto and returns
-     * a {@link FileDescriptor} for the supplied proto itself. For maximal efficiency, reuse the
-     * descriptorCache argument across calls.
+     * Recursively constructs file descriptors for all dependencies of the supplied proto and
+     * returns a {@link FileDescriptor} for the supplied proto itself. For maximal efficiency, reuse
+     * the descriptorCache argument across calls.
      */
     private static FileDescriptor descriptorFromProto(
             FileDescriptorProto descriptorProto,
             ImmutableMap<String, FileDescriptorProto> descriptorProtoIndex,
-            Map<String, FileDescriptor> descriptorCache) throws DescriptorValidationException {
+            Map<String, FileDescriptor> descriptorCache)
+            throws DescriptorValidationException {
         // First, check the cache.
         String descriptorName = descriptorProto.getName();
         if (descriptorCache.containsKey(descriptorName)) {
@@ -128,7 +122,8 @@ public class ServiceResolver {
                 throw new IllegalArgumentException("Could not find dependency: " + dependencyName);
             }
             FileDescriptorProto dependencyProto = descriptorProtoIndex.get(dependencyName);
-            dependencies.add(descriptorFromProto(dependencyProto, descriptorProtoIndex, descriptorCache));
+            dependencies.add(
+                    descriptorFromProto(dependencyProto, descriptorProtoIndex, descriptorCache));
         }
 
         // Finally, construct the actual descriptor.

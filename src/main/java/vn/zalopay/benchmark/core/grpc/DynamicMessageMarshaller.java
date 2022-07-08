@@ -3,14 +3,13 @@ package vn.zalopay.benchmark.core.grpc;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.ExtensionRegistryLite;
+
 import io.grpc.MethodDescriptor.Marshaller;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-/**
- * A {@link Marshaller} for dynamic messages.
- */
+/** A {@link Marshaller} for dynamic messages. */
 public class DynamicMessageMarshaller implements Marshaller<DynamicMessage> {
     private final Descriptor messageDescriptor;
 

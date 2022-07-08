@@ -1,6 +1,7 @@
 package vn.zalopay.benchmark.core.grpc;
 
 import com.google.common.net.HostAndPort;
+
 import io.grpc.*;
 import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NegotiationType;
@@ -10,14 +11,14 @@ import io.netty.handler.ssl.ApplicationProtocolNames;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 
-import javax.net.ssl.SSLException;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Knows how to construct grpc channels.
- */
+import java.util.Map;
+
+import javax.net.ssl.SSLException;
+
+/** Knows how to construct grpc channels. */
 public class ChannelFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(ChannelFactory.class);
 
@@ -25,18 +26,23 @@ public class ChannelFactory {
         return new ChannelFactory();
     }
 
-    private ChannelFactory() {
-    }
+    private ChannelFactory() {}
 
-    public ManagedChannel createChannel(HostAndPort endpoint, boolean tls, boolean disableTtlVerification,
+    public ManagedChannel createChannel(
+            HostAndPort endpoint,
+            boolean tls,
+            boolean disableTtlVerification,
             Map<String, String> metadataHash) {
-        ManagedChannelBuilder managedChannelBuilder = createChannelBuilder(endpoint, tls, disableTtlVerification,
-                metadataHash);
+        ManagedChannelBuilder managedChannelBuilder =
+                createChannelBuilder(endpoint, tls, disableTtlVerification, metadataHash);
         return managedChannelBuilder.build();
     }
 
-    private ManagedChannelBuilder createChannelBuilder(HostAndPort endpoint, boolean tls,
-            boolean disableTtlVerification, Map<String, String> metadataHash) {
+    private ManagedChannelBuilder createChannelBuilder(
+            HostAndPort endpoint,
+            boolean tls,
+            boolean disableTtlVerification,
+            Map<String, String> metadataHash) {
         if (!tls) {
             return NettyChannelBuilder.forAddress(endpoint.getHost(), endpoint.getPort())
                     .negotiationType(NegotiationType.PLAINTEXT)
@@ -45,13 +51,14 @@ public class ChannelFactory {
         return createSSLMessageChannel(endpoint, disableTtlVerification, metadataHash);
     }
 
-    private ManagedChannelBuilder createSSLMessageChannel(HostAndPort endpoint, boolean disableTtlVerification,
+    private ManagedChannelBuilder createSSLMessageChannel(
+            HostAndPort endpoint,
+            boolean disableTtlVerification,
             Map<String, String> metadataHash) {
         return NettyChannelBuilder.forAddress(endpoint.getHost(), endpoint.getPort())
                 .negotiationType(NegotiationType.TLS)
                 .sslContext(createSslContext(disableTtlVerification))
                 .intercept(metadataInterceptor(metadataHash));
-
     }
 
     private SslContext createSslContext(boolean disableTtlVerification) {
@@ -67,23 +74,28 @@ public class ChannelFactory {
         }
     }
 
-    private SslContext createSSlContext(io.netty.handler.ssl.SslContextBuilder grpcSslContexts) throws SSLException {
+    private SslContext createSSlContext(io.netty.handler.ssl.SslContextBuilder grpcSslContexts)
+            throws SSLException {
         try {
             LOGGER.debug("Create SslContext with NPN_AND_ALPN");
             return grpcSslContexts
                     .applicationProtocolConfig(
-                            new ApplicationProtocolConfig(ApplicationProtocolConfig.Protocol.NPN_AND_ALPN,
+                            new ApplicationProtocolConfig(
+                                    ApplicationProtocolConfig.Protocol.NPN_AND_ALPN,
                                     ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE,
-                                    ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
+                                    ApplicationProtocolConfig.SelectedListenerFailureBehavior
+                                            .ACCEPT,
                                     ApplicationProtocolNames.HTTP_2))
                     .build();
         } catch (UnsupportedOperationException e) {
             LOGGER.warn("Error in create SslContext with NPN_AND_ALPN {}", e.getMessage());
             return grpcSslContexts
                     .applicationProtocolConfig(
-                            new ApplicationProtocolConfig(ApplicationProtocolConfig.Protocol.ALPN,
+                            new ApplicationProtocolConfig(
+                                    ApplicationProtocolConfig.Protocol.ALPN,
                                     ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE,
-                                    ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
+                                    ApplicationProtocolConfig.SelectedListenerFailureBehavior
+                                            .ACCEPT,
                                     ApplicationProtocolNames.HTTP_2))
                     .build();
         }
@@ -93,14 +105,18 @@ public class ChannelFactory {
         return new ClientInterceptor() {
             @Override
             public <ReqT, RespT> ClientCall<ReqT, RespT> interceptCall(
-                    final io.grpc.MethodDescriptor<ReqT, RespT> method, CallOptions callOptions, final Channel next) {
+                    final io.grpc.MethodDescriptor<ReqT, RespT> method,
+                    CallOptions callOptions,
+                    final Channel next) {
                 return new ClientInterceptors.CheckedForwardingClientCall<ReqT, RespT>(
                         next.newCall(method, callOptions)) {
                     @Override
-                    protected void checkedStart(Listener<RespT> responseListener, Metadata headers) {
+                    protected void checkedStart(
+                            Listener<RespT> responseListener, Metadata headers) {
                         for (Map.Entry<String, String> entry : metadataHash.entrySet()) {
-                            Metadata.Key<String> key = Metadata.Key.of(entry.getKey(),
-                                    Metadata.ASCII_STRING_MARSHALLER);
+                            Metadata.Key<String> key =
+                                    Metadata.Key.of(
+                                            entry.getKey(), Metadata.ASCII_STRING_MARSHALLER);
                             headers.put(key, entry.getValue());
                         }
                         delegate().start(responseListener, headers);
@@ -109,5 +125,4 @@ public class ChannelFactory {
             }
         };
     }
-
 }

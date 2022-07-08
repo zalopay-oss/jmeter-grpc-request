@@ -3,14 +3,15 @@ package vn.zalopay.benchmark.core.sampler;
 import org.apache.jmeter.sampler.DebugSampler;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+
 import vn.zalopay.benchmark.GRPCSampler;
 import vn.zalopay.benchmark.GRPCSamplerGui;
 import vn.zalopay.benchmark.core.BaseTest;
 
-import javax.swing.*;
 import java.awt.*;
 import java.lang.reflect.Field;
 
+import javax.swing.*;
 
 public class GRPCSamplerGuiTest extends BaseTest {
     @Test
@@ -65,7 +66,6 @@ public class GRPCSamplerGuiTest extends BaseTest {
         Assert.assertNotNull(grpRequestPluginGUI);
         frame.dispose();
     }
-
 
     @Test
     public void testCanClearGrpcTestElementUI() throws InterruptedException {
@@ -123,16 +123,16 @@ public class GRPCSamplerGuiTest extends BaseTest {
     }
 
     @Test
-    public void verifyCanPerformGetMethodName() throws NoSuchFieldException, IllegalAccessException, InterruptedException {
+    public void verifyCanPerformGetMethodName()
+            throws NoSuchFieldException, IllegalAccessException, InterruptedException {
         GRPCSamplerGui grpRequestPluginGUI = new GRPCSamplerGui();
-        Field fullMethodButtonField = GRPCSamplerGui.class.
-                getDeclaredField("fullMethodButton");
-        Field fullMethodField = GRPCSamplerGui.class.
-                getDeclaredField("fullMethodField");
+        Field fullMethodButtonField = GRPCSamplerGui.class.getDeclaredField("fullMethodButton");
+        Field fullMethodField = GRPCSamplerGui.class.getDeclaredField("fullMethodField");
         fullMethodField.setAccessible(true);
         fullMethodButtonField.setAccessible(true);
         JButton fullMethodButton = (JButton) fullMethodButtonField.get(grpRequestPluginGUI);
-        JComboBox<String> fullMethodComboBox = (JComboBox<String>) fullMethodField.get(grpRequestPluginGUI);
+        JComboBox<String> fullMethodComboBox =
+                (JComboBox<String>) fullMethodField.get(grpRequestPluginGUI);
         JFrame frame = new JFrame("Test");
         frame.setPreferredSize(new Dimension(1024, 768));
         frame.getContentPane().add(grpRequestPluginGUI, BorderLayout.CENTER);
@@ -152,23 +152,24 @@ public class GRPCSamplerGuiTest extends BaseTest {
         grpcSampler.setRequestJson("dummyRequest");
         grpRequestPluginGUI.configure(grpcSampler);
         fullMethodButton.doClick();
-        Assert.assertEquals(fullMethodComboBox.getSelectedItem(), "bookstore.Bookstore/CreateShelf");
+        Assert.assertEquals(
+                fullMethodComboBox.getSelectedItem(), "bookstore.Bookstore/CreateShelf");
         Assert.assertNotNull(grpcSampler);
         Assert.assertNotNull(grpRequestPluginGUI);
         frame.dispose();
     }
 
     @Test
-    public void verifyCantPerformGetMethodName() throws NoSuchFieldException, IllegalAccessException, InterruptedException {
+    public void verifyCantPerformGetMethodName()
+            throws NoSuchFieldException, IllegalAccessException, InterruptedException {
         GRPCSamplerGui grpRequestPluginGUI = new GRPCSamplerGui();
-        Field fullMethodButtonField = GRPCSamplerGui.class.
-                getDeclaredField("fullMethodButton");
-        Field fullMethodField = GRPCSamplerGui.class.
-                getDeclaredField("fullMethodField");
+        Field fullMethodButtonField = GRPCSamplerGui.class.getDeclaredField("fullMethodButton");
+        Field fullMethodField = GRPCSamplerGui.class.getDeclaredField("fullMethodField");
         fullMethodField.setAccessible(true);
         fullMethodButtonField.setAccessible(true);
         JButton fullMethodButton = (JButton) fullMethodButtonField.get(grpRequestPluginGUI);
-        JComboBox<String> fullMethodComboBox = (JComboBox<String>) fullMethodField.get(grpRequestPluginGUI);
+        JComboBox<String> fullMethodComboBox =
+                (JComboBox<String>) fullMethodField.get(grpRequestPluginGUI);
         JFrame frame = new JFrame("Test");
         frame.setPreferredSize(new Dimension(1024, 768));
         frame.getContentPane().add(grpRequestPluginGUI, BorderLayout.CENTER);

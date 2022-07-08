@@ -5,7 +5,6 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import vn.zalopay.benchmark.core.protobuf.ProtoMethodName;
 
 public class ProtoMethodNameTest {
 
@@ -20,8 +19,11 @@ public class ProtoMethodNameTest {
 
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testCantParseFullGrpcMethodNameWithErrorInExtractFullServiceName() {
-        MockedStatic<io.grpc.MethodDescriptor> methodDescriptor = Mockito.mockStatic(io.grpc.MethodDescriptor.class);
-        methodDescriptor.when(() -> io.grpc.MethodDescriptor.extractFullServiceName(Mockito.anyString())).thenReturn("abc..\\/");
+        MockedStatic<io.grpc.MethodDescriptor> methodDescriptor =
+                Mockito.mockStatic(io.grpc.MethodDescriptor.class);
+        methodDescriptor
+                .when(() -> io.grpc.MethodDescriptor.extractFullServiceName(Mockito.anyString()))
+                .thenReturn("abc..\\/");
         ProtoMethodName.parseFullGrpcMethodName("dummyyyyyyyyy");
     }
 }
