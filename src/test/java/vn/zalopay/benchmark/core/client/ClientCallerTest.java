@@ -362,7 +362,7 @@ public class ClientCallerTest extends BaseTest {
 
     @Test(
             expectedExceptions = RuntimeException.class,
-            expectedExceptionsMessageRegExp = "Caught exception while waiting for rpc")
+            expectedExceptionsMessageRegExp = "Caught exception while " + "waiting for rpc.*")
     public void testThrowExceptionWithTimeoutRequest() {
         clientCaller = new ClientCaller(DEFAULT_GRPC_REQUEST_CONFIG);
         clientCaller.buildRequestAndMetadata(REQUEST_JSON, METADATA);
@@ -374,7 +374,7 @@ public class ClientCallerTest extends BaseTest {
 
     @Test(
             expectedExceptions = RuntimeException.class,
-            expectedExceptionsMessageRegExp = "Caught exception while waiting for rpc")
+            expectedExceptionsMessageRegExp = "Caught exception while " + "waiting for rpc.*")
     public void testThrowExceptionWithTimeoutRequestServerStream() {
         GrpcRequestConfig grpcRequestConfig =
                 new GrpcRequestConfig(
@@ -395,7 +395,7 @@ public class ClientCallerTest extends BaseTest {
 
     @Test(
             expectedExceptions = RuntimeException.class,
-            expectedExceptionsMessageRegExp = "Caught exception while waiting for rpc")
+            expectedExceptionsMessageRegExp = "Caught exception while " + "waiting for rpc.*")
     public void testThrowExceptionWithTimeoutRequestClientStream() {
         GrpcRequestConfig grpcRequestConfig =
                 new GrpcRequestConfig(
@@ -416,7 +416,7 @@ public class ClientCallerTest extends BaseTest {
 
     @Test(
             expectedExceptions = RuntimeException.class,
-            expectedExceptionsMessageRegExp = "Caught exception while waiting for rpc")
+            expectedExceptionsMessageRegExp = "Caught exception while " + "waiting for rpc.*")
     public void testThrowExceptionWithTimeoutRequestBidiStream() {
         GrpcRequestConfig grpcRequestConfig =
                 new GrpcRequestConfig(

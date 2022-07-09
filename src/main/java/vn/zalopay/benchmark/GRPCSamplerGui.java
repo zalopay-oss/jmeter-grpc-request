@@ -9,7 +9,6 @@ import kg.apc.jmeter.JMeterPluginsUtils;
 import kg.apc.jmeter.gui.BrowseAction;
 import kg.apc.jmeter.gui.GuiBuilderHelper;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.gui.util.HorizontalPanel;
 import org.apache.jmeter.gui.util.JSyntaxTextArea;
@@ -28,8 +27,6 @@ import vn.zalopay.benchmark.core.protobuf.ServiceResolver;
 import vn.zalopay.benchmark.util.JMeterVariableUtils;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -64,6 +61,8 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
     private JLabeledTextField portField;
     private JLabeledTextField deadlineField;
     private JLabeledTextField channelFactoryShutdownTimeField;
+    private JLabeledTextField maxInboundMessageSize;
+    private JLabeledTextField maxInboundMetadataSize;
 
     private JCheckBox isTLSCheckBox;
     private JCheckBox isTLSDisableVerificationCheckBox;
@@ -110,6 +109,8 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
         grpcSampler.setTls(this.isTLSCheckBox.isSelected());
         grpcSampler.setTlsDisableVerification(this.isTLSDisableVerificationCheckBox.isSelected());
         grpcSampler.setChannelShutdownAwaitTime(this.channelFactoryShutdownTimeField.getText());
+        grpcSampler.setChannelMaxInboundMessageSize(this.maxInboundMessageSize.getText());
+        grpcSampler.setChannelMaxInboundMetadataSize(this.maxInboundMetadataSize.getText());
         grpcSampler.setRequestJson(this.requestJsonArea.getText());
     }
 
@@ -129,7 +130,12 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
         deadlineField.setText(grpcSampler.getDeadline());
         isTLSCheckBox.setSelected(grpcSampler.isTls());
         isTLSDisableVerificationCheckBox.setSelected(grpcSampler.isTlsDisableVerification());
-        channelFactoryShutdownTimeField.setText(grpcSampler.getChannelShutdownAwaitTime());
+        channelFactoryShutdownTimeField.setText(
+                Integer.toString(grpcSampler.getChannelShutdownAwaitTime()));
+        maxInboundMessageSize.setText(
+                Integer.toString(grpcSampler.getChannelMaxInboundMessageSize()));
+        maxInboundMetadataSize.setText(
+                Integer.toString(grpcSampler.getChannelMaxInboundMetadataSize()));
         requestJsonArea.setText(grpcSampler.getRequestJson());
     }
 
@@ -150,6 +156,8 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
         isTLSCheckBox.setSelected(false);
         isTLSDisableVerificationCheckBox.setSelected(false);
         channelFactoryShutdownTimeField.setText("1000");
+        maxInboundMessageSize.setText("4194304");
+        maxInboundMetadataSize.setText("8192");
         requestJsonArea.setText("");
     }
 
@@ -233,7 +241,10 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
         deadlineField = new JLabeledTextField("Deadline In Millisecond:", 7); // $NON-NLS-1$
         channelFactoryShutdownTimeField =
                 new JLabeledTextField("Channel Await Termination In Millisecond:", 5);
-
+        maxInboundMessageSize =
+                new JLabeledTextField("Maximum message size allowed for a single gRPC frame");
+        maxInboundMetadataSize =
+                new JLabeledTextField("Maximum size of metadata allowed to be received:");
         JPanel metadataServerPanel = new HorizontalPanel();
 
         metadataServerPanel.add(metadataLabel);
@@ -245,6 +256,8 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
 
         optionalPanel.add(metadataServerPanel);
         optionalPanel.add(timeOutOptionServerPanel);
+        optionalPanel.add(maxInboundMessageSize);
+        optionalPanel.add(maxInboundMetadataSize);
         return optionalPanel;
     }
 
@@ -313,63 +326,8 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
                 row,
                 fullMethodButton = new JButton("Listing..."));
 
-        fullMethodButton.addActionListener(
-                new ActionListener() {
-                    // fullMethodButton click listener
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        reloadProtoMethods();
-                    }
-                });
-        fullMethodField.addPopupMenuListener(
-                new PopupMenuListener() {
-                    @Override
-                    public void popupMenuWillBecomeVisible(PopupMenuEvent e) {}
-
-                    // fullMethod list checked listener
-                    @Override
-                    public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
-                        // Request Mock Auto Create
-                        requestMock();
-                    }
-
-                    @Override
-                    public void popupMenuCanceled(PopupMenuEvent e) {}
-                });
-        fullMethodField.addActionListener(
-                new ActionListener() {
-                    // fullMethod edit enter listener
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        if ("comboBoxEdited".equals(e.getActionCommand())) {
-                            // fullMethodField Drop - down box edit auto-complement
-                            String fullMethod = fullMethodField.getSelectedItem().toString();
-                            if (StringUtils.isBlank(fullMethod)) {
-                                return;
-                            }
-
-                            String[] protoMethods = getProtoMethods(false);
-                            try {
-                                for (String protoMethod : protoMethods) {
-                                    boolean startsWith = protoMethod.startsWith(fullMethod);
-                                    if (startsWith) {
-                                        fullMethodField.setSelectedItem(protoMethod);
-                                        if (!protoMethod.equals(fullMethod)) {
-                                            fullMethodField.showPopup();
-                                        }
-
-                                        break;
-                                    }
-                                }
-                            } catch (Exception ex) {
-                                ex.printStackTrace();
-                            }
-
-                            // Request Mock Auto Create
-                            requestMock();
-                        }
-                    }
-                });
+        // fullMethodButton click listener
+        registerListGRPCMethodListener();
 
         // Container
         JPanel container = new JPanel(new BorderLayout());
@@ -381,24 +339,15 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
         return container;
     }
 
-    private void reloadProtoMethods() {
-        Object selectedItem = fullMethodField.getSelectedItem();
-        getProtoMethods(true);
-        try {
-            if (selectedItem != null && StringUtils.isBlank(selectedItem.toString())) {
-                selectedItem = fullMethodField.getSelectedItem();
-            }
-            fullMethodField.setSelectedItem(selectedItem);
-        } catch (Exception e) {
-            fullMethodField.setSelectedIndex(0);
-        } finally {
-            fullMethodField.showPopup();
-        }
+    private void reloadProtoMethods(boolean reload) {
+        getProtoMethods(reload);
+        String item = getFullMethodName();
+        fullMethodField.setSelectedItem(item);
+        fullMethodField.showPopup();
     }
 
     private String[] getProtoMethods(boolean reload) {
-        if (StringUtils.isNotBlank(grpcSampler.getProtoFolder())
-                && (ArrayUtils.isEmpty(protoMethods) || reload)) {
+        try {
             JMeterVariableUtils.undoVariableReplacement(grpcSampler);
             ServiceResolver serviceResolver =
                     ClientList.getServiceResolver(
@@ -409,17 +358,19 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
             Arrays.sort(protoMethods);
             fullMethodField.setModel(new DefaultComboBoxModel<>(protoMethods));
             log.info("Full Methods Length: {}", protoMethods.length);
+            return protoMethods;
+        } catch (Exception e) {
+            log.error("Proto folder path is empty. Please select your proto folder", e);
+            throw e;
         }
-
-        return protoMethods;
     }
 
-    private void requestMock() {
+    private void generateGRPCRequestMockData() {
         try {
             if (StringUtils.isNotBlank(requestJsonArea.getText())) {
                 return;
             }
-            String fullMethod = fullMethodField.getSelectedItem().toString();
+            String fullMethod = getFullMethodName();
             ProtoMethodName grpcMethodName = ProtoMethodName.parseFullGrpcMethodName(fullMethod);
             JMeterVariableUtils.undoVariableReplacement(grpcSampler);
             ServiceResolver serviceResolver =
@@ -437,7 +388,7 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
                     requestBody.put(name, defaultValue);
                 }
 
-                String text = null;
+                String text = "";
                 if (inputType.getFullName().startsWith(GOOGLE_PROTOBUF_PACKAGE_PREFIX)) {
                     text = requestBody.getString(GOOGLE_PROTOBUF_DEFAULT_KEY);
                 } else {
@@ -527,5 +478,83 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
         }
 
         return "Hello";
+    }
+
+    private String getFullMethodName() {
+        Object methodName = fullMethodField.getSelectedItem();
+        if (methodName == null) return "";
+        return methodName.toString();
+    }
+
+    private void registerListGRPCMethodListener() {
+        registerListGRPCMethods();
+        registerGenerateGRPCRequestMockData();
+        registerAutoCompleteListGRPCMethods();
+    }
+
+    private void registerListGRPCMethods() {
+        // fullMethodButton click listener
+        fullMethodButton.addActionListener(
+                e -> {
+                    if (grpcSampler.getProtoFolder().equals(protoFolderField.getText())
+                            && grpcSampler.getLibFolder().equals(libFolderField.getText())) {
+                        reloadProtoMethods(false);
+                    } else {
+                        grpcSampler.setProtoFolder(protoFolderField.getText());
+                        grpcSampler.setLibFolder(libFolderField.getText());
+                        reloadProtoMethods(true);
+                    }
+                });
+    }
+
+    private void registerGenerateGRPCRequestMockData() {
+        fullMethodField.addPopupMenuListener(
+                new PopupMenuListener() {
+                    @Override
+                    public void popupMenuWillBecomeVisible(PopupMenuEvent e) {}
+
+                    // fullMethod list checked listener
+                    @Override
+                    public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+                        // Request Mock Auto Create
+                        generateGRPCRequestMockData();
+                    }
+
+                    @Override
+                    public void popupMenuCanceled(PopupMenuEvent e) {}
+                });
+    }
+
+    private void registerAutoCompleteListGRPCMethods() {
+        // fullMethod edit enter listener
+        fullMethodField.addActionListener(
+                e -> {
+                    if ("comboBoxEdited".equals(e.getActionCommand())) {
+                        // fullMethodField Drop - down box edit auto-complement
+                        String fullMethod = getFullMethodName();
+                        if (StringUtils.isBlank(fullMethod)) {
+                            return;
+                        }
+
+                        String[] protoMethods = getProtoMethods(true);
+                        try {
+                            for (String protoMethod : protoMethods) {
+                                boolean startsWith = protoMethod.startsWith(fullMethod);
+                                if (startsWith) {
+                                    fullMethodField.setSelectedItem(protoMethod);
+                                    if (!protoMethod.equals(fullMethod)) {
+                                        fullMethodField.showPopup();
+                                    }
+
+                                    break;
+                                }
+                            }
+                        } catch (Exception ex) {
+                            log.error("Error in reload service name {}", e);
+                        }
+                        // Request Mock Auto Create
+                        generateGRPCRequestMockData();
+                    }
+                });
     }
 }

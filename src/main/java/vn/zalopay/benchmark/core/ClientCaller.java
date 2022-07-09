@@ -44,12 +44,14 @@ public class ClientCaller {
     private boolean tls;
     private boolean disableTtlVerification;
     private int awaitTerminationTimeout;
+    private GrpcRequestConfig requestConfig;
     ChannelFactory channelFactory;
 
     public ClientCaller(GrpcRequestConfig requestConfig) {
+        this.requestConfig = requestConfig;
         this.init(
                 requestConfig.getHostPort(),
-                requestConfig.getTestProtoFile(),
+                requestConfig.getProtoFolder(),
                 requestConfig.getLibFolder(),
                 requestConfig.getFullMethod(),
                 requestConfig.isTls(),
@@ -147,7 +149,13 @@ public class ClientCaller {
 
     public void createDynamicClient() {
         channel =
-                channelFactory.createChannel(hostAndPort, tls, disableTtlVerification, metadataMap);
+                channelFactory.createChannel(
+                        hostAndPort,
+                        tls,
+                        disableTtlVerification,
+                        metadataMap,
+                        requestConfig.getMaxInboundMessageSize(),
+                        requestConfig.getMaxInboundMetadataSize());
         dynamicClient = DynamicGrpcClient.create(methodDescriptor, channel);
     }
 
@@ -187,9 +195,13 @@ public class ClientCaller {
             dynamicClient
                     .blockingUnaryCall(requestMessages, streamObserver, callOptions(deadline))
                     .get();
-        } catch (Throwable t) {
+        } catch (Exception e) {
             shutdownNettyChannel();
-            throw new RuntimeException("Caught exception while waiting for rpc", t);
+            throw new RuntimeException(
+                    String.format(
+                            "Caught exception while waiting for rpc %s",
+                            getDetailedErrorSendGRPC(e)),
+                    e);
         }
         return output;
     }
@@ -203,9 +215,13 @@ public class ClientCaller {
             dynamicClient
                     .callServerStreaming(requestMessages, streamObserver, callOptions(deadline))
                     .get();
-        } catch (Throwable t) {
+        } catch (Exception e) {
             shutdownNettyChannel();
-            throw new RuntimeException("Caught exception while waiting for rpc", t);
+            throw new RuntimeException(
+                    String.format(
+                            "Caught exception while waiting for rpc %s",
+                            getDetailedErrorSendGRPC(e)),
+                    e);
         }
         return output;
     }
@@ -219,9 +235,13 @@ public class ClientCaller {
             dynamicClient
                     .callClientStreaming(requestMessages, streamObserver, callOptions(deadline))
                     .get();
-        } catch (Throwable t) {
+        } catch (Exception e) {
             shutdownNettyChannel();
-            throw new RuntimeException("Caught exception while waiting for rpc", t);
+            throw new RuntimeException(
+                    String.format(
+                            "Caught exception while waiting for rpc %s",
+                            getDetailedErrorSendGRPC(e)),
+                    e);
         }
         return output;
     }
@@ -235,9 +255,13 @@ public class ClientCaller {
             dynamicClient
                     .callBidiStreaming(requestMessages, streamObserver, callOptions(deadline))
                     .get();
-        } catch (Throwable t) {
+        } catch (Exception e) {
             shutdownNettyChannel();
-            throw new RuntimeException("Caught exception while waiting for rpc", t);
+            throw new RuntimeException(
+                    String.format(
+                            "Caught exception while waiting for rpc %s",
+                            getDetailedErrorSendGRPC(e)),
+                    e);
         }
         return output;
     }
@@ -273,5 +297,17 @@ public class ClientCaller {
         return metadataMap.entrySet().stream()
                 .map(e -> e.getKey() + ": " + e.getValue())
                 .collect(Collectors.joining("\n"));
+    }
+
+    private String getDetailedErrorSendGRPC(Exception e) {
+        StringBuilder sb = new StringBuilder();
+        Throwable t = e.getCause();
+        while (t != null) {
+            sb.append("\n");
+            sb.append(t.toString() + ".");
+            sb.append("\n");
+            t = t.getCause();
+        }
+        return sb.toString();
     }
 }

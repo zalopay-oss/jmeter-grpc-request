@@ -19,7 +19,7 @@ public class BaseTest {
     private static final String GRPC_DUMMY_SERVER_JAR = "gprc-server-1.0-SNAPSHOT.jar";
     private static final Path GRPC_DUMMY_SERVER_FOLDER =
             Paths.get(System.getProperty("user.dir"), "/dist/benchmark/grpc-server/dist");
-    protected static String DEFAULT_CHANNEL_SHUTDOWN_TIME = "5000";
+    protected static int DEFAULT_CHANNEL_SHUTDOWN_TIME = 5000;
     protected static final Path TEMP_JMETER_HOME =
             Paths.get(System.getProperty("user.dir"), "src", "test", "resources");
     protected static final Path JMETER_PROPERTIES_FILE =

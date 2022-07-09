@@ -29,6 +29,10 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
     public static final String TLS = "GRPCSampler.tls";
     public static final String TLS_DISABLE_VERIFICATION = "GRPCSampler.tlsDisableVerification";
     public static final String CHANNEL_SHUTDOWN_AWAIT_TIME = "GRPCSampler.channelAwaitTermination";
+    public static final String CHANNEL_MAX_INBOUND_MESSAGE_SIZE =
+            "GRPCSampler" + ".maxInboundMessageSize";
+    public static final String CHANNEL_MAX_INBOUND_METADATA_SIZE =
+            "GRPCSampler.maxInboundMetadataSize";
     private transient ClientCaller clientCaller;
     private GrpcRequestConfig grpcRequestConfig;
 
@@ -52,14 +56,17 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
     private void initGrpcConfigRequest() {
         if (grpcRequestConfig == null)
             grpcRequestConfig =
-                    new GrpcRequestConfig(
-                            getHostPort(),
-                            getProtoFolder(),
-                            getLibFolder(),
-                            getFullMethod(),
-                            isTls(),
-                            isTlsDisableVerification(),
-                            getChannelShutdownAwaitTime());
+                    GrpcRequestConfig.builder()
+                            .hostPort(getHostPort())
+                            .protoFolder(getProtoFolder())
+                            .libFolder(getLibFolder())
+                            .fullMethod(getFullMethod())
+                            .tls(isTls())
+                            .tlsDisableVerification(isTlsDisableVerification())
+                            .awaitTerminationTimeout(getChannelShutdownAwaitTime())
+                            .maxInboundMessageSize(getChannelMaxInboundMessageSize())
+                            .maxInboundMetadataSize(getChannelMaxInboundMetadataSize())
+                            .build();
     }
 
     private void initGrpcClient() {
@@ -75,39 +82,11 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
 
         // Console prints unknown exceptions - Intercepts unknown exceptions and sends them to the
         // console to print instead of throwing the results into the GRPC response.
-        try {
-            initGrpcConfigRequest();
-            initGrpcClient();
-            sampleResult.setSampleLabel(getName());
-            String grpcRequest =
-                    clientCaller.buildRequestAndMetadata(getRequestJson(), getMetadata());
-            sampleResult.setSamplerData(grpcRequest);
-            sampleResult.setRequestHeaders(clientCaller.getMetadataString());
-            sampleResult.sampleStart();
-        } catch (Exception e) {
-            log.error(
-                    "An unknown error occurred before the GRPC request was initiated, and the stack"
-                            + " trace is as follows: ",
-                    e);
-            startSamplerToStopIfCatchException(sampleResult);
-            generateErrorResultInInitGRPCRequest(sampleResult, e);
+        if (!initGrpcRequestSampler(sampleResult)) {
             return sampleResult;
         }
-
-        // Initiate a GRPC request
-        try {
-            grpcResponse = clientCaller.call(getDeadline());
-            sampleResult.sampleEnd();
-            sampleResult.setSuccessful(true);
-            sampleResult.setResponseCodeOK();
-            sampleResult.setResponseMessage("Success");
-            sampleResult.setDataType(SampleResult.TEXT);
-            sampleResult.setResponseData(
-                    grpcResponse.getGrpcMessageString().getBytes(StandardCharsets.UTF_8));
-        } catch (RuntimeException e) {
-            startSamplerToStopIfCatchException(sampleResult);
-            generateErrorResult(grpcResponse, sampleResult, e);
-        }
+        // Process a GRPC request sampler
+        processGrpcRequestSampler(grpcResponse, sampleResult);
 
         return sampleResult;
     }
@@ -149,7 +128,6 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
                         "GRPCSampler Exception: An unknown exception occurred before the GRPC "
                                 + "request was initiated. %s",
                         e.getCause().getMessage());
-        sampleResult.setSampleLabel("Error When Initiated gRPC");
         sampleResult.setSuccessful(false);
         sampleResult.setResponseCode("500");
         sampleResult.setDataType(SampleResult.TEXT);
@@ -160,21 +138,64 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
     private void generateErrorResult(
             GrpcResponse grpcResponse, SampleResult sampleResult, Exception e) {
         try {
+            String msg =
+                    String.format(
+                            "Exception: %s %s %s",
+                            e.getMessage(),
+                            e.getCause().getMessage(),
+                            grpcResponse.getGrpcMessageString());
             sampleResult.setSuccessful(false);
             sampleResult.setResponseCode("500");
             sampleResult.setDataType(SampleResult.TEXT);
             sampleResult.sampleEnd();
-            sampleResult.setResponseMessage("Exception: " + e.getCause().getMessage());
-            sampleResult.setResponseData(
-                    String.format(
-                            "Exception: %s. %s",
-                            e.getCause().getMessage(), grpcResponse.getGrpcMessageString()),
-                    "UTF-8");
+            sampleResult.setResponseMessage(msg);
+            sampleResult.setResponseData(msg, "UTF-8");
         } catch (Exception ex) {
             // Prints exceptions that occur before the request is initiated
             e.printStackTrace();
-            log.error("GrpcMessage: {}", grpcResponse.getGrpcMessageString());
+            log.error("GrpcMessage: {} {}", grpcResponse.getGrpcMessageString(), e);
         }
+    }
+
+    private boolean initGrpcRequestSampler(SampleResult sampleResult) {
+        try {
+            initGrpcInCurrentThread(sampleResult);
+        } catch (Exception e) {
+            log.error(
+                    "An unknown error occurred before the GRPC request was initiated, and the stack"
+                            + " trace is as follows: ",
+                    e);
+            startSamplerToStopIfCatchException(sampleResult);
+            generateErrorResultInInitGRPCRequest(sampleResult, e);
+            return false;
+        }
+        return true;
+    }
+
+    private void processGrpcRequestSampler(GrpcResponse grpcResponse, SampleResult sampleResult) {
+        try {
+            grpcResponse = clientCaller.call(getDeadline());
+            sampleResult.sampleEnd();
+            sampleResult.setSuccessful(true);
+            sampleResult.setResponseCodeOK();
+            sampleResult.setResponseMessage("Success");
+            sampleResult.setDataType(SampleResult.TEXT);
+            sampleResult.setResponseData(
+                    grpcResponse.getGrpcMessageString().getBytes(StandardCharsets.UTF_8));
+        } catch (RuntimeException e) {
+            startSamplerToStopIfCatchException(sampleResult);
+            generateErrorResult(grpcResponse, sampleResult, e);
+        }
+    }
+
+    private void initGrpcInCurrentThread(SampleResult sampleResult) {
+        initGrpcConfigRequest();
+        initGrpcClient();
+        sampleResult.setSampleLabel(getName());
+        String grpcRequest = clientCaller.buildRequestAndMetadata(getRequestJson(), getMetadata());
+        sampleResult.setSamplerData(grpcRequest);
+        sampleResult.setRequestHeaders(clientCaller.getMetadataString());
+        sampleResult.sampleStart();
     }
 
     private void startSamplerToStopIfCatchException(SampleResult sampleResult) {
@@ -262,12 +283,28 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
         setProperty(PORT, port);
     }
 
-    public String getChannelShutdownAwaitTime() {
-        return getPropertyAsString(CHANNEL_SHUTDOWN_AWAIT_TIME, "1000");
+    public int getChannelShutdownAwaitTime() {
+        return getPropertyAsInt(CHANNEL_SHUTDOWN_AWAIT_TIME, 5000);
     }
 
     public void setChannelShutdownAwaitTime(String awaitShutdownTime) {
         setProperty(CHANNEL_SHUTDOWN_AWAIT_TIME, awaitShutdownTime);
+    }
+
+    public int getChannelMaxInboundMessageSize() {
+        return getPropertyAsInt(CHANNEL_MAX_INBOUND_MESSAGE_SIZE, 4194304);
+    }
+
+    public void setChannelMaxInboundMessageSize(String channelMaxInboundMessageSize) {
+        setProperty(CHANNEL_MAX_INBOUND_MESSAGE_SIZE, channelMaxInboundMessageSize);
+    }
+
+    public int getChannelMaxInboundMetadataSize() {
+        return getPropertyAsInt(CHANNEL_MAX_INBOUND_METADATA_SIZE, 8192);
+    }
+
+    public void setChannelMaxInboundMetadataSize(String channelMaxInboundMetadataSize) {
+        setProperty(CHANNEL_MAX_INBOUND_METADATA_SIZE, channelMaxInboundMetadataSize);
     }
 
     private String getHostPort() {

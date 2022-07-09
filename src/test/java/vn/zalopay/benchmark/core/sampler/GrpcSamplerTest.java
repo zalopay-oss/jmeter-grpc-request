@@ -155,7 +155,7 @@ public class GrpcSamplerTest extends BaseTest {
         Assert.assertEquals(sampleResult.getResponseCode(), "500");
         Assert.assertTrue(
                 new String(sampleResult.getResponseData())
-                        .contains("Exception: io.grpc.StatusRuntimeException"));
+                        .contains("io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED"));
     }
 
     @Test
