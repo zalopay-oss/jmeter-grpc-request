@@ -7,6 +7,7 @@ on: [push, pull_request]
 
 jobs:
   scan-code:
+    if: ${{ github.actor != 'dependabot[bot]' }}
     name: Analyze
     runs-on: ubuntu-latest
     strategy:
