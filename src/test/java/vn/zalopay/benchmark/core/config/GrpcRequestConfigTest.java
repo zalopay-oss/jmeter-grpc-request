@@ -143,9 +143,10 @@ public class GrpcRequestConfigTest {
                         .maxInboundMessageSize(1000)
                         .maxInboundMetadataSize(1000)
                         .toString(),
-                "GrpcRequestConfig{maxInboundMessageSize=1000, maxInboundMetadataSize=1000,"
-                    + " hostPort='a', testProtoFile='b', libFolder='c', fullMethod='d', tls=true,"
-                    + " tlsDisableVerification=true, awaitTerminationTimeout=1000}");
+                "GrpcRequestConfig.GrpcRequestConfigBuilder(maxInboundMessageSize=1000,"
+                        + " maxInboundMetadataSize=1000, hostPort=a, protoFolder=b, libFolder=c,"
+                        + " fullMethod=d, tls=true, tlsDisableVerification=true,"
+                        + " awaitTerminationTimeout=1000)");
     }
 
     @Test
