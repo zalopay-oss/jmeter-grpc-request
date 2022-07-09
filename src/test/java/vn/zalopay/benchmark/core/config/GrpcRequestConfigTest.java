@@ -131,6 +131,21 @@ public class GrpcRequestConfigTest {
     public void canGenerateHashCodeWithDefaultGrpcConfigObject() {
         GrpcRequestConfig grpcRequestConfig = new GrpcRequestConfig();
         Assert.assertTrue(grpcRequestConfig.hashCode() != 0);
+        Assert.assertEquals(
+                GrpcRequestConfig.builder()
+                        .hostPort("a")
+                        .protoFolder("b")
+                        .libFolder("c")
+                        .fullMethod("d")
+                        .tls(true)
+                        .tlsDisableVerification(true)
+                        .awaitTerminationTimeout(1000)
+                        .maxInboundMessageSize(1000)
+                        .maxInboundMetadataSize(1000)
+                        .toString(),
+                "GrpcRequestConfig{maxInboundMessageSize=1000, maxInboundMetadataSize=1000,"
+                    + " hostPort='a', testProtoFile='b', libFolder='c', fullMethod='d', tls=true,"
+                    + " tlsDisableVerification=true, awaitTerminationTimeout=1000}");
     }
 
     @Test
