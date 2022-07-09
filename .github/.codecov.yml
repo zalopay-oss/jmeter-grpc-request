@@ -9,12 +9,12 @@ coverage:
     project:
       default:
         target: 85%
-        threshold: 1%
+        threshold: 5%
         informational: true
     patch:
       default:
-        target: 90%
-        threshold: 1%
+        target: 85%
+        threshold: 5%
         if_ci_failed: error
         informational: true
 comment:
