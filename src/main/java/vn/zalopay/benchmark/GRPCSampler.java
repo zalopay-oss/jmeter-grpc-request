@@ -129,7 +129,7 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
                                 + "request was initiated. %s",
                         e.getCause().getMessage());
         sampleResult.setSuccessful(false);
-        sampleResult.setResponseCode("500");
+        sampleResult.setResponseCode("400");
         sampleResult.setDataType(SampleResult.TEXT);
         sampleResult.setResponseData(msg.getBytes(StandardCharsets.UTF_8));
         sampleResult.setResponseMessage(msg);
@@ -165,7 +165,6 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
                     "An unknown error occurred before the GRPC request was initiated, and the stack"
                             + " trace is as follows: ",
                     e);
-            startSamplerToStopIfCatchException(sampleResult);
             generateErrorResultInInitGRPCRequest(sampleResult, e);
             return false;
         }
@@ -174,6 +173,7 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
 
     private void processGrpcRequestSampler(GrpcResponse grpcResponse, SampleResult sampleResult) {
         try {
+            sampleResult.sampleStart();
             grpcResponse = clientCaller.call(getDeadline());
             sampleResult.sampleEnd();
             sampleResult.setSuccessful(true);
@@ -183,23 +183,17 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
             sampleResult.setResponseData(
                     grpcResponse.getGrpcMessageString().getBytes(StandardCharsets.UTF_8));
         } catch (RuntimeException e) {
-            startSamplerToStopIfCatchException(sampleResult);
             generateErrorResult(grpcResponse, sampleResult, e);
         }
     }
 
     private void initGrpcInCurrentThread(SampleResult sampleResult) {
+        sampleResult.setSampleLabel(getName());
         initGrpcConfigRequest();
         initGrpcClient();
-        sampleResult.setSampleLabel(getName());
         String grpcRequest = clientCaller.buildRequestAndMetadata(getRequestJson(), getMetadata());
         sampleResult.setSamplerData(grpcRequest);
         sampleResult.setRequestHeaders(clientCaller.getMetadataString());
-        sampleResult.sampleStart();
-    }
-
-    private void startSamplerToStopIfCatchException(SampleResult sampleResult) {
-        if (sampleResult.getStartTime() == 0L) sampleResult.sampleStart();
     }
 
     /** GETTER AND SETTER */
