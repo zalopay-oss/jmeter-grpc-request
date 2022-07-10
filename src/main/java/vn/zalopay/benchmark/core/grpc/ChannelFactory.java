@@ -31,40 +31,44 @@ public class ChannelFactory {
     public ManagedChannel createChannel(
             HostAndPort endpoint,
             boolean tls,
-            boolean disableTtlVerification,
-            Map<String, String> metadataHash) {
-        ManagedChannelBuilder managedChannelBuilder =
-                createChannelBuilder(endpoint, tls, disableTtlVerification, metadataHash);
+            boolean disableTlsVerification,
+            Map<String, String> metadataHash,
+            int maxInboundMessageSize,
+            int maxInboundMetadataSize) {
+        NettyChannelBuilder managedChannelBuilder =
+                createChannelBuilder(endpoint, tls, disableTlsVerification, metadataHash);
+        managedChannelBuilder.maxInboundMessageSize(maxInboundMessageSize);
+        managedChannelBuilder.maxInboundMetadataSize(maxInboundMetadataSize);
         return managedChannelBuilder.build();
     }
 
-    private ManagedChannelBuilder createChannelBuilder(
+    private NettyChannelBuilder createChannelBuilder(
             HostAndPort endpoint,
             boolean tls,
-            boolean disableTtlVerification,
+            boolean disableTlsVerification,
             Map<String, String> metadataHash) {
         if (!tls) {
             return NettyChannelBuilder.forAddress(endpoint.getHost(), endpoint.getPort())
                     .negotiationType(NegotiationType.PLAINTEXT)
                     .intercept(metadataInterceptor(metadataHash));
         }
-        return createSSLMessageChannel(endpoint, disableTtlVerification, metadataHash);
+        return createSSLMessageChannel(endpoint, disableTlsVerification, metadataHash);
     }
 
-    private ManagedChannelBuilder createSSLMessageChannel(
+    private NettyChannelBuilder createSSLMessageChannel(
             HostAndPort endpoint,
-            boolean disableTtlVerification,
+            boolean disableTlsVerification,
             Map<String, String> metadataHash) {
         return NettyChannelBuilder.forAddress(endpoint.getHost(), endpoint.getPort())
                 .negotiationType(NegotiationType.TLS)
-                .sslContext(createSslContext(disableTtlVerification))
+                .sslContext(createSslContext(disableTlsVerification))
                 .intercept(metadataInterceptor(metadataHash));
     }
 
-    private SslContext createSslContext(boolean disableTtlVerification) {
+    private SslContext createSslContext(boolean disableTlsVerification) {
         try {
             io.netty.handler.ssl.SslContextBuilder grpcSslContexts = GrpcSslContexts.forClient();
-            if (disableTtlVerification) {
+            if (disableTlsVerification) {
                 grpcSslContexts.trustManager(InsecureTrustManagerFactory.INSTANCE);
             }
             return createSSlContext(grpcSslContexts);

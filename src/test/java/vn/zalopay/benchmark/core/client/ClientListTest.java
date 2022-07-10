@@ -83,7 +83,9 @@ public class ClientListTest extends BaseTest {
 
     @Test(
             expectedExceptions = RuntimeException.class,
-            expectedExceptionsMessageRegExp = "Unable to resolve service by invoking protoc")
+            expectedExceptionsMessageRegExp =
+                    "Unable to resolve service "
+                            + "by invoking protoc. The proto folder path is empty")
     public void testThrowExceptionWhenInvokeInvalidProtocPath() {
         ClientList.listServices("", LIB_FOLDER.toString());
     }

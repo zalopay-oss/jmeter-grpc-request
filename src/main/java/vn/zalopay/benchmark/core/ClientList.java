@@ -34,7 +34,7 @@ public class ClientList {
             String protoFile, String libFolder, boolean reload) {
         try {
             String serviceResolverKey = protoFile + libFolder;
-            if (reload == false) {
+            if (!reload) {
                 ServiceResolver serviceResolver = serviceResolverMap.get(serviceResolverKey);
                 if (serviceResolver != null) {
                     return serviceResolver;
@@ -55,7 +55,8 @@ public class ClientList {
             throw new RuntimeException("Unable to resolve service by invoking protoc", e);
         }
 
-        throw new RuntimeException("Unable to resolve service by invoking protoc");
+        throw new RuntimeException(
+                "Unable to resolve service by invoking protoc. The proto folder path is empty");
     }
 
     public static List<String> listServices(ServiceResolver serviceResolver) {
