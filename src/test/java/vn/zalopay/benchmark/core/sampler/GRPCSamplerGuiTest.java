@@ -6,6 +6,8 @@ import org.apache.jmeter.gui.util.JSyntaxTextArea;
 import org.apache.jmeter.sampler.DebugSampler;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.visualizers.RenderAsText;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -17,6 +19,7 @@ import vn.zalopay.benchmark.core.test.dependency.ViewResultsFullVisualizerGui;
 
 import java.awt.*;
 import java.lang.reflect.Field;
+import java.util.UUID;
 
 import javax.swing.*;
 
@@ -223,6 +226,103 @@ public class GRPCSamplerGuiTest extends BaseTest {
         frame.dispose();
     }
 
+    @Test
+    public void verifyCanPerformGetMethodNameWithNotReloadWithSameProtoLibs()
+            throws NoSuchFieldException, IllegalAccessException {
+        GRPCSamplerGui grpRequestPluginGUI = new GRPCSamplerGui();
+
+        Field fullMethodButtonField = GRPCSamplerGui.class.getDeclaredField("fullMethodButton");
+        Field fullMethodField = GRPCSamplerGui.class.getDeclaredField("fullMethodField");
+        Field protoFolderField = GRPCSamplerGui.class.getDeclaredField("protoFolderField");
+        Field libFolderField = GRPCSamplerGui.class.getDeclaredField("libFolderField");
+
+        fullMethodField.setAccessible(true);
+        fullMethodButtonField.setAccessible(true);
+        protoFolderField.setAccessible(true);
+        libFolderField.setAccessible(true);
+
+        JButton fullMethodButton = (JButton) fullMethodButtonField.get(grpRequestPluginGUI);
+        JTextField protoFolder = (JTextField) protoFolderField.get(grpRequestPluginGUI);
+        JTextField libFolder = (JTextField) libFolderField.get(grpRequestPluginGUI);
+        JComboBox<String> fullMethodComboBox =
+                (JComboBox<String>) fullMethodField.get(grpRequestPluginGUI);
+        JFrame frame = new JFrame("Test");
+        frame.setPreferredSize(new Dimension(1024, 768));
+        frame.getContentPane().add(grpRequestPluginGUI, BorderLayout.CENTER);
+        frame.pack();
+        frame.setVisible(true);
+        GRPCSampler grpcSampler = new GRPCSampler();
+        grpcSampler.setComment("dummyComment");
+        grpcSampler.setMetadata("dummyMetadata");
+        grpcSampler.setHost("dummyHost");
+        grpcSampler.setPort("dummyPort");
+        grpcSampler.setFullMethod("");
+        grpcSampler.setDeadline("500");
+        grpcSampler.setTls(true);
+        grpcSampler.setTlsDisableVerification(true);
+        grpcSampler.setRequestJson("dummyRequest");
+        grpRequestPluginGUI.configure(grpcSampler);
+        protoFolder.setText(PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString());
+        libFolder.setText(LIB_FOLDER.toString());
+        fullMethodButton.doClick();
+        protoFolder.setText(PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString());
+        libFolder.setText(LIB_FOLDER.toString());
+        fullMethodButton.doClick();
+        Assert.assertEquals(
+                fullMethodComboBox.getSelectedItem(), "bookstore.Bookstore/CreateShelf");
+        Assert.assertNotNull(grpcSampler);
+        Assert.assertNotNull(grpRequestPluginGUI);
+        frame.dispose();
+    }
+
+    @Test
+    public void verifyCanPerformGetMethodNameWithReloadWithDiffProtoLibs()
+            throws NoSuchFieldException, IllegalAccessException {
+        GRPCSamplerGui grpRequestPluginGUI = new GRPCSamplerGui();
+
+        Field fullMethodButtonField = GRPCSamplerGui.class.getDeclaredField("fullMethodButton");
+        Field fullMethodField = GRPCSamplerGui.class.getDeclaredField("fullMethodField");
+        Field protoFolderField = GRPCSamplerGui.class.getDeclaredField("protoFolderField");
+        Field libFolderField = GRPCSamplerGui.class.getDeclaredField("libFolderField");
+
+        fullMethodField.setAccessible(true);
+        fullMethodButtonField.setAccessible(true);
+        protoFolderField.setAccessible(true);
+        libFolderField.setAccessible(true);
+
+        JButton fullMethodButton = (JButton) fullMethodButtonField.get(grpRequestPluginGUI);
+        JTextField protoFolder = (JTextField) protoFolderField.get(grpRequestPluginGUI);
+        JTextField libFolder = (JTextField) libFolderField.get(grpRequestPluginGUI);
+        JComboBox<String> fullMethodComboBox =
+                (JComboBox<String>) fullMethodField.get(grpRequestPluginGUI);
+        JFrame frame = new JFrame("Test");
+        frame.setPreferredSize(new Dimension(1024, 768));
+        frame.getContentPane().add(grpRequestPluginGUI, BorderLayout.CENTER);
+        frame.pack();
+        frame.setVisible(true);
+        GRPCSampler grpcSampler = new GRPCSampler();
+        grpcSampler.setComment("dummyComment");
+        grpcSampler.setMetadata("dummyMetadata");
+        grpcSampler.setHost("dummyHost");
+        grpcSampler.setPort("dummyPort");
+        grpcSampler.setFullMethod("");
+        grpcSampler.setDeadline("500");
+        grpcSampler.setTls(true);
+        grpcSampler.setTlsDisableVerification(true);
+        grpcSampler.setRequestJson("dummyRequest");
+        grpRequestPluginGUI.configure(grpcSampler);
+        protoFolder.setText(PROTO_FOLDER.toString());
+        libFolder.setText("");
+        fullMethodButton.doClick();
+        libFolder.setText(LIB_FOLDER.toString());
+        fullMethodButton.doClick();
+        Assert.assertEquals(
+                fullMethodComboBox.getSelectedItem(), "data_services_seg.SegmentServices/checkSeg");
+        Assert.assertNotNull(grpcSampler);
+        Assert.assertNotNull(grpRequestPluginGUI);
+        frame.dispose();
+    }
+
     @Test(
             expectedExceptions = RuntimeException.class,
             expectedExceptionsMessageRegExp =
@@ -343,6 +443,15 @@ public class GRPCSamplerGuiTest extends BaseTest {
     @Test
     public void verifyCanPerformGenerateDummyRequestWithMultipleTypes()
             throws NoSuchFieldException, IllegalAccessException {
+        MockedStatic<UUID> uuidMockedStatic = Mockito.mockStatic(UUID.class);
+        uuidMockedStatic
+                .when(() -> UUID.randomUUID())
+                .then(
+                        i -> {
+                            UUID uuidMock = Mockito.mock(UUID.class);
+                            Mockito.when(uuidMock.toString()).then((_i) -> "abc");
+                            return uuidMock;
+                        });
         GRPCSamplerGui grpRequestPluginGUI = new GRPCSamplerGui();
 
         Field fullMethodButtonField = GRPCSamplerGui.class.getDeclaredField("fullMethodButton");
@@ -413,7 +522,18 @@ public class GRPCSamplerGuiTest extends BaseTest {
                         + "\t\t\t\"value\":\"Hello\"\n"
                         + "\t\t}\n"
                         + "\t],\n"
-                        + "\t\"number14\":1400\n"
+                        + "\t\"number14\":1400,\n"
+                        + "\t\"corpus\":null,\n"
+                        + "\t\"id\":\"abc\",\n"
+                        + "\t\"testid\":\"abc\",\n"
+                        + "\t\"results\":[\n"
+                        + "\t\t{\n"
+                        + "\t\t\t\"id\":\"abc\",\n"
+                        + "\t\t\t\"url\":\"Hello\",\n"
+                        + "\t\t\t\"title\":\"Hello\",\n"
+                        + "\t\t\t\"snippets\":\"Hello\"\n"
+                        + "\t\t}\n"
+                        + "\t]\n"
                         + "}");
         frame.dispose();
     }

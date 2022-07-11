@@ -14,10 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.file.*;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -29,7 +26,7 @@ public class ProtocInvoker {
     private static final Logger logger = LoggerFactory.getLogger(ProtocInvoker.class);
     private static final PathMatcher PROTO_MATCHER =
             FileSystems.getDefault().getPathMatcher("glob:**/*.proto");
-
+    private static final List<Path> protoTempFolderPaths = new ArrayList<>();
     private final ImmutableList<Path> protocIncludePaths;
     private final Path discoveryRoot;
     private final int largeFolderLimit = 100;
@@ -73,7 +70,6 @@ public class ProtocInvoker {
      */
     public FileDescriptorSet invoke() throws ProtocInvocationException {
         Path wellKnownTypesInclude;
-        Path googleTypesInclude;
         try {
             wellKnownTypesInclude = setupWellKnownTypes();
         } catch (IOException e) {
@@ -86,43 +82,23 @@ public class ProtocInvoker {
         } catch (IOException e) {
             throw new ProtocInvocationException("Unable to create temporary file", e);
         }
-
         // Large folder processing, solve CreateProcess error=206
         final ImmutableSet<String> protoFilePaths = scanProtoFiles(discoveryRoot);
-        ImmutableList<String> protocArgs = null;
+        ImmutableList<String> protocArgs = ImmutableList.<String>builder().build();
         String protocVersion =
                 JMeterUtils.getPropDefault(
                         "grpc.request.protoc.version", ProtocVersion.PROTOC_VERSION.mVersion);
 
         if (protoFilePaths.size() > largeFolderLimit) {
-            try {
-                File argumentsFile = createFileWithArguments(protoFilePaths.toArray(new String[0]));
-                protocArgs =
-                        ImmutableList.<String>builder()
-                                .add("@" + argumentsFile.getAbsolutePath())
-                                .addAll(includePathArgs(wellKnownTypesInclude))
-                                .add(
-                                        "--descriptor_set_out="
-                                                + descriptorPath.toAbsolutePath().toString())
-                                .add("--include_imports")
-                                .add("-v" + protocVersion)
-                                .build();
-            } catch (IOException e) {
-                logger.error("Unable to create protoc parameter file", e);
-            }
+            protocArgs =
+                    generateProtocArgsForMultipleFiles(
+                            protoFilePaths, descriptorPath, wellKnownTypesInclude, protocVersion);
         }
 
-        if (protocArgs == null) {
+        if (protocArgs.size() == 0) {
             protocArgs =
-                    ImmutableList.<String>builder()
-                            .addAll(protoFilePaths)
-                            .addAll(includePathArgs(wellKnownTypesInclude))
-                            .add(
-                                    "--descriptor_set_out="
-                                            + descriptorPath.toAbsolutePath().toString())
-                            .add("--include_imports")
-                            .add("-v" + protocVersion)
-                            .build();
+                    generateProtocArgs(
+                            protoFilePaths, descriptorPath, wellKnownTypesInclude, protocVersion);
         }
 
         invokeBinary(protocArgs);
@@ -131,6 +107,40 @@ public class ProtocInvoker {
         } catch (IOException e) {
             throw new ProtocInvocationException("Unable to parse the generated descriptors", e);
         }
+    }
+
+    private ImmutableList<String> generateProtocArgsForMultipleFiles(
+            ImmutableSet<String> protoFilePaths,
+            Path descriptorPath,
+            Path wellKnownTypesInclude,
+            String protocVersion) {
+        try {
+            File argumentsFile = createFileWithArguments(protoFilePaths.toArray(new String[0]));
+            return ImmutableList.<String>builder()
+                    .add("@" + argumentsFile.getAbsolutePath())
+                    .addAll(includePathArgs(wellKnownTypesInclude))
+                    .add("--descriptor_set_out=" + descriptorPath.toAbsolutePath().toString())
+                    .add("--include_imports")
+                    .add("-v" + protocVersion)
+                    .build();
+        } catch (IOException e) {
+            logger.error("Unable to create protoc parameter file", e);
+            return ImmutableList.<String>builder().build();
+        }
+    }
+
+    private ImmutableList<String> generateProtocArgs(
+            ImmutableSet<String> protoFilePaths,
+            Path descriptorPath,
+            Path wellKnownTypesInclude,
+            String protocVersion) {
+        return ImmutableList.<String>builder()
+                .addAll(protoFilePaths)
+                .addAll(includePathArgs(wellKnownTypesInclude))
+                .add("--descriptor_set_out=" + descriptorPath.toAbsolutePath().toString())
+                .add("--include_imports")
+                .add("-v" + protocVersion)
+                .build();
     }
 
     private void invokeBinary(ImmutableList<String> protocArgs) throws ProtocInvocationException {

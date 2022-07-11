@@ -47,7 +47,27 @@ message HelloRequest {
   fixed64 number13 = 16;
   map<string, string> map = 17;
   fixed32 number14 = 18;
+  Corpus corpus = 19;
+  string id = 20;
+  string testid = 21;
+  repeated Result results = 22;
 
+  message Result {
+    string id = 1;
+    string url = 2;
+    string title = 3;
+    repeated string snippets = 4;
+  }
+
+  enum Corpus {
+    UNIVERSAL = 0;
+    WEB = 1;
+    IMAGES = 2;
+    LOCAL = 3;
+    NEWS = 4;
+    PRODUCTS = 5;
+    VIDEO = 6;
+  }
 }
 
 // The response message containing the greetings
