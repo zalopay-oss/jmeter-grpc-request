@@ -3,11 +3,11 @@ package vn.zalopay.benchmark.util;
 import com.alibaba.fastjson.JSONObject;
 
 /**
- * <b>异常打印工具类</b>
+ * <b>Exception print utility class</b>
  * <p>reference: https://github.com/yl-yue/yue-library/blob/j11.2.6.0/yue-library-base/src/main/java/ai/yue/library/base/util/ExceptionUtils.java</p>
  *
  * @author	ylyue
- * @since	2018年9月9日
+ * @since	2018-9-9
  */
 public class ExceptionUtils {
 
@@ -60,22 +60,22 @@ public class ExceptionUtils {
 	}
 	
 	/**
-	 * 获得打印异常内容
-	 * <p>默认只打印关键的5行内容
+	 * Get print abnormal content
+	 * <p>By default, only five key lines are printed
 	 * 
-	 * @param e 异常
-	 * @return 异常内容
+	 * @param e exception
+	 * @return exception data
 	 */
 	public synchronized static String getPrintExceptionToStr(Throwable e) {
 		return getPrintExceptionToStr(e, 4);
 	}
 	
 	/**
-	 * 获得打印异常内容
+	 * Get print abnormal content
 	 * 
-	 * @param e    异常
-	 * @param line 打印行数
-	 * @return 异常内容
+	 * @param e    exception
+	 * @param line Print the number of rows
+	 * @return exception data
 	 */
 	public synchronized static String getPrintExceptionToStr(Throwable e, Integer line) {
 		StringBuffer printException = getPrintException(e, line, ExceptionConvertEnum.StringBuffer);
@@ -83,42 +83,42 @@ public class ExceptionUtils {
 	}
 	
 	/**
-	 * 获得打印异常内容
-	 * <p>默认只打印关键的5行内容
+	 * Get print abnormal content
+	 * <p>By default, only five key lines are printed
 	 * 
-	 * @param e    异常
-	 * @return 异常内容
+	 * @param e    exception
+	 * @return exception data
 	 */
 	public synchronized static JSONObject getPrintExceptionToJson(Throwable e) {
 		return getPrintExceptionToJson(e, 4);
 	}
 	
 	/**
-	 * 获得打印异常内容
+	 * Get print abnormal content
 	 * 
-	 * @param e    异常
-	 * @param line 打印行数
-	 * @return 异常内容
+	 * @param e    exception
+	 * @param line Print the number of rows
+	 * @return exception data
 	 */
 	public synchronized static JSONObject getPrintExceptionToJson(Throwable e, Integer line) {
 		return getPrintException(e, line, ExceptionConvertEnum.JSONObject);
 	}
 	
 	/**
-	 * 获得打印异常内容
-	 * <p>默认只打印关键的5行内容
+	 * Get print abnormal content
+	 * <p>By default, only five key lines are printed
 	 * 
-	 * @param e    异常
+	 * @param e    exception
 	 */
 	public synchronized static void printException(Throwable e) {
 		printException(e, 4);
 	}
 	
 	/**
-	 * 获得打印异常内容
+	 * Get print abnormal content
 	 * 
-	 * @param e    异常
-	 * @param line 打印行数
+	 * @param e    exception
+	 * @param line Print the number of rows
 	 */
 	public synchronized static void printException(Throwable e, Integer line) {
 		System.err.print(getPrintExceptionToStr(e, line));
