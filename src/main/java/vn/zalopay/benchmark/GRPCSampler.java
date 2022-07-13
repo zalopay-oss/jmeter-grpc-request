@@ -8,6 +8,7 @@ import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.testelement.ThreadListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import vn.zalopay.benchmark.constant.GrpcSamplerConstant;
 import vn.zalopay.benchmark.core.ClientCaller;
 import vn.zalopay.benchmark.core.config.GrpcRequestConfig;
 import vn.zalopay.benchmark.core.specification.GrpcResponse;
@@ -88,7 +89,7 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
             sampleResult.setSuccessful(false);
             sampleResult.setResponseCode(" 400");
             sampleResult.setDataType(SampleResult.TEXT);
-            sampleResult.setResponseMessage(" GRPCSampler parsing exception: An unknown exception occurred before the GRPC request was initiated, See response body for the stack trace.");
+            sampleResult.setResponseMessage(GrpcSamplerConstant.CLIENT_EXCEPTION_MSG);
             sampleResult.setResponseData(ExceptionUtils.getPrintExceptionToStr(e, null), "UTF-8");
             return sampleResult;
         }

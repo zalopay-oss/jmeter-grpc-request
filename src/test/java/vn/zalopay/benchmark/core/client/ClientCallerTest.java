@@ -231,7 +231,7 @@ public class ClientCallerTest extends BaseTest {
         clientCaller.call("1000");
     }
 
-    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Unable to resolve service by invoking protoc")
+    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Unable to resolve service by invoking protoc.*")
     public void testThrowExceptionWithExceptionInProtocInvoke() {
         MockedStatic<ProtocInvoker> protocInvoker = Mockito.mockStatic(ProtocInvoker.class);
         protocInvoker.when(() -> ProtocInvoker.forConfig(Mockito.anyString(), Mockito.anyString()).invoke())
