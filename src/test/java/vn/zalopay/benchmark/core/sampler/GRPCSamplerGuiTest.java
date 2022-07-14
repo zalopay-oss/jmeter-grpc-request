@@ -262,10 +262,10 @@ public class GRPCSamplerGuiTest extends BaseTest {
         Assert.assertEquals(sampleResult.getResponseMessage(), GrpcSamplerConstant.CLIENT_EXCEPTION_MSG);
         Assert.assertTrue(new String(sampleResult.getResponseData()).contains("invalid.proto:11:1: File recursively imports itself: invalid.proto -> invalid.proto"));
 
-        // Destruction of the view
+        // GUI observation: Destruction of the view
         frame.dispose();
 
-        // Leave the view and wait indefinitely so that the JVM does not exit and the results are verified manually
+        // GUI observation: Leave the view and wait indefinitely so that the JVM does not exit and the results are verified manually
 //        Object lock = new Object();
 //        while (true) {
 //            synchronized (lock) {
