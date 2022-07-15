@@ -162,6 +162,8 @@ public class GrpcSamplerTest extends BaseTest {
         SampleResult sampleResult = grpcSampler.sample(null);
         Assert.assertEquals(sampleResult.getResponseCode(), " 400");
         Assert.assertEquals(sampleResult.getResponseMessage(), GrpcSamplerConstant.CLIENT_EXCEPTION_MSG);
+        String s = new String(sampleResult.getResponseData());
+        System.out.println(s);
         Assert.assertTrue(new String(sampleResult.getResponseData()).contains("invalid.proto:11:1: File recursively imports itself: invalid.proto -> invalid.proto"));
     }
 
