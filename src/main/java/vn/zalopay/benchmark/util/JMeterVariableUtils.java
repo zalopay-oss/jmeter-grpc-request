@@ -5,6 +5,8 @@ import org.apache.jmeter.engine.util.ValueReplacer;
 import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.JMeterGUIComponent;
 import org.apache.jmeter.testelement.TestElement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.util.Map;
@@ -17,6 +19,8 @@ import java.util.Map;
  * @since 2021/12/20
  */
 public class JMeterVariableUtils {
+
+    private static final Logger log = LoggerFactory.getLogger(JMeterVariableUtils.class);
 
     /** Gets the value of a private member variable. */
     public static Object getPrivateField(Object instance, String filedName)
@@ -49,7 +53,7 @@ public class JMeterVariableUtils {
                         }
                     });
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("Value replacer in JMeter has error", e);
         }
 
         return replacer;
