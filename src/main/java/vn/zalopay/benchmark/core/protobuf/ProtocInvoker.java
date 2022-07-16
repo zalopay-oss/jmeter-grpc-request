@@ -6,6 +6,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
+
 import org.apache.jmeter.services.FileServer;
 import org.apache.jmeter.util.JMeterUtils;
 import org.slf4j.Logger;
@@ -21,8 +22,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * A utility class which facilitates invoking the protoc compiler on all proto files in a
- * directory tree.
+ * A utility class which facilitates invoking the protoc compiler on all proto files in a directory
+ * tree.
  */
 public class ProtocInvoker {
     private static final Logger logger = LoggerFactory.getLogger(ProtocInvoker.class);
@@ -42,13 +43,12 @@ public class ProtocInvoker {
         this.discoveryRoot = discoveryRoot;
     }
 
-    /**
-     * Creates a new {@link ProtocInvoker} with the supplied configuration.
-     */
+    /** Creates a new {@link ProtocInvoker} with the supplied configuration. */
     public static ProtocInvoker forConfig(String protoDiscoveryRoot, String libFolder) {
         Path discoveryRootPath = Paths.get(protoDiscoveryRoot);
         if (!discoveryRootPath.isAbsolute()) {
-            discoveryRootPath = Paths.get(FileServer.getFileServer().getBaseDir(), protoDiscoveryRoot);
+            discoveryRootPath =
+                    Paths.get(FileServer.getFileServer().getBaseDir(), protoDiscoveryRoot);
         }
 
         ImmutableList.Builder<Path> includePaths = ImmutableList.builder();
@@ -90,31 +90,39 @@ public class ProtocInvoker {
         // Large folder processing, solve CreateProcess error=206
         final ImmutableSet<String> protoFilePaths = scanProtoFiles(discoveryRoot);
         ImmutableList<String> protocArgs = null;
-        String protocVersion = JMeterUtils.getPropDefault("grpc.request.protoc.version", ProtocVersion.PROTOC_VERSION.mVersion);
+        String protocVersion =
+                JMeterUtils.getPropDefault(
+                        "grpc.request.protoc.version", ProtocVersion.PROTOC_VERSION.mVersion);
 
         if (protoFilePaths.size() > largeFolderLimit) {
             try {
                 File argumentsFile = createFileWithArguments(protoFilePaths.toArray(new String[0]));
-                protocArgs = ImmutableList.<String>builder()
-                        .add("@" + argumentsFile.getAbsolutePath())
-                        .addAll(includePathArgs(wellKnownTypesInclude))
-                        .add("--descriptor_set_out=" + descriptorPath.toAbsolutePath().toString())
-                        .add("--include_imports")
-                        .add("-v" + protocVersion)
-                        .build();
+                protocArgs =
+                        ImmutableList.<String>builder()
+                                .add("@" + argumentsFile.getAbsolutePath())
+                                .addAll(includePathArgs(wellKnownTypesInclude))
+                                .add(
+                                        "--descriptor_set_out="
+                                                + descriptorPath.toAbsolutePath().toString())
+                                .add("--include_imports")
+                                .add("-v" + protocVersion)
+                                .build();
             } catch (IOException e) {
                 logger.error("Unable to create protoc parameter file", e);
             }
         }
 
         if (protocArgs == null) {
-            protocArgs = ImmutableList.<String>builder()
-                    .addAll(protoFilePaths)
-                    .addAll(includePathArgs(wellKnownTypesInclude))
-                    .add("--descriptor_set_out=" + descriptorPath.toAbsolutePath().toString())
-                    .add("--include_imports")
-                    .add("-v" + protocVersion)
-                    .build();
+            protocArgs =
+                    ImmutableList.<String>builder()
+                            .addAll(protoFilePaths)
+                            .addAll(includePathArgs(wellKnownTypesInclude))
+                            .add(
+                                    "--descriptor_set_out="
+                                            + descriptorPath.toAbsolutePath().toString())
+                            .add("--include_imports")
+                            .add("-v" + protocVersion)
+                            .build();
         }
 
         invokeBinary(protocArgs);
@@ -183,10 +191,11 @@ public class ProtocInvoker {
 
     private ImmutableSet<String> scanProtoFiles(Path protoRoot) throws ProtocInvocationException {
         try (final Stream<Path> protoPaths = Files.walk(protoRoot)) {
-            return ImmutableSet.copyOf(protoPaths
-                    .filter(PROTO_MATCHER::matches)
-                    .map(path -> path.toAbsolutePath().toString())
-                    .collect(Collectors.toSet()));
+            return ImmutableSet.copyOf(
+                    protoPaths
+                            .filter(PROTO_MATCHER::matches)
+                            .map(path -> path.toAbsolutePath().toString())
+                            .collect(Collectors.toSet()));
         } catch (IOException e) {
             throw new ProtocInvocationException("Unable to scan proto tree for files", e);
         }
@@ -198,7 +207,8 @@ public class ProtocInvoker {
             resultBuilder.add("-I" + path.toString());
         }
 
-        // Add the include path which makes sure that protoc finds the well known types. Note that we
+        // Add the include path which makes sure that protoc finds the well known types. Note that
+        // we
         // add this *after* the user types above in case users want to provide their own well known
         // types.
         resultBuilder.add("-I" + wellKnownTypesInclude.toString());
@@ -211,9 +221,7 @@ public class ProtocInvoker {
         return resultBuilder.build();
     }
 
-    /**
-     * Get paths lib protoc
-     */
+    /** Get paths lib protoc */
     private static List<String> getProtocIncludes(String libFolder) {
         if (Objects.isNull(libFolder)) {
             return Collections.emptyList();
@@ -244,9 +252,7 @@ public class ProtocInvoker {
         return tmpdir;
     }
 
-    /**
-     * An error indicating that something went wrong while invoking protoc.
-     */
+    /** An error indicating that something went wrong while invoking protoc. */
     public class ProtocInvocationException extends RuntimeException {
         private static final long serialVersionUID = 1L;
 
@@ -259,8 +265,12 @@ public class ProtocInvoker {
         }
     }
 
-    private void protocInvokerErrorHandler(ImmutableList<String> protocArgs, int status, String[] protocInfoLogLines,
-                                           String[] protocErrorLogLines) throws ProtocInvocationException {
+    private void protocInvokerErrorHandler(
+            ImmutableList<String> protocArgs,
+            int status,
+            String[] protocInfoLogLines,
+            String[] protocErrorLogLines)
+            throws ProtocInvocationException {
         // If protoc failed, we dump its output as a warning.
         logger.error("Protoc invocation failed with status: " + status);
         for (String line : protocInfoLogLines) {
@@ -272,14 +282,12 @@ public class ProtocInvoker {
         }
 
         throw new ProtocInvocationException(
-                String.format("\nProtoc error exit code: %d\n\n" +
-                                "Protoc execute command: \n\t%s\n\n" +
-                                "Protoc execute error: \n\t%s\n",
+                String.format(
+                        "\nProtoc error exit code: %d\n\n"
+                                + "Protoc execute command: \n\t%s\n\n"
+                                + "Protoc execute error: \n\t%s\n",
                         status,
                         String.join("\n\t", protocInfoLogLines),
-                        String.join("\n\t", protocErrorLogLines)
-                )
-        );
+                        String.join("\n\t", protocErrorLogLines)));
     }
-
 }

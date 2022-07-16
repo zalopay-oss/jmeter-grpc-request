@@ -14,16 +14,18 @@
         <java.version>1.8</java.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+        <lombok.version>1.18.24</lombok.version>
         <jmeter.version>4.0</jmeter.version>
-        <netty.ssl.version>2.0.39.Final</netty.ssl.version>
+        <netty.ssl.version>2.0.53.Final</netty.ssl.version>
         <os72.protoc.version>3.11.4</os72.protoc.version>
         <grpc.version>1.38.0</grpc.version>
         <protobuf.version>3.17.1</protobuf.version>
         <jmeter.cmn.version>0.6</jmeter.cmn.version>
         <emulators.jmeter.version>0.4</emulators.jmeter.version>
         <mockito.version>3.10.0</mockito.version>
-        <testng.version>7.4.0</testng.version>
+        <testng.version>7.6.0</testng.version>
         <fastjson.version>1.2.83</fastjson.version>
+        <com.google.code.gson.version>2.9.0</com.google.code.gson.version>
     </properties>
 
     <dependencies>
@@ -32,6 +34,12 @@
             <groupId>org.apache.jmeter</groupId>
             <artifactId>ApacheJMeter_core</artifactId>
             <version>${jmeter.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.code.gson</groupId>
+                    <artifactId>gson</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>kg.apc</groupId>
@@ -49,6 +57,12 @@
             <groupId>io.grpc</groupId>
             <artifactId>grpc-netty</artifactId>
             <version>${grpc.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>gson</artifactId>
+                    <groupId>com.google.code.gson</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>io.grpc</groupId>
@@ -64,6 +78,12 @@
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java-util</artifactId>
             <version>${protobuf.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.code.gson</groupId>
+                    <artifactId>gson</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- json -->
@@ -71,6 +91,16 @@
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
             <version>${fastjson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>${com.google.code.gson.version}</version>
         </dependency>
 
         <!-- test -->

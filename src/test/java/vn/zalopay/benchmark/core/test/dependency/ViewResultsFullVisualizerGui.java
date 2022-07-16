@@ -35,32 +35,32 @@ import org.apache.jmeter.visualizers.gui.AbstractVisualizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.Timer;
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.IOException;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Base for ViewResults
- */
+import javax.swing.*;
+import javax.swing.Timer;
+import javax.swing.border.Border;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.*;
+
+/** Base for ViewResults */
 @GUIMenuSortOrder(1)
 public class ViewResultsFullVisualizerGui extends AbstractVisualizer
         implements ActionListener, TreeSelectionListener, Clearable, ItemListener {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Logger log = LoggerFactory.getLogger(org.apache.jmeter.visualizers.ViewResultsFullVisualizer.class);
+    private static final Logger log =
+            LoggerFactory.getLogger(org.apache.jmeter.visualizers.ViewResultsFullVisualizer.class);
 
     public static final Color SERVER_ERROR_COLOR = Color.red;
     public static final Color CLIENT_ERROR_COLOR = Color.blue;
@@ -70,7 +70,8 @@ public class ViewResultsFullVisualizerGui extends AbstractVisualizer
 
     private static final Border RED_BORDER = BorderFactory.createLineBorder(Color.red);
     private static final Border BLUE_BORDER = BorderFactory.createLineBorder(Color.blue);
-    private static final String ICON_SIZE = JMeterUtils.getPropDefault(JMeter.TREE_ICON_SIZE, JMeter.DEFAULT_TREE_ICON_SIZE);
+    private static final String ICON_SIZE =
+            JMeterUtils.getPropDefault(JMeter.TREE_ICON_SIZE, JMeter.DEFAULT_TREE_ICON_SIZE);
 
     // Default limited to 10 megabytes
     private static final int MAX_DISPLAY_SIZE =
@@ -78,17 +79,25 @@ public class ViewResultsFullVisualizerGui extends AbstractVisualizer
 
     // default display order
     private static final String VIEWERS_ORDER =
-            JMeterUtils.getPropDefault("view.results.tree.renderers_order", ""); // $NON-NLS-1$ //$NON-NLS-2$
+            JMeterUtils.getPropDefault(
+                    "view.results.tree.renderers_order", ""); // $NON-NLS-1$ //$NON-NLS-2$
 
-    private static final int REFRESH_PERIOD = JMeterUtils.getPropDefault("jmeter.gui.refresh_period", 500);
+    private static final int REFRESH_PERIOD =
+            JMeterUtils.getPropDefault("jmeter.gui.refresh_period", 500);
 
-    private static final ImageIcon imageSuccess = JMeterUtils.getImage(
-            JMeterUtils.getPropDefault("viewResultsTree.success",  //$NON-NLS-1$
-                    "vrt/" + ICON_SIZE + "/security-high-2.png")); //$NON-NLS-1$ $NON-NLS-2$
+    private static final ImageIcon imageSuccess =
+            JMeterUtils.getImage(
+                    JMeterUtils.getPropDefault(
+                            "viewResultsTree.success", //$NON-NLS-1$
+                            "vrt/"
+                                    + ICON_SIZE
+                                    + "/security-high-2.png")); //$NON-NLS-1$ $NON-NLS-2$
 
-    private static final ImageIcon imageFailure = JMeterUtils.getImage(
-            JMeterUtils.getPropDefault("viewResultsTree.failure",  //$NON-NLS-1$
-                    "vrt/" + ICON_SIZE + "/security-low-2.png")); //$NON-NLS-1$ $NON-NLS-2$
+    private static final ImageIcon imageFailure =
+            JMeterUtils.getImage(
+                    JMeterUtils.getPropDefault(
+                            "viewResultsTree.failure", //$NON-NLS-1$
+                            "vrt/" + ICON_SIZE + "/security-low-2.png")); // $NON-NLS-1$ $NON-NLS-2$
 
     private JSplitPane mainSplit;
     private DefaultMutableTreeNode root;
@@ -105,9 +114,7 @@ public class ViewResultsFullVisualizerGui extends AbstractVisualizer
     private Buffer buffer;
     private boolean dataChanged;
 
-    /**
-     * Constructor
-     */
+    /** Constructor */
     public ViewResultsFullVisualizerGui(SamplerResultTab samplerResultTab) {
         super();
         final int maxResults = JMeterUtils.getPropDefault("view.results.tree.max_results", 500);
@@ -120,9 +127,7 @@ public class ViewResultsFullVisualizerGui extends AbstractVisualizer
         new Timer(REFRESH_PERIOD, e -> updateGui()).start();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @SuppressWarnings("unchecked")
     @Override
     public void add(final SampleResult sample) {
@@ -132,9 +137,7 @@ public class ViewResultsFullVisualizerGui extends AbstractVisualizer
         }
     }
 
-    /**
-     * Update the visualizer with new data.
-     */
+    /** Update the visualizer with new data. */
     private void updateGui() {
         TreePath selectedPath = null;
         Object oldSelectedElement;
@@ -145,7 +148,8 @@ public class ViewResultsFullVisualizerGui extends AbstractVisualizer
                 return;
             }
 
-            final Enumeration<TreePath> expandedElements = jTree.getExpandedDescendants(new TreePath(root));
+            final Enumeration<TreePath> expandedElements =
+                    jTree.getExpandedDescendants(new TreePath(root));
             oldExpandedElements = extractExpandedObjects(expandedElements);
             oldSelectedElement = getSelectedObject();
             root.removeAllChildren();
@@ -155,10 +159,22 @@ public class ViewResultsFullVisualizerGui extends AbstractVisualizer
                 DefaultMutableTreeNode currNode = new SearchableTreeNode(res, treeModel);
                 treeModel.insertNodeInto(currNode, root, root.getChildCount());
                 java.util.List<TreeNode> path = new ArrayList<>(Arrays.asList(root, currNode));
-                selectedPath = checkExpandedOrSelected(path,
-                        res, oldSelectedElement,
-                        oldExpandedElements, newExpandedPaths, selectedPath);
-                TreePath potentialSelection = addSubResults(currNode, res, path, oldSelectedElement, oldExpandedElements, newExpandedPaths);
+                selectedPath =
+                        checkExpandedOrSelected(
+                                path,
+                                res,
+                                oldSelectedElement,
+                                oldExpandedElements,
+                                newExpandedPaths,
+                                selectedPath);
+                TreePath potentialSelection =
+                        addSubResults(
+                                currNode,
+                                res,
+                                path,
+                                oldSelectedElement,
+                                oldExpandedElements,
+                                newExpandedPaths);
                 if (potentialSelection != null) {
                     selectedPath = potentialSelection;
                 }
@@ -167,12 +183,18 @@ public class ViewResultsFullVisualizerGui extends AbstractVisualizer
                 int assertionIndex = currNode.getChildCount();
                 for (AssertionResult assertionResult : assertionResults) {
                     if (assertionResult.isFailure() || assertionResult.isError()) {
-                        DefaultMutableTreeNode assertionNode = new SearchableTreeNode(assertionResult, treeModel);
+                        DefaultMutableTreeNode assertionNode =
+                                new SearchableTreeNode(assertionResult, treeModel);
                         treeModel.insertNodeInto(assertionNode, currNode, assertionIndex++);
-                        selectedPath = checkExpandedOrSelected(path,
-                                assertionResult, oldSelectedElement,
-                                oldExpandedElements, newExpandedPaths, selectedPath,
-                                assertionNode);
+                        selectedPath =
+                                checkExpandedOrSelected(
+                                        path,
+                                        assertionResult,
+                                        oldSelectedElement,
+                                        oldExpandedElements,
+                                        newExpandedPaths,
+                                        selectedPath,
+                                        assertionNode);
                     }
                 }
             }
@@ -188,22 +210,29 @@ public class ViewResultsFullVisualizerGui extends AbstractVisualizer
             jTree.setSelectionPath(selectedPath);
         }
         if (autoScrollCB.isSelected() && root.getChildCount() > 1) {
-            jTree.scrollPathToVisible(new TreePath(new Object[]{root,
-                    treeModel.getChild(root, root.getChildCount() - 1)}));
+            jTree.scrollPathToVisible(
+                    new TreePath(
+                            new Object[] {
+                                root, treeModel.getChild(root, root.getChildCount() - 1)
+                            }));
         }
     }
 
     private Object getSelectedObject() {
         Object oldSelectedElement;
-        DefaultMutableTreeNode oldSelectedNode = (DefaultMutableTreeNode) jTree.getLastSelectedPathComponent();
+        DefaultMutableTreeNode oldSelectedNode =
+                (DefaultMutableTreeNode) jTree.getLastSelectedPathComponent();
         oldSelectedElement = oldSelectedNode == null ? null : oldSelectedNode.getUserObject();
         return oldSelectedElement;
     }
 
-    private TreePath checkExpandedOrSelected(java.util.List<TreeNode> path,
-                                             Object item, Object oldSelectedObject,
-                                             Set<Object> oldExpandedObjects, Set<TreePath> newExpandedPaths,
-                                             TreePath defaultPath) {
+    private TreePath checkExpandedOrSelected(
+            java.util.List<TreeNode> path,
+            Object item,
+            Object oldSelectedObject,
+            Set<Object> oldExpandedObjects,
+            Set<TreePath> newExpandedPaths,
+            TreePath defaultPath) {
         TreePath result = defaultPath;
         if (oldSelectedObject == item) {
             result = toTreePath(path);
@@ -214,10 +243,14 @@ public class ViewResultsFullVisualizerGui extends AbstractVisualizer
         return result;
     }
 
-    private TreePath checkExpandedOrSelected(java.util.List<TreeNode> path,
-                                             Object item, Object oldSelectedObject,
-                                             Set<Object> oldExpandedObjects, Set<TreePath> newExpandedPaths,
-                                             TreePath defaultPath, DefaultMutableTreeNode extensionNode) {
+    private TreePath checkExpandedOrSelected(
+            java.util.List<TreeNode> path,
+            Object item,
+            Object oldSelectedObject,
+            Set<Object> oldExpandedObjects,
+            Set<TreePath> newExpandedPaths,
+            TreePath defaultPath,
+            DefaultMutableTreeNode extensionNode) {
         TreePath result = defaultPath;
         if (oldSelectedObject == item) {
             result = toTreePath(path, extensionNode);
@@ -230,22 +263,28 @@ public class ViewResultsFullVisualizerGui extends AbstractVisualizer
 
     private Set<Object> extractExpandedObjects(final Enumeration<TreePath> expandedElements) {
         if (expandedElements != null) {
-            @SuppressWarnings("unchecked") final java.util.List<TreePath> list = EnumerationUtils.toList(expandedElements);
+            @SuppressWarnings("unchecked")
+            final java.util.List<TreePath> list = EnumerationUtils.toList(expandedElements);
             log.debug("Expanded: {}", list);
-            Set<Object> result = list.stream()
-                    .map(TreePath::getLastPathComponent)
-                    .map(c -> (DefaultMutableTreeNode) c)
-                    .map(DefaultMutableTreeNode::getUserObject)
-                    .collect(Collectors.toSet());
+            Set<Object> result =
+                    list.stream()
+                            .map(TreePath::getLastPathComponent)
+                            .map(c -> (DefaultMutableTreeNode) c)
+                            .map(DefaultMutableTreeNode::getUserObject)
+                            .collect(Collectors.toSet());
             log.debug("Elements: {}", result);
             return result;
         }
         return Collections.emptySet();
     }
 
-    private TreePath addSubResults(DefaultMutableTreeNode currNode,
-                                   SampleResult res, java.util.List<TreeNode> path, Object selectedObject,
-                                   Set<Object> oldExpandedObjects, Set<TreePath> newExpandedPaths) {
+    private TreePath addSubResults(
+            DefaultMutableTreeNode currNode,
+            SampleResult res,
+            java.util.List<TreeNode> path,
+            Object selectedObject,
+            Set<Object> oldExpandedObjects,
+            Set<TreePath> newExpandedPaths) {
         SampleResult[] subResults = res.getSubResults();
 
         int leafIndex = 0;
@@ -258,8 +297,16 @@ public class ViewResultsFullVisualizerGui extends AbstractVisualizer
             treeModel.insertNodeInto(leafNode, currNode, leafIndex++);
             java.util.List<TreeNode> newPath = new ArrayList<>(path);
             newPath.add(leafNode);
-            result = checkExpandedOrSelected(newPath, child, selectedObject, oldExpandedObjects, newExpandedPaths, result);
-            addSubResults(leafNode, child, newPath, selectedObject, oldExpandedObjects, newExpandedPaths);
+            result =
+                    checkExpandedOrSelected(
+                            newPath,
+                            child,
+                            selectedObject,
+                            oldExpandedObjects,
+                            newExpandedPaths,
+                            result);
+            addSubResults(
+                    leafNode, child, newPath, selectedObject, oldExpandedObjects, newExpandedPaths);
             // Add any assertion that failed as children of the sample node
             AssertionResult[] assertionResults = child.getAssertionResults();
             int assertionIndex = leafNode.getChildCount();
@@ -267,9 +314,15 @@ public class ViewResultsFullVisualizerGui extends AbstractVisualizer
                 if (item.isFailure() || item.isError()) {
                     DefaultMutableTreeNode assertionNode = new SearchableTreeNode(item, treeModel);
                     treeModel.insertNodeInto(assertionNode, leafNode, assertionIndex++);
-                    result = checkExpandedOrSelected(path, item,
-                            selectedObject, oldExpandedObjects, newExpandedPaths, result,
-                            assertionNode);
+                    result =
+                            checkExpandedOrSelected(
+                                    path,
+                                    item,
+                                    selectedObject,
+                                    oldExpandedObjects,
+                                    newExpandedPaths,
+                                    result,
+                                    assertionNode);
                 }
             }
         }
@@ -280,16 +333,14 @@ public class ViewResultsFullVisualizerGui extends AbstractVisualizer
         return new TreePath(newPath.toArray(new TreeNode[newPath.size()]));
     }
 
-    private TreePath toTreePath(java.util.List<TreeNode> path,
-                                DefaultMutableTreeNode extensionNode) {
+    private TreePath toTreePath(
+            java.util.List<TreeNode> path, DefaultMutableTreeNode extensionNode) {
         TreeNode[] result = path.toArray(new TreeNode[path.size() + 1]);
         result[result.length - 1] = extensionNode;
         return new TreePath(result);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void clearData() {
         synchronized (buffer) {
@@ -300,18 +351,17 @@ public class ViewResultsFullVisualizerGui extends AbstractVisualizer
         resultsObject = null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getLabelResource() {
         return "view_results_tree_title"; // $NON-NLS-1$
     }
 
-    /**
-     * Initialize this visualizer
-     */
-    private void init(SamplerResultTab samplerResultTab) {  // WARNING: called from ctor so must not be overridden (i.e. must be private or final)
+    /** Initialize this visualizer */
+    private void init(
+            SamplerResultTab
+                    samplerResultTab) { // WARNING: called from ctor so must not be overridden (i.e.
+        // must be private or final)
         log.debug("init() - pass");
         setLayout(new BorderLayout(0, 5));
         setBorder(makeBorder());
@@ -324,10 +374,11 @@ public class ViewResultsFullVisualizerGui extends AbstractVisualizer
         mainSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftSide, rightSide);
         mainSplit.setOneTouchExpandable(true);
 
-        JSplitPane searchAndMainSP = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
-                new SearchTreePanel(root), mainSplit);
+        JSplitPane searchAndMainSP =
+                new JSplitPane(JSplitPane.VERTICAL_SPLIT, new SearchTreePanel(root), mainSplit);
         searchAndMainSP.setOneTouchExpandable(true);
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, makeTitlePanel(), searchAndMainSP);
+        JSplitPane splitPane =
+                new JSplitPane(JSplitPane.VERTICAL_SPLIT, makeTitlePanel(), searchAndMainSP);
         splitPane.setOneTouchExpandable(true);
         add(splitPane);
 
@@ -337,16 +388,14 @@ public class ViewResultsFullVisualizerGui extends AbstractVisualizer
         resultsRender.init();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void valueChanged(TreeSelectionEvent e) {
         valueChanged(e, false);
     }
 
     /**
-     * @param e              {@link TreeSelectionEvent}
+     * @param e {@link TreeSelectionEvent}
      * @param forceRendering boolean
      */
     private void valueChanged(TreeSelectionEvent e, boolean forceRendering) {
@@ -408,7 +457,8 @@ public class ViewResultsFullVisualizerGui extends AbstractVisualizer
         VerticalPanel leftPane = new VerticalPanel();
         leftPane.add(treePane, BorderLayout.CENTER);
         leftPane.add(createComboRender(), BorderLayout.NORTH);
-        autoScrollCB = new JCheckBox(JMeterUtils.getResString("view_results_autoscroll")); // $NON-NLS-1$
+        autoScrollCB =
+                new JCheckBox(JMeterUtils.getResString("view_results_autoscroll")); // $NON-NLS-1$
         autoScrollCB.setSelected(false);
         autoScrollCB.addItemListener(this);
         leftPane.add(autoScrollCB, BorderLayout.SOUTH);
@@ -452,20 +502,25 @@ public class ViewResultsFullVisualizerGui extends AbstractVisualizer
         }
         if (VIEWERS_ORDER.length() > 0) {
             Arrays.stream(VIEWERS_ORDER.split(","))
-                    .map(key -> key.startsWith(".")
-                            ? "org.apache.jmeter.visualizers" + key //$NON-NLS-1$
-                            : key)
-                    .forEach(key -> {
-                        ResultRenderer renderer = map.remove(key);
-                        if (renderer != null) {
-                            selectRenderPanel.addItem(renderer);
-                        } else {
-                            log.warn(
-                                    "Missing (check renderer name) or already added (check doublon) result renderer," +
-                                            " check property 'view.results.tree.renderers_order', renderer name: '{}'",
-                                    key);
-                        }
-                    });
+                    .map(
+                            key ->
+                                    key.startsWith(".")
+                                            ? "org.apache.jmeter.visualizers" + key // $NON-NLS-1$
+                                            : key)
+                    .forEach(
+                            key -> {
+                                ResultRenderer renderer = map.remove(key);
+                                if (renderer != null) {
+                                    selectRenderPanel.addItem(renderer);
+                                } else {
+                                    log.warn(
+                                            "Missing (check renderer name) or already added (check"
+                                                + " doublon) result renderer, check property"
+                                                + " 'view.results.tree.renderers_order', renderer"
+                                                + " name: '{}'",
+                                            key);
+                                }
+                            });
         }
         // Add remaining (plugins or missed in property)
         map.values().forEach(renderer -> selectRenderPanel.addItem(renderer));
@@ -473,9 +528,7 @@ public class ViewResultsFullVisualizerGui extends AbstractVisualizer
         return selectRenderPanel;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void actionPerformed(ActionEvent event) {
         String command = event.getActionCommand();
@@ -518,10 +571,19 @@ public class ViewResultsFullVisualizerGui extends AbstractVisualizer
             int len = res.getResponseDataAsString().length();
             if (MAX_DISPLAY_SIZE > 0 && len > MAX_DISPLAY_SIZE) {
                 StringBuilder builder = new StringBuilder(MAX_DISPLAY_SIZE + 100);
-                builder.append(JMeterUtils.getResString("view_results_response_too_large_message")) //$NON-NLS-1$
-                        .append(len).append(" > Max: ").append(MAX_DISPLAY_SIZE)
-                        .append(", ").append(JMeterUtils.getResString("view_results_response_partial_message")) // $NON-NLS-1$
-                        .append("\n").append(res.getResponseDataAsString().substring(0, MAX_DISPLAY_SIZE)).append("\n...");
+                builder.append(
+                                JMeterUtils.getResString(
+                                        "view_results_response_too_large_message")) //$NON-NLS-1$
+                        .append(len)
+                        .append(" > Max: ")
+                        .append(MAX_DISPLAY_SIZE)
+                        .append(", ")
+                        .append(
+                                JMeterUtils.getResString(
+                                        "view_results_response_partial_message")) // $NON-NLS-1$
+                        .append("\n")
+                        .append(res.getResponseDataAsString().substring(0, MAX_DISPLAY_SIZE))
+                        .append("\n...");
                 response = builder.toString();
             } else {
                 response = res.getResponseDataAsString();
@@ -534,8 +596,14 @@ public class ViewResultsFullVisualizerGui extends AbstractVisualizer
         private static final long serialVersionUID = 4159626601097711565L;
 
         @Override
-        public Component getTreeCellRendererComponent(JTree tree, Object value,
-                                                      boolean sel, boolean expanded, boolean leaf, int row, boolean focus) {
+        public Component getTreeCellRendererComponent(
+                JTree tree,
+                Object value,
+                boolean sel,
+                boolean expanded,
+                boolean leaf,
+                int row,
+                boolean focus) {
             super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, focus);
             boolean failure = true;
             Object userObject = ((DefaultMutableTreeNode) value).getUserObject();
@@ -567,9 +635,7 @@ public class ViewResultsFullVisualizerGui extends AbstractVisualizer
         }
     }
 
-    /**
-     * Handler for Checkbox
-     */
+    /** Handler for Checkbox */
     @Override
     public void itemStateChanged(ItemEvent e) {
         // NOOP state is held by component

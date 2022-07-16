@@ -1,11 +1,12 @@
 package vn.zalopay.benchmark.core.message;
 
-
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.util.JsonFormat;
+
 import org.apache.commons.lang3.StringUtils;
+
 import vn.zalopay.benchmark.exception.GrpcPluginException;
 
 public class Reader {
@@ -20,9 +21,14 @@ public class Reader {
         this.payload = payload;
     }
 
-    public static Reader create(Descriptors.Descriptor descriptor, String payloadData,
-                                JsonFormat.TypeRegistry registry) {
-        return new Reader(JsonFormat.parser().usingTypeRegistry(registry).ignoringUnknownFields(), descriptor, payloadData);
+    public static Reader create(
+            Descriptors.Descriptor descriptor,
+            String payloadData,
+            JsonFormat.TypeRegistry registry) {
+        return new Reader(
+                JsonFormat.parser().usingTypeRegistry(registry).ignoringUnknownFields(),
+                descriptor,
+                payloadData);
     }
 
     public ImmutableList<DynamicMessage> read() {
@@ -41,5 +47,4 @@ public class Reader {
             throw new GrpcPluginException("Unable to read messages from: " + payload, e);
         }
     }
-
 }

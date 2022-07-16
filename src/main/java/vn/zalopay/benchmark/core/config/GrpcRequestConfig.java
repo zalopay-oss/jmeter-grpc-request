@@ -1,37 +1,48 @@
 package vn.zalopay.benchmark.core.config;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 
+@Builder
+@Data
+@AllArgsConstructor
 public class GrpcRequestConfig {
     private int maxInboundMessageSize = 4194304;
     private int maxInboundMetadataSize = 8192;
     private String hostPort;
-    private String testProtoFile;
+    private String protoFolder;
     private String libFolder;
     private String fullMethod;
     private boolean tls;
     private boolean tlsDisableVerification;
     private int awaitTerminationTimeout = 5000;
 
-    public GrpcRequestConfig() {
-    }
+    public GrpcRequestConfig() {}
 
-    public GrpcRequestConfig(String hostPort, String testProtoFile, String libFolder, String fullMethod, boolean tls, boolean tlsDisableVerification, String awaitTerminationTimeout) {
+    public GrpcRequestConfig(
+            String hostPort,
+            String testProtoFile,
+            String libFolder,
+            String fullMethod,
+            boolean tls,
+            boolean tlsDisableVerification,
+            int awaitTerminationTimeout) {
         this.hostPort = hostPort;
-        this.testProtoFile = testProtoFile;
+        this.protoFolder = testProtoFile;
         this.libFolder = libFolder;
         this.fullMethod = fullMethod;
         this.tls = tls;
         this.tlsDisableVerification = tlsDisableVerification;
-        this.awaitTerminationTimeout = convertAwaitTerminationTimeout(awaitTerminationTimeout);
+        this.awaitTerminationTimeout = awaitTerminationTimeout;
     }
-
 
     public String getHostPort() {
         return hostPort;
     }
 
-    public String getTestProtoFile() {
-        return testProtoFile;
+    public String getProtoFolder() {
+        return protoFolder;
     }
 
     public String getLibFolder() {
@@ -54,18 +65,9 @@ public class GrpcRequestConfig {
         return awaitTerminationTimeout;
     }
 
-    private int convertAwaitTerminationTimeout(String awaitTerminationTimeout) {
-        try {
-            return Integer.parseInt(awaitTerminationTimeout);
-        } catch (NumberFormatException e) {
-            return 5000;
-        }
-    }
-
     public int getMaxInboundMessageSize() {
         return maxInboundMessageSize;
     }
-
 
     public int getMaxInboundMetadataSize() {
         return maxInboundMetadataSize;
@@ -73,16 +75,29 @@ public class GrpcRequestConfig {
 
     @Override
     public String toString() {
-        return "GrpcRequestConfig{" +
-                "maxInboundMessageSize=" + maxInboundMessageSize +
-                ", maxInboundMetadataSize=" + maxInboundMetadataSize +
-                ", hostPort='" + hostPort + '\'' +
-                ", testProtoFile='" + testProtoFile + '\'' +
-                ", libFolder='" + libFolder + '\'' +
-                ", fullMethod='" + fullMethod + '\'' +
-                ", tls=" + tls +
-                ", tlsDisableVerification=" + tlsDisableVerification +
-                ", awaitTerminationTimeout=" + awaitTerminationTimeout +
-                '}';
+        return "GrpcRequestConfig{"
+                + "maxInboundMessageSize="
+                + maxInboundMessageSize
+                + ", maxInboundMetadataSize="
+                + maxInboundMetadataSize
+                + ", hostPort='"
+                + hostPort
+                + '\''
+                + ", testProtoFile='"
+                + protoFolder
+                + '\''
+                + ", libFolder='"
+                + libFolder
+                + '\''
+                + ", fullMethod='"
+                + fullMethod
+                + '\''
+                + ", tls="
+                + tls
+                + ", tlsDisableVerification="
+                + tlsDisableVerification
+                + ", awaitTerminationTimeout="
+                + awaitTerminationTimeout
+                + '}';
     }
 }

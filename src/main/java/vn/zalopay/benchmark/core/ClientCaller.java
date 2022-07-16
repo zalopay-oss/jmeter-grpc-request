@@ -9,9 +9,11 @@ import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.util.JsonFormat;
+
 import io.grpc.CallOptions;
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
+
 import vn.zalopay.benchmark.core.channel.ComponentObserver;
 import vn.zalopay.benchmark.core.config.GrpcRequestConfig;
 import vn.zalopay.benchmark.core.grpc.ChannelFactory;
@@ -42,16 +44,29 @@ public class ClientCaller {
     private boolean tls;
     private boolean disableTtlVerification;
     private int awaitTerminationTimeout;
+    private GrpcRequestConfig requestConfig;
     ChannelFactory channelFactory;
 
     public ClientCaller(GrpcRequestConfig requestConfig) {
-        this.init(requestConfig.getHostPort(), requestConfig.getTestProtoFile(), requestConfig.getLibFolder(),
-                requestConfig.getFullMethod(), requestConfig.isTls(), requestConfig.isTlsDisableVerification(),
+        this.requestConfig = requestConfig;
+        this.init(
+                requestConfig.getHostPort(),
+                requestConfig.getProtoFolder(),
+                requestConfig.getLibFolder(),
+                requestConfig.getFullMethod(),
+                requestConfig.isTls(),
+                requestConfig.isTlsDisableVerification(),
                 requestConfig.getAwaitTerminationTimeout());
     }
 
-    private void init(String hostPort, String testProtoFiles, String libFolder, String fullMethod, boolean tls,
-                      boolean tlsDisableVerification, int awaitTerminationTimeout) {
+    private void init(
+            String hostPort,
+            String testProtoFiles,
+            String libFolder,
+            String fullMethod,
+            boolean tls,
+            boolean tlsDisableVerification,
+            int awaitTerminationTimeout) {
         try {
             this.awaitTerminationTimeout = awaitTerminationTimeout;
             this.tls = tls;
@@ -68,19 +83,23 @@ public class ClientCaller {
                 fileDescriptorSet = ProtocInvoker.forConfig(testProtoFiles, libFolder).invoke();
             } catch (Exception e) {
                 shutdownNettyChannel();
-                throw new RuntimeException("Unable to resolve service by invoking protoc: \n" + e.getMessage(), e);
+                throw new RuntimeException(
+                        "Unable to resolve service by invoking protoc: \n" + e.getMessage(), e);
             }
 
             // Set up the dynamic client and make the call.
-            ServiceResolver serviceResolver = ServiceResolver.fromFileDescriptorSet(fileDescriptorSet);
+            ServiceResolver serviceResolver =
+                    ServiceResolver.fromFileDescriptorSet(fileDescriptorSet);
             methodDescriptor = serviceResolver.resolveServiceMethod(grpcMethodName);
 
             createDynamicClient();
 
-            // This collects all known types into a registry for resolution of potential "Any" types.
-            registry = JsonFormat.TypeRegistry.newBuilder()
-                    .add(serviceResolver.listMessageTypes())
-                    .build();
+            // This collects all known types into a registry for resolution of potential "Any"
+            // types.
+            registry =
+                    JsonFormat.TypeRegistry.newBuilder()
+                            .add(serviceResolver.listMessageTypes())
+                            .build();
         } catch (Throwable t) {
             shutdownNettyChannel();
             throw t;
@@ -101,15 +120,21 @@ public class ClientCaller {
                     metadataHash.put(entry.getKey(), (String) entry.getValue());
                 }
             } catch (Exception e) {
-                Preconditions.checkArgument(1 == 2,
-                        "Metadata entry must be valid JSON String or in key1:value1,key2:value2 format if not JsonString but found: " + metadata);
+                Preconditions.checkArgument(
+                        1 == 2,
+                        "Metadata entry must be valid JSON String or in key1:value1,key2:value2"
+                                + " format if not JsonString but found: "
+                                + metadata);
             }
         } else {
             String[] keyValue;
             for (String part : metadata.split(",")) {
                 keyValue = part.split(":", 2);
-                Preconditions.checkArgument(keyValue.length == 2,
-                        "Metadata entry must be valid JSON String or in key1:value1,key2:value2 format if not JsonString but found: " + metadata);
+                Preconditions.checkArgument(
+                        keyValue.length == 2,
+                        "Metadata entry must be valid JSON String or in key1:value1,key2:value2"
+                                + " format if not JsonString but found: "
+                                + metadata);
                 String value = keyValue[1];
                 try {
                     value = URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8.name());
@@ -124,7 +149,14 @@ public class ClientCaller {
     }
 
     public void createDynamicClient() {
-        channel = channelFactory.createChannel(hostAndPort, tls, disableTtlVerification, metadataMap);
+        channel =
+                channelFactory.createChannel(
+                        hostAndPort,
+                        tls,
+                        disableTtlVerification,
+                        metadataMap,
+                        requestConfig.getMaxInboundMessageSize(),
+                        requestConfig.getMaxInboundMetadataSize());
         dynamicClient = DynamicGrpcClient.create(methodDescriptor, channel);
     }
 
@@ -140,8 +172,12 @@ public class ClientCaller {
         try {
             metadataMap.clear();
             metadataMap.putAll(buildHashMetadata(metadata));
-            requestMessages = Reader.create(methodDescriptor.getInputType(), jsonData, registry).read();
-            return JsonFormat.printer().includingDefaultValueFields().usingTypeRegistry(registry).print(requestMessages.get(0));
+            requestMessages =
+                    Reader.create(methodDescriptor.getInputType(), jsonData, registry).read();
+            return JsonFormat.printer()
+                    .includingDefaultValueFields()
+                    .usingTypeRegistry(registry)
+                    .print(requestMessages.get(0));
         } catch (IllegalArgumentException e) {
             shutdownNettyChannel();
             throw e;
@@ -154,10 +190,13 @@ public class ClientCaller {
     public GrpcResponse call(String deadlineMs) {
         long deadline = parsingDeadlineTime(deadlineMs);
         GrpcResponse grpcResponse = new GrpcResponse();
-        StreamObserver<DynamicMessage> streamObserver = ComponentObserver.of(Writer.create(grpcResponse, registry));
+        StreamObserver<DynamicMessage> streamObserver =
+                ComponentObserver.of(Writer.create(grpcResponse, registry));
         try {
-            dynamicClient.blockingUnaryCall(requestMessages, streamObserver, callOptions(deadline)).get();
-        } catch (Throwable t) {
+            dynamicClient
+                    .blockingUnaryCall(requestMessages, streamObserver, callOptions(deadline))
+                    .get();
+        } catch (Exception e) {
             shutdownNettyChannel();
         }
 
@@ -167,10 +206,13 @@ public class ClientCaller {
     public GrpcResponse callServerStreaming(String deadlineMs) {
         long deadline = parsingDeadlineTime(deadlineMs);
         GrpcResponse grpcResponse = new GrpcResponse();
-        StreamObserver<DynamicMessage> streamObserver = ComponentObserver.of(Writer.create(grpcResponse, registry));
+        StreamObserver<DynamicMessage> streamObserver =
+                ComponentObserver.of(Writer.create(grpcResponse, registry));
         try {
-            dynamicClient.callServerStreaming(requestMessages, streamObserver, callOptions(deadline)).get();
-        } catch (Throwable t) {
+            dynamicClient
+                    .callServerStreaming(requestMessages, streamObserver, callOptions(deadline))
+                    .get();
+        } catch (Exception e) {
             shutdownNettyChannel();
         }
 
@@ -180,12 +222,19 @@ public class ClientCaller {
     public GrpcResponse callClientStreaming(String deadlineMs) {
         long deadline = parsingDeadlineTime(deadlineMs);
         GrpcResponse output = new GrpcResponse();
-        StreamObserver<DynamicMessage> streamObserver = ComponentObserver.of(Writer.create(output, registry));
+        StreamObserver<DynamicMessage> streamObserver =
+                ComponentObserver.of(Writer.create(output, registry));
         try {
-            dynamicClient.callClientStreaming(requestMessages, streamObserver, callOptions(deadline)).get();
-        } catch (Throwable t) {
+            dynamicClient
+                    .callClientStreaming(requestMessages, streamObserver, callOptions(deadline))
+                    .get();
+        } catch (Exception e) {
             shutdownNettyChannel();
-            throw new RuntimeException("Caught exception while waiting for rpc", t);
+            throw new RuntimeException(
+                    String.format(
+                            "Caught exception while waiting for rpc %s",
+                            getDetailedErrorSendGRPC(e)),
+                    e);
         }
         return output;
     }
@@ -193,12 +242,19 @@ public class ClientCaller {
     public GrpcResponse callBidiStreaming(String deadlineMs) {
         long deadline = parsingDeadlineTime(deadlineMs);
         GrpcResponse output = new GrpcResponse();
-        StreamObserver<DynamicMessage> streamObserver = ComponentObserver.of(Writer.create(output, registry));
+        StreamObserver<DynamicMessage> streamObserver =
+                ComponentObserver.of(Writer.create(output, registry));
         try {
-            dynamicClient.callBidiStreaming(requestMessages, streamObserver, callOptions(deadline)).get();
-        } catch (Throwable t) {
+            dynamicClient
+                    .callBidiStreaming(requestMessages, streamObserver, callOptions(deadline))
+                    .get();
+        } catch (Exception e) {
             shutdownNettyChannel();
-            throw new RuntimeException("Caught exception while waiting for rpc", t);
+            throw new RuntimeException(
+                    String.format(
+                            "Caught exception while waiting for rpc %s",
+                            getDetailedErrorSendGRPC(e)),
+                    e);
         }
         return output;
     }
@@ -231,9 +287,20 @@ public class ClientCaller {
     }
 
     public String getMetadataString() {
-        return metadataMap.entrySet()
-                .stream()
+        return metadataMap.entrySet().stream()
                 .map(e -> e.getKey() + ": " + e.getValue())
                 .collect(Collectors.joining("\n"));
+    }
+
+    private String getDetailedErrorSendGRPC(Exception e) {
+        StringBuilder sb = new StringBuilder();
+        Throwable t = e.getCause();
+        while (t != null) {
+            sb.append("\n");
+            sb.append(t.toString() + ".");
+            sb.append("\n");
+            t = t.getCause();
+        }
+        return sb.toString();
     }
 }

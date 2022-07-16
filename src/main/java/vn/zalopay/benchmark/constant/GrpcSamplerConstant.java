@@ -8,9 +8,8 @@ package vn.zalopay.benchmark.constant;
  */
 public class GrpcSamplerConstant {
 
-    /**
-     * Client exception message - http 400
-     */
-    public static final String CLIENT_EXCEPTION_MSG = " GRPCSampler parsing exception: An unknown exception occurred before the GRPC request was initiated, See response body for the stack trace.";
-
+    /** Client exception message - http 400 */
+    public static final String CLIENT_EXCEPTION_MSG =
+            " GRPCSampler parsing exception: An unknown exception occurred before the GRPC request"
+                    + " was initiated, See response body for the stack trace.";
 }

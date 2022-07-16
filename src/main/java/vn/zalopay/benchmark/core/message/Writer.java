@@ -3,9 +3,12 @@ package vn.zalopay.benchmark.core.message;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
 import com.google.protobuf.util.JsonFormat;
+
 import io.grpc.stub.StreamObserver;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import vn.zalopay.benchmark.core.specification.GrpcResponse;
 
 public class Writer<T extends Message> implements StreamObserver<T> {
@@ -20,11 +23,9 @@ public class Writer<T extends Message> implements StreamObserver<T> {
         this.grpcResponse = grpcResponse;
     }
 
-    /**
-     * Creates a new Writer which writes the messages it sees to the supplied
-     * Output.
-     */
-    public static <T extends Message> Writer<T> create(GrpcResponse grpcResponse, JsonFormat.TypeRegistry registry) {
+    /** Creates a new Writer which writes the messages it sees to the supplied Output. */
+    public static <T extends Message> Writer<T> create(
+            GrpcResponse grpcResponse, JsonFormat.TypeRegistry registry) {
         return new Writer<>(JsonFormat.printer().usingTypeRegistry(registry), grpcResponse);
     }
 
@@ -48,5 +49,4 @@ public class Writer<T extends Message> implements StreamObserver<T> {
             LOGGER.warn(e.getMessage());
         }
     }
-
 }

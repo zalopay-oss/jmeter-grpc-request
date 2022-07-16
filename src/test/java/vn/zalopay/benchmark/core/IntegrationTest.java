@@ -1,6 +1,10 @@
 package vn.zalopay.benchmark.core;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import com.google.common.net.HostAndPort;
+
 import org.apache.jmeter.config.Arguments;
 import org.apache.jmeter.config.gui.ArgumentsPanel;
 import org.apache.jmeter.control.LoopController;
@@ -20,6 +24,7 @@ import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jorphan.collections.HashTree;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+
 import vn.zalopay.benchmark.GRPCSampler;
 
 import java.io.FileOutputStream;
@@ -28,9 +33,6 @@ import java.io.Serializable;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 public class IntegrationTest extends BaseTest {
     private static volatile List<SampleResult> sampleResults = new ArrayList<>();
@@ -73,11 +75,14 @@ public class IntegrationTest extends BaseTest {
         HashTree threadGroupHashTree = testPlanTree.add(testPlan, threadGroup);
         threadGroupHashTree.add(createGrpcSampler());
 
-        SaveService.saveTree(testPlanTree, new FileOutputStream(Paths.get(TEMP_JMETER_HOME.toString(), "IntegrationTest.jmx").toString()));
-        //add Summarizer output to get test progress in stdout like:
+        SaveService.saveTree(
+                testPlanTree,
+                new FileOutputStream(
+                        Paths.get(TEMP_JMETER_HOME.toString(), "IntegrationTest.jmx").toString()));
+        // add Summarizer output to get test progress in stdout like:
         // Store execution results into a .jtl file
         IntegrationTestResultCollector testResult = new IntegrationTestResultCollector();
-        testPlanTree.add(testPlanTree.getArray()[0], new Object[]{testResult});
+        testPlanTree.add(testPlanTree.getArray()[0], new Object[] {testResult});
 
         // Run Test Plan
         jmeter.configure(testPlanTree);
@@ -85,9 +90,12 @@ public class IntegrationTest extends BaseTest {
         // Assert
         Assert.assertEquals(sampleResults.size(), 100);
         sampleResults.forEach(s -> Assert.assertEquals(s.getResponseCode(), "200"));
-        sampleResults.forEach(s -> assertThat(new String(s.getResponseData()), containsString("\"theme\": \"Hello server")));
+        sampleResults.forEach(
+                s ->
+                        assertThat(
+                                new String(s.getResponseData()),
+                                containsString("\"theme\": \"Hello server")));
     }
-
 
     private GRPCSampler createGrpcSampler() {
         HostAndPort hostAndPort = HostAndPort.fromString(HOST_PORT);
@@ -106,11 +114,15 @@ public class IntegrationTest extends BaseTest {
         return grpcSampler;
     }
 
-    class IntegrationTestResultCollector extends AbstractListenerElement implements SampleListener, Clearable, Serializable, TestStateListener, Remoteable, NoThreadClone {
+    class IntegrationTestResultCollector extends AbstractListenerElement
+            implements SampleListener,
+                    Clearable,
+                    Serializable,
+                    TestStateListener,
+                    Remoteable,
+                    NoThreadClone {
 
-        public IntegrationTestResultCollector() {
-        }
-
+        public IntegrationTestResultCollector() {}
 
         @Override
         public synchronized void sampleOccurred(SampleEvent sampleEvent) {
@@ -119,32 +131,24 @@ public class IntegrationTest extends BaseTest {
         }
 
         @Override
-        public void sampleStarted(SampleEvent sampleEvent) {
-        }
+        public void sampleStarted(SampleEvent sampleEvent) {}
 
         @Override
-        public void sampleStopped(SampleEvent sampleEvent) {
-        }
+        public void sampleStopped(SampleEvent sampleEvent) {}
 
         @Override
-        public void clearData() {
-
-        }
+        public void clearData() {}
 
         @Override
-        public void testStarted() {
-        }
+        public void testStarted() {}
 
         @Override
-        public void testStarted(String s) {
-        }
+        public void testStarted(String s) {}
 
         @Override
-        public void testEnded() {
-        }
+        public void testEnded() {}
 
         @Override
-        public void testEnded(String s) {
-        }
+        public void testEnded(String s) {}
     }
 }

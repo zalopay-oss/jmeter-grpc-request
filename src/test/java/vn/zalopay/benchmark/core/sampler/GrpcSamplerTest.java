@@ -2,11 +2,13 @@ package vn.zalopay.benchmark.core.sampler;
 
 import com.google.common.net.HostAndPort;
 import com.google.protobuf.util.JsonFormat;
+
 import org.apache.jmeter.samplers.SampleResult;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+
 import vn.zalopay.benchmark.GRPCSampler;
 import vn.zalopay.benchmark.constant.GrpcSamplerConstant;
 import vn.zalopay.benchmark.core.BaseTest;
@@ -34,8 +36,13 @@ public class GrpcSamplerTest extends BaseTest {
         grpcSampler.setRequestJson(REQUEST_JSON);
         grpcSampler.threadStarted();
         SampleResult sampleResult = grpcSampler.sample(null);
+        String responseData = new String(sampleResult.getResponseData());
         Assert.assertEquals(sampleResult.getResponseCode(), "200");
-        Assert.assertTrue(new String(sampleResult.getResponseData()).contains("\"theme\": \"Hello server"));
+        Assert.assertTrue(
+                responseData.contains("\"theme\": \"Hello server"),
+                String.format(
+                        "Actual: [%s] %n Expected: [%s]",
+                        responseData, "\"theme\": \"Hello server"));
     }
 
     @Test
@@ -58,13 +65,28 @@ public class GrpcSamplerTest extends BaseTest {
         SampleResult sampleResult1 = grpcSampler.sample(null);
         SampleResult sampleResult2 = grpcSampler.sample(null);
         SampleResult sampleResult3 = grpcSampler.sample(null);
-        System.err.println(new String(sampleResult3.getResponseData()));
+        String responseData1 = new String(sampleResult1.getResponseData());
+        String responseData2 = new String(sampleResult2.getResponseData());
+        String responseData3 = new String(sampleResult3.getResponseData());
+
         Assert.assertEquals(sampleResult1.getResponseCode(), "200");
-        Assert.assertTrue(new String(sampleResult1.getResponseData()).contains("\"theme\": \"Hello server"));
+        Assert.assertTrue(
+                responseData1.contains("\"theme\": \"Hello server"),
+                String.format(
+                        "Actual: [%s] %n Expected: [%s]",
+                        responseData1, "\"theme\": \"Hello server"));
         Assert.assertEquals(sampleResult2.getResponseCode(), "200");
-        Assert.assertTrue(new String(sampleResult2.getResponseData()).contains("\"theme\": \"Hello server"));
+        Assert.assertTrue(
+                responseData2.contains("\"theme\": \"Hello server"),
+                String.format(
+                        "Actual: [%s] %n Expected: [%s]",
+                        responseData2, "\"theme\": \"Hello server"));
         Assert.assertEquals(sampleResult3.getResponseCode(), "200");
-        Assert.assertTrue(new String(sampleResult3.getResponseData()).contains("\"theme\": \"Hello server"));
+        Assert.assertTrue(
+                responseData3.contains("\"theme\": \"Hello server"),
+                String.format(
+                        "Actual: [%s] %n Expected: [%s]",
+                        responseData3, "\"theme\": \"Hello server"));
     }
 
     @Test
@@ -85,8 +107,13 @@ public class GrpcSamplerTest extends BaseTest {
         grpcSampler.threadStarted();
         SampleResult sampleResult = grpcSampler.sample(null);
         grpcSampler.threadFinished();
+        String responseData = new String(sampleResult.getResponseData());
         Assert.assertEquals(sampleResult.getResponseCode(), "200");
-        Assert.assertTrue(new String(sampleResult.getResponseData()).contains("\"theme\": \"Hello server"));
+        Assert.assertTrue(
+                responseData.contains("\"theme\": \"Hello server"),
+                String.format(
+                        "Actual: [%s] %n Expected: [%s]",
+                        responseData, "\"theme\": \"Hello server"));
     }
 
     @Test
@@ -109,7 +136,11 @@ public class GrpcSamplerTest extends BaseTest {
         grpcSampler.threadFinished();
         grpcSampler.clear();
         Assert.assertEquals(sampleResult.getResponseCode(), " 500");
-        Assert.assertTrue(sampleResult.getResponseMessage().contains("4 DEADLINE_EXCEEDED"));
+        Assert.assertTrue(
+                sampleResult.getResponseMessage().contains("4 DEADLINE_EXCEEDED"),
+                String.format(
+                        "Actual: [%s] %n Expected: [%s]",
+                        sampleResult.getResponseMessage(), "4 DEADLINE_EXCEEDED"));
     }
 
     @Test
@@ -120,7 +151,13 @@ public class GrpcSamplerTest extends BaseTest {
         Mockito.doNothing().when(writer).onError(Mockito.any(Throwable.class));
         Mockito.doNothing().when(writer).onNext(Mockito.any(com.google.protobuf.Message.class));
         Mockito.when(clientCaller.call("500")).thenThrow(new RuntimeException("Dummy Exception"));
-        writerSatic.when(() -> Writer.create(Mockito.any(GrpcResponse.class), Mockito.any(JsonFormat.TypeRegistry.class))).thenAnswer((i) -> writer);
+        writerSatic
+                .when(
+                        () ->
+                                Writer.create(
+                                        Mockito.any(GrpcResponse.class),
+                                        Mockito.any(JsonFormat.TypeRegistry.class)))
+                .thenAnswer((i) -> writer);
         HostAndPort hostAndPort = HostAndPort.fromString(HOST_PORT);
         GRPCSampler grpcSampler = new GRPCSampler();
         grpcSampler.setComment("dummyComment");
@@ -138,8 +175,13 @@ public class GrpcSamplerTest extends BaseTest {
         SampleResult sampleResult = grpcSampler.sample(null);
         grpcSampler.threadFinished();
         grpcSampler.clear();
+        String responseData = new String(sampleResult.getResponseData());
         Assert.assertEquals(sampleResult.getResponseCode(), " 500");
-        Assert.assertTrue(new String(sampleResult.getResponseMessage()).contains(" The stack trace is null"));
+        Assert.assertTrue(
+                responseData.contains(" The stack trace is null"),
+                String.format(
+                        "Actual: [%s] %n Expected: [%s]",
+                        responseData, " The stack trace is null"));
     }
 
     @Test
@@ -161,10 +203,18 @@ public class GrpcSamplerTest extends BaseTest {
         grpcSampler.threadStarted();
         SampleResult sampleResult = grpcSampler.sample(null);
         Assert.assertEquals(sampleResult.getResponseCode(), " 400");
-        Assert.assertEquals(sampleResult.getResponseMessage(), GrpcSamplerConstant.CLIENT_EXCEPTION_MSG);
-        String s = new String(sampleResult.getResponseData());
-        System.out.println(s);
-        Assert.assertTrue(new String(sampleResult.getResponseData()).contains("invalid.proto:11:1: File recursively imports itself: invalid.proto -> invalid.proto"));
+        Assert.assertEquals(
+                sampleResult.getResponseMessage(), GrpcSamplerConstant.CLIENT_EXCEPTION_MSG);
+        String responseData = new String(sampleResult.getResponseData());
+        Assert.assertTrue(
+                responseData.contains(
+                        "java.lang.RuntimeException: Unable to resolve service by invoking"
+                                + " protoc:"),
+                String.format(
+                        "Actual: [%s] %n Expected: [%s]",
+                        responseData,
+                        "java.lang.RuntimeException: Unable to resolve service by invoking"
+                                + " protoc:"));
     }
 
     @Test
@@ -185,9 +235,15 @@ public class GrpcSamplerTest extends BaseTest {
         grpcSampler.setRequestJson(REQUEST_JSON);
         grpcSampler.threadStarted();
         SampleResult sampleResult = grpcSampler.sample(null);
+        String responseData = new String(sampleResult.getResponseData());
         Assert.assertEquals(sampleResult.getResponseCode(), " 400");
-        Assert.assertEquals(sampleResult.getResponseMessage(), GrpcSamplerConstant.CLIENT_EXCEPTION_MSG);
-        Assert.assertTrue(new String(sampleResult.getResponseData()).contains("Unable to find method Invalid in service Bookstore"));
+        Assert.assertEquals(
+                sampleResult.getResponseMessage(), GrpcSamplerConstant.CLIENT_EXCEPTION_MSG);
+        Assert.assertTrue(
+                responseData.contains("Unable to find method Invalid in service Bookstore"),
+                String.format(
+                        "Actual: [%s] %n Expected: [%s]",
+                        responseData, "Unable to find method Invalid in service Bookstore"));
     }
 
     @Test
@@ -209,8 +265,13 @@ public class GrpcSamplerTest extends BaseTest {
         SampleResult sampleResult = grpcSampler.sample(null);
         grpcSampler.threadFinished();
         grpcSampler.threadFinished();
+        String responseData = new String(sampleResult.getResponseData());
         Assert.assertEquals(sampleResult.getResponseCode(), "200");
-        Assert.assertTrue(new String(sampleResult.getResponseData()).contains("\"theme\": \"Hello server"));
+        Assert.assertTrue(
+                responseData.contains("\"theme\": \"Hello server"),
+                String.format(
+                        "Actual: [%s] %n Expected: [%s]",
+                        responseData, "\"theme\": \"Hello server"));
     }
 
     @Test
@@ -231,7 +292,11 @@ public class GrpcSamplerTest extends BaseTest {
         grpcSampler.setRequestJson(METADATA_REQUEST_JSON);
         grpcSampler.threadStarted();
         SampleResult sampleResult = grpcSampler.sample(null);
+        String responseData = new String(sampleResult.getResponseData());
         Assert.assertEquals(sampleResult.getResponseCode(), "200");
-        Assert.assertTrue(new String(sampleResult.getResponseData()).contains(EXPECTED_RESPONSE_DATA));
+        Assert.assertTrue(
+                responseData.contains(EXPECTED_RESPONSE_DATA),
+                String.format(
+                        "Actual: [%s] %n Expected: [%s]", responseData, EXPECTED_RESPONSE_DATA));
     }
 }

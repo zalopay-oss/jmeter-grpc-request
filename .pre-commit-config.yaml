@@ -1,0 +1,36 @@
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: master
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false
+
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.3.0
+  hooks:
+  - id: check-added-large-files
+  - id: debug-statements
+    exclude: dist/
+  - id: check-merge-conflict
+  - id: end-of-file-fixer
+    files: ^.*\.java$
+    exclude: (pom.xml|dist/)
+  - id: trailing-whitespace
+    exclude: dist/
+  - id: detect-private-key
+    exclude: dist/
+
+- repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+  rev: v2.4.0
+  hooks:
+  - id: pretty-format-java
+    args: [--aosp, --autofix]
+    exclude: dist/
+  - id: pretty-format-yaml
+    args: [--autofix, --indent, '2']
+    exclude: dist/

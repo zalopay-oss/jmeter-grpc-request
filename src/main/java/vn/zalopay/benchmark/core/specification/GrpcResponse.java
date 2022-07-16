@@ -40,5 +40,4 @@ public class GrpcResponse {
 
         return output.toString();
     }
-
 }
