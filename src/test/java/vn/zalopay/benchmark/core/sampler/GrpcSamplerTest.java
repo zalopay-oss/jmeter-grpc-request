@@ -145,13 +145,13 @@ public class GrpcSamplerTest extends BaseTest {
 
     @Test
     public void testCanSendSampleRequestWithErrorNullResponse() {
-        MockedStatic<Writer> writerSatic = Mockito.mockStatic(Writer.class);
+        MockedStatic<Writer> writerStatic = Mockito.mockStatic(Writer.class);
         ClientCaller clientCaller = Mockito.mock(ClientCaller.class);
         Writer writer = Mockito.mock(Writer.class);
         Mockito.doNothing().when(writer).onError(Mockito.any(Throwable.class));
         Mockito.doNothing().when(writer).onNext(Mockito.any(com.google.protobuf.Message.class));
         Mockito.when(clientCaller.call("500")).thenThrow(new RuntimeException("Dummy Exception"));
-        writerSatic
+        writerStatic
                 .when(
                         () ->
                                 Writer.create(
