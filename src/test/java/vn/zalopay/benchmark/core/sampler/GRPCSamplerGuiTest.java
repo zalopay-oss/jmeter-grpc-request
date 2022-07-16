@@ -403,7 +403,16 @@ public class GRPCSamplerGuiTest extends BaseTest {
                         + "\t\"number8\":1.4,\n"
                         + "\t\"number9\":1600,\n"
                         + "\t\"number10\":1.1,\n"
-                        + "\t\"check\":true\n"
+                        + "\t\"check\":true,\n"
+                        + "\t\"number11\":100,\n"
+                        + "\t\"number12\":1200,\n"
+                        + "\t\"number13\":1500,\n"
+                        + "\t\"map\":[\n"
+                        + "\t\t{\n"
+                        + "\t\t\t\"key\":\"Hello\",\n"
+                        + "\t\t\t\"value\":\"Hello\"\n"
+                        + "\t\t}\n"
+                        + "\t]\n"
                         + "}");
         frame.dispose();
     }

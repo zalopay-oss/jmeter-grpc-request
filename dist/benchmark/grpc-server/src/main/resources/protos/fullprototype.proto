@@ -42,6 +42,10 @@ message HelloRequest {
   sfixed32 number9 = 11;
   float number10 = 12;
   bool check = 13;
+  sint32 number11 = 14;
+  sint64 number12 = 15;
+  fixed64 number13 = 16;
+  map<string, string> map = 17;
 
 }
 
