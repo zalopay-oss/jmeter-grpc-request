@@ -6,6 +6,7 @@ import static org.mockito.Mockito.mockConstructionWithAnswer;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
 
+import io.grpc.StatusRuntimeException;
 import io.grpc.netty.GrpcSslContexts;
 import io.netty.handler.ssl.ApplicationProtocolConfig;
 import io.netty.handler.ssl.ApplicationProtocolNames;
@@ -286,7 +287,7 @@ public class ClientCallerTest extends BaseTest {
 
     @Test(
             expectedExceptions = RuntimeException.class,
-            expectedExceptionsMessageRegExp = "Unable to resolve service by invoking protoc")
+            expectedExceptionsMessageRegExp = "Unable to resolve service by invoking protoc.*")
     public void testThrowExceptionWithExceptionInProtocInvoke() {
         MockedStatic<ProtocInvoker> protocInvoker = Mockito.mockStatic(ProtocInvoker.class);
         protocInvoker
@@ -361,21 +362,21 @@ public class ClientCallerTest extends BaseTest {
     }
 
     @Test(
-            expectedExceptions = RuntimeException.class,
-            expectedExceptionsMessageRegExp = "Caught exception while " + "waiting for rpc.*")
-    public void testThrowExceptionWithTimeoutRequest() {
+            expectedExceptions = StatusRuntimeException.class,
+            expectedExceptionsMessageRegExp = "DEADLINE_EXCEEDED: .*")
+    public void testThrowExceptionWithTimeoutRequest() throws Throwable {
         clientCaller = new ClientCaller(DEFAULT_GRPC_REQUEST_CONFIG);
         clientCaller.buildRequestAndMetadata(REQUEST_JSON, METADATA);
         GrpcResponse resp = clientCaller.call("1");
         clientCaller.shutdownNettyChannel();
         Assert.assertNotNull(resp);
-        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
+        throw resp.getThrowable();
     }
 
     @Test(
-            expectedExceptions = RuntimeException.class,
-            expectedExceptionsMessageRegExp = "Caught exception while " + "waiting for rpc.*")
-    public void testThrowExceptionWithTimeoutRequestServerStream() {
+            expectedExceptions = StatusRuntimeException.class,
+            expectedExceptionsMessageRegExp = "DEADLINE_EXCEEDED: .*")
+    public void testThrowExceptionWithTimeoutRequestServerStream() throws Throwable {
         GrpcRequestConfig grpcRequestConfig =
                 new GrpcRequestConfig(
                         HOST_PORT,
@@ -390,7 +391,7 @@ public class ClientCallerTest extends BaseTest {
         GrpcResponse resp = clientCaller.callServerStreaming("1");
         clientCaller.shutdownNettyChannel();
         Assert.assertNotNull(resp);
-        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
+        throw resp.getThrowable();
     }
 
     @Test(

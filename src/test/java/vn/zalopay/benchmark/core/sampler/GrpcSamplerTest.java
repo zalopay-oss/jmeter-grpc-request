@@ -10,6 +10,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import vn.zalopay.benchmark.GRPCSampler;
+import vn.zalopay.benchmark.constant.GrpcSamplerConstant;
 import vn.zalopay.benchmark.core.BaseTest;
 import vn.zalopay.benchmark.core.ClientCaller;
 import vn.zalopay.benchmark.core.message.Writer;
@@ -114,10 +115,8 @@ public class GrpcSamplerTest extends BaseTest {
         SampleResult sampleResult = grpcSampler.sample(null);
         grpcSampler.threadFinished();
         grpcSampler.clear();
-        Assert.assertEquals(sampleResult.getResponseCode(), "500");
-        Assert.assertTrue(
-                new String(sampleResult.getResponseData())
-                        .contains("io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED:"));
+        Assert.assertEquals(sampleResult.getResponseCode(), " 500");
+        Assert.assertTrue(sampleResult.getResponseMessage().contains("4 DEADLINE_EXCEEDED"));
     }
 
     @Test
@@ -152,10 +151,65 @@ public class GrpcSamplerTest extends BaseTest {
         SampleResult sampleResult = grpcSampler.sample(null);
         grpcSampler.threadFinished();
         grpcSampler.clear();
-        Assert.assertEquals(sampleResult.getResponseCode(), "500");
+        Assert.assertEquals(sampleResult.getResponseCode(), " 500");
+        Assert.assertTrue(
+                new String(sampleResult.getResponseMessage()).contains(" The stack trace is null"));
+    }
+
+    @Test
+    public void testCanSendSampleRequestWithErrorProtoFolder() {
+        HostAndPort hostAndPort = HostAndPort.fromString(HOST_PORT);
+        GRPCSampler grpcSampler = new GRPCSampler();
+        grpcSampler.setComment("dummyComment");
+        grpcSampler.setProtoFolder(PROTO_PATH_WITH_ERROR_IMPORT_FOLDER.toString());
+        grpcSampler.setLibFolder(LIB_FOLDER.toString());
+        grpcSampler.setMetadata(METADATA);
+        grpcSampler.setHost(hostAndPort.getHost());
+        grpcSampler.setPort(Integer.toString(hostAndPort.getPort()));
+        grpcSampler.setFullMethod(FULL_METHOD_INVALID);
+        grpcSampler.setDeadline("2000");
+        grpcSampler.setTls(false);
+        grpcSampler.setTlsDisableVerification(false);
+        grpcSampler.setChannelShutdownAwaitTime("5000");
+        grpcSampler.setRequestJson(REQUEST_JSON);
+        grpcSampler.threadStarted();
+        SampleResult sampleResult = grpcSampler.sample(null);
+        Assert.assertEquals(sampleResult.getResponseCode(), " 400");
+        Assert.assertEquals(
+                sampleResult.getResponseMessage(), GrpcSamplerConstant.CLIENT_EXCEPTION_MSG);
+        String s = new String(sampleResult.getResponseData());
+        System.out.println(s);
         Assert.assertTrue(
                 new String(sampleResult.getResponseData())
-                        .contains("io.grpc.StatusRuntimeException: DEADLINE_EXCEEDED"));
+                        .contains(
+                                "invalid.proto:11:1: File recursively imports itself: invalid.proto"
+                                        + " -> invalid.proto"));
+    }
+
+    @Test
+    public void testCanSendSampleRequestWithErrorFullMethod() {
+        HostAndPort hostAndPort = HostAndPort.fromString(HOST_PORT);
+        GRPCSampler grpcSampler = new GRPCSampler();
+        grpcSampler.setComment("dummyComment");
+        grpcSampler.setProtoFolder(PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString());
+        grpcSampler.setLibFolder(LIB_FOLDER.toString());
+        grpcSampler.setMetadata(METADATA);
+        grpcSampler.setHost(hostAndPort.getHost());
+        grpcSampler.setPort(Integer.toString(hostAndPort.getPort()));
+        grpcSampler.setFullMethod(FULL_METHOD_INVALID);
+        grpcSampler.setDeadline("2000");
+        grpcSampler.setTls(false);
+        grpcSampler.setTlsDisableVerification(false);
+        grpcSampler.setChannelShutdownAwaitTime("5000");
+        grpcSampler.setRequestJson(REQUEST_JSON);
+        grpcSampler.threadStarted();
+        SampleResult sampleResult = grpcSampler.sample(null);
+        Assert.assertEquals(sampleResult.getResponseCode(), " 400");
+        Assert.assertEquals(
+                sampleResult.getResponseMessage(), GrpcSamplerConstant.CLIENT_EXCEPTION_MSG);
+        Assert.assertTrue(
+                new String(sampleResult.getResponseData())
+                        .contains("Unable to find method Invalid in service Bookstore"));
     }
 
     @Test
