@@ -208,13 +208,13 @@ public class GrpcSamplerTest extends BaseTest {
         String responseData = new String(sampleResult.getResponseData());
         Assert.assertTrue(
                 responseData.contains(
-                        "invalid.proto:11:1: File recursively imports itself: invalid.proto"
-                                + " -> invalid.proto"),
+                        "java.lang.RuntimeException: Unable to resolve service by invoking"
+                                + " protoc:"),
                 String.format(
                         "Actual: [%s] %n Expected: [%s]",
                         responseData,
-                        "invalid.proto:11:1: File recursively imports itself: invalid.proto"
-                                + " -> invalid.proto"));
+                        "java.lang.RuntimeException: Unable to resolve service by invoking"
+                                + " protoc:"));
     }
 
     @Test
