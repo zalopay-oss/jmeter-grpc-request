@@ -33,8 +33,6 @@ public class ClientListTest extends BaseTest {
                 Arrays.asList(
                         "helloworld.Greeter/SayHello",
                         "helloworld.Greeter/SayHelloWithJsonMetadata",
-                        "fullprototype.Greeter/SayHello",
-                        "fullprototype.Greeter/SayHelloWithJsonMetadata",
                         "data_services_seg.SegmentServices/checkSeg");
 
         // Assertion
@@ -75,8 +73,6 @@ public class ClientListTest extends BaseTest {
                 Arrays.asList(
                         "helloworld.Greeter/SayHello",
                         "helloworld.Greeter/SayHelloWithJsonMetadata",
-                        "fullprototype.Greeter/SayHello",
-                        "fullprototype.Greeter/SayHelloWithJsonMetadata",
                         "data_services_seg.SegmentServices/checkSeg");
 
         // Assertion
