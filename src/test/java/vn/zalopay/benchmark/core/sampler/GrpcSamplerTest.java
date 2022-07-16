@@ -41,8 +41,7 @@ public class GrpcSamplerTest extends BaseTest {
         Assert.assertTrue(
                 responseData.contains("\"theme\": \"Hello server"),
                 String.format(
-                        "Actual: [%s] %n Expected: [%s]",
-                        responseData, "\"theme\": \"Hello server"));
+                        "Actual: [] %n Expected: []", responseData, "\"theme\": \"Hello server"));
     }
 
     @Test
@@ -73,20 +72,17 @@ public class GrpcSamplerTest extends BaseTest {
         Assert.assertTrue(
                 responseData1.contains("\"theme\": \"Hello server"),
                 String.format(
-                        "Actual: [%s] %n Expected: [%s]",
-                        responseData1, "\"theme\": \"Hello server"));
+                        "Actual: [] %n Expected: []", responseData1, "\"theme\": \"Hello server"));
         Assert.assertEquals(sampleResult2.getResponseCode(), "200");
         Assert.assertTrue(
                 responseData2.contains("\"theme\": \"Hello server"),
                 String.format(
-                        "Actual: [%s] %n Expected: [%s]",
-                        responseData2, "\"theme\": \"Hello server"));
+                        "Actual: [] %n Expected: []", responseData2, "\"theme\": \"Hello server"));
         Assert.assertEquals(sampleResult3.getResponseCode(), "200");
         Assert.assertTrue(
                 responseData3.contains("\"theme\": \"Hello server"),
                 String.format(
-                        "Actual: [%s] %n Expected: [%s]",
-                        responseData3, "\"theme\": \"Hello server"));
+                        "Actual: [] %n Expected: []", responseData3, "\"theme\": \"Hello server"));
     }
 
     @Test
@@ -112,8 +108,7 @@ public class GrpcSamplerTest extends BaseTest {
         Assert.assertTrue(
                 responseData.contains("\"theme\": \"Hello server"),
                 String.format(
-                        "Actual: [%s] %n Expected: [%s]",
-                        responseData, "\"theme\": \"Hello server"));
+                        "Actual: [] %n Expected: []", responseData, "\"theme\": \"Hello server"));
     }
 
     @Test
@@ -139,7 +134,7 @@ public class GrpcSamplerTest extends BaseTest {
         Assert.assertTrue(
                 sampleResult.getResponseMessage().contains("4 DEADLINE_EXCEEDED"),
                 String.format(
-                        "Actual: [%s] %n Expected: [%s]",
+                        "Actual: [] %n Expected: []",
                         sampleResult.getResponseMessage(), "4 DEADLINE_EXCEEDED"));
     }
 
@@ -180,8 +175,7 @@ public class GrpcSamplerTest extends BaseTest {
         Assert.assertTrue(
                 responseData.contains(" The stack trace is null"),
                 String.format(
-                        "Actual: [%s] %n Expected: [%s]",
-                        responseData, " The stack trace is null"));
+                        "Actual: [] %n Expected: []", responseData, " The stack trace is null"));
     }
 
     @Test
@@ -211,7 +205,7 @@ public class GrpcSamplerTest extends BaseTest {
                         "invalid.proto:11:1: File recursively imports itself: invalid.proto"
                                 + " -> invalid.proto"),
                 String.format(
-                        "Actual: [%s] %n Expected: [%s]",
+                        "Actual: [] %n Expected: []",
                         responseData,
                         "invalid.proto:11:1: File recursively imports itself: invalid.proto"
                                 + " -> invalid.proto"));
@@ -242,7 +236,7 @@ public class GrpcSamplerTest extends BaseTest {
         Assert.assertTrue(
                 responseData.contains("Unable to find method Invalid in service Bookstore"),
                 String.format(
-                        "Actual: [%s] %n Expected: [%s]",
+                        "Actual: [] %n Expected: []",
                         responseData, "Unable to find method Invalid in service Bookstore"));
     }
 
@@ -270,8 +264,7 @@ public class GrpcSamplerTest extends BaseTest {
         Assert.assertTrue(
                 responseData.contains("\"theme\": \"Hello server"),
                 String.format(
-                        "Actual: [%s] %n Expected: [%s]",
-                        responseData, "\"theme\": \"Hello server"));
+                        "Actual: [] %n Expected: []", responseData, "\"theme\": \"Hello server"));
     }
 
     @Test
@@ -296,7 +289,6 @@ public class GrpcSamplerTest extends BaseTest {
         Assert.assertEquals(sampleResult.getResponseCode(), "200");
         Assert.assertTrue(
                 responseData.contains(EXPECTED_RESPONSE_DATA),
-                String.format(
-                        "Actual: [%s] %n Expected: [%s]", responseData, EXPECTED_RESPONSE_DATA));
+                String.format("Actual: [] %n Expected: []", responseData, EXPECTED_RESPONSE_DATA));
     }
 }
