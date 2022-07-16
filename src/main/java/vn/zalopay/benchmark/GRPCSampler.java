@@ -1,5 +1,8 @@
 package vn.zalopay.benchmark;
 
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
+
 import org.apache.jmeter.samplers.AbstractSampler;
 import org.apache.jmeter.samplers.Entry;
 import org.apache.jmeter.samplers.SampleResult;
@@ -7,9 +10,11 @@ import org.apache.jmeter.testelement.ThreadListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import vn.zalopay.benchmark.constant.GrpcSamplerConstant;
 import vn.zalopay.benchmark.core.ClientCaller;
 import vn.zalopay.benchmark.core.config.GrpcRequestConfig;
 import vn.zalopay.benchmark.core.specification.GrpcResponse;
+import vn.zalopay.benchmark.util.ExceptionUtils;
 
 import java.nio.charset.StandardCharsets;
 
@@ -50,7 +55,7 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
 
     private void trace(String s) {
         String threadName = Thread.currentThread().getName();
-        log.debug("{} ({}) {} {}", threadName, getTitle(), s, this.toString());
+        log.debug("{} ({}) {} {}", threadName, getTitle(), s, this);
     }
 
     private void initGrpcConfigRequest() {
@@ -77,16 +82,15 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
 
     @Override
     public SampleResult sample(Entry ignored) {
-        GrpcResponse grpcResponse = new GrpcResponse();
         SampleResult sampleResult = new SampleResult();
+        sampleResult.setSampleLabel(getName());
 
-        // Console prints unknown exceptions - Intercepts unknown exceptions and sends them to the
-        // console to print instead of throwing the results into the GRPC response.
         if (!initGrpcRequestSampler(sampleResult)) {
             return sampleResult;
         }
-        // Process a GRPC request sampler
-        processGrpcRequestSampler(grpcResponse, sampleResult);
+
+        // Initiate a GRPC request
+        processGrpcRequestSampler(sampleResult);
 
         return sampleResult;
     }
@@ -122,78 +126,83 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
                 + getName();
     }
 
-    private void generateErrorResultInInitGRPCRequest(SampleResult sampleResult, Exception e) {
-        String msg =
-                String.format(
-                        "GRPCSampler Exception: An unknown exception occurred before the GRPC "
-                                + "request was initiated. %s",
-                        e.getCause().getMessage());
-        sampleResult.setSuccessful(false);
-        sampleResult.setResponseCode("400");
-        sampleResult.setDataType(SampleResult.TEXT);
-        sampleResult.setResponseData(msg.getBytes(StandardCharsets.UTF_8));
-        sampleResult.setResponseMessage(msg);
-    }
-
-    private void generateErrorResult(
-            GrpcResponse grpcResponse, SampleResult sampleResult, Exception e) {
-        try {
-            String msg =
-                    String.format(
-                            "Exception: %s %s %s",
-                            e.getMessage(),
-                            e.getCause().getMessage(),
-                            grpcResponse.getGrpcMessageString());
-            sampleResult.setSuccessful(false);
-            sampleResult.setResponseCode("500");
-            sampleResult.setDataType(SampleResult.TEXT);
-            sampleResult.sampleEnd();
-            sampleResult.setResponseMessage(msg);
-            sampleResult.setResponseData(msg, "UTF-8");
-        } catch (Exception ex) {
-            // Prints exceptions that occur before the request is initiated
-            e.printStackTrace();
-            log.error("GrpcMessage: {} {}", grpcResponse.getGrpcMessageString(), e);
-        }
-    }
-
     private boolean initGrpcRequestSampler(SampleResult sampleResult) {
         try {
             initGrpcInCurrentThread(sampleResult);
         } catch (Exception e) {
-            log.error(
-                    "An unknown error occurred before the GRPC request was initiated, and the stack"
-                            + " trace is as follows: ",
-                    e);
+            log.error(ExceptionUtils.getPrintExceptionToStr(e, null), "UTF-8");
             generateErrorResultInInitGRPCRequest(sampleResult, e);
             return false;
         }
         return true;
     }
 
-    private void processGrpcRequestSampler(GrpcResponse grpcResponse, SampleResult sampleResult) {
-        try {
-            sampleResult.sampleStart();
-            grpcResponse = clientCaller.call(getDeadline());
-            sampleResult.sampleEnd();
-            sampleResult.setSuccessful(true);
-            sampleResult.setResponseCodeOK();
-            sampleResult.setResponseMessage("Success");
-            sampleResult.setDataType(SampleResult.TEXT);
-            sampleResult.setResponseData(
-                    grpcResponse.getGrpcMessageString().getBytes(StandardCharsets.UTF_8));
-        } catch (RuntimeException e) {
-            generateErrorResult(grpcResponse, sampleResult, e);
+    private void generateErrorResultInInitGRPCRequest(SampleResult sampleResult, Exception e) {
+        sampleResult.setSuccessful(false);
+        sampleResult.setResponseCode(" 400");
+        sampleResult.setDataType(SampleResult.TEXT);
+        sampleResult.setResponseMessage(GrpcSamplerConstant.CLIENT_EXCEPTION_MSG);
+        sampleResult.setResponseData(ExceptionUtils.getPrintExceptionToStr(e, null), "UTF-8");
+    }
+
+    private void processGrpcRequestSampler(SampleResult sampleResult) {
+        GrpcResponse grpcResponse = clientCaller.call(getDeadline());
+        sampleResult.sampleEnd();
+        sampleResult.setDataType(SampleResult.TEXT);
+        if (grpcResponse.isSuccess()) {
+            generateSuccessResult(grpcResponse, sampleResult);
+        } else {
+            generateErrorResult(grpcResponse, sampleResult);
         }
     }
 
+    private void generateSuccessResult(GrpcResponse grpcResponse, SampleResult sampleResult) {
+        sampleResult.setSuccessful(true);
+        sampleResult.setResponseCodeOK();
+        sampleResult.setResponseMessage(" success");
+        sampleResult.setResponseData(
+                grpcResponse.getGrpcMessageString().getBytes(StandardCharsets.UTF_8));
+    }
+
+    private void generateErrorResult(GrpcResponse grpcResponse, SampleResult sampleResult) {
+        Throwable throwable = grpcResponse.getThrowable();
+        sampleResult.setSuccessful(false);
+        sampleResult.setResponseCode(" 500");
+        boolean isRuntimeException = throwable instanceof StatusRuntimeException;
+        if (isRuntimeException) {
+            generateStatusRuntimeExceptionResponseData(sampleResult, throwable);
+        } else {
+            generateExceptionInInvokeSendGrpcResponseData(sampleResult, throwable);
+        }
+    }
+
+    private void generateStatusRuntimeExceptionResponseData(
+            SampleResult sampleResult, Throwable throwable) {
+        String responseMessage = " ";
+        String responseData = "";
+        Status status = ((StatusRuntimeException) throwable).getStatus();
+        Status.Code code = status.getCode();
+        responseMessage += code.value() + " " + code.name();
+        responseData = status.getDescription();
+        sampleResult.setResponseMessage(responseMessage);
+        sampleResult.setResponseData(responseData, "UTF-8");
+    }
+
+    private void generateExceptionInInvokeSendGrpcResponseData(
+            SampleResult sampleResult, Throwable throwable) {
+        String responseMessage = " ";
+        responseMessage += ExceptionUtils.getPrintExceptionToStr(throwable, 0);
+        sampleResult.setResponseMessage(responseMessage);
+        sampleResult.setResponseData(responseMessage, "UTF-8");
+    }
+
     private void initGrpcInCurrentThread(SampleResult sampleResult) {
-        sampleResult.setSampleLabel(getName());
         initGrpcConfigRequest();
         initGrpcClient();
         String grpcRequest = clientCaller.buildRequestAndMetadata(getRequestJson(), getMetadata());
         sampleResult.setSamplerData(grpcRequest);
         sampleResult.setRequestHeaders(clientCaller.getMetadataString());
+        sampleResult.sampleStart();
     }
 
     /** GETTER AND SETTER */

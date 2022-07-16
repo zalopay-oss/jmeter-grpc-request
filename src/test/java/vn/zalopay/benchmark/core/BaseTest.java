@@ -33,6 +33,10 @@ public class BaseTest {
             Paths.get(
                     System.getProperty("user.dir"),
                     "dist/benchmark/grpc-server/src/main/resources/protos-v2");
+    protected static final Path PROTO_PATH_WITH_ERROR_IMPORT_FOLDER =
+            Paths.get(
+                    System.getProperty("user.dir"),
+                    "dist/benchmark/grpc-server/src/main/resources/protos-error");
     protected static final Path PROTO_PATH_WITH_INVALID_FILE_PATH =
             Paths.get(
                     System.getProperty("user.dir"),
@@ -50,6 +54,7 @@ public class BaseTest {
     protected static String REQUEST_JSON =
             "{\"shelf\":{\"id\":1599156420811,\"theme\":\"Hello server!!\"}}";
     protected static String FULL_METHOD = "bookstore.Bookstore/CreateShelf";
+    protected static String FULL_METHOD_INVALID = "bookstore.Bookstore/Invalid";
     protected static String METADATA = "";
     protected static final GrpcRequestConfig DEFAULT_GRPC_REQUEST_CONFIG =
             new GrpcRequestConfig(
