@@ -2,6 +2,7 @@ package vn.zalopay.benchmark.core.client;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
+import io.grpc.StatusRuntimeException;
 import io.grpc.netty.GrpcSslContexts;
 import io.netty.handler.ssl.ApplicationProtocolConfig;
 import io.netty.handler.ssl.ApplicationProtocolNames;
@@ -230,7 +231,7 @@ public class ClientCallerTest extends BaseTest {
         clientCaller.call("1000");
     }
 
-    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Unable to resolve service by invoking protoc")
+    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Unable to resolve service by invoking protoc.*")
     public void testThrowExceptionWithExceptionInProtocInvoke() {
         MockedStatic<ProtocInvoker> protocInvoker = Mockito.mockStatic(ProtocInvoker.class);
         protocInvoker.when(() -> ProtocInvoker.forConfig(Mockito.anyString(), Mockito.anyString()).invoke())
@@ -270,18 +271,18 @@ public class ClientCallerTest extends BaseTest {
         clientCaller = new ClientCaller(grpcRequestConfig);
     }
 
-    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while waiting for rpc")
-    public void testThrowExceptionWithTimeoutRequest() {
+    @Test(expectedExceptions = StatusRuntimeException.class, expectedExceptionsMessageRegExp = "DEADLINE_EXCEEDED: .*")
+    public void testThrowExceptionWithTimeoutRequest() throws Throwable {
         clientCaller = new ClientCaller(DEFAULT_GRPC_REQUEST_CONFIG);
         clientCaller.buildRequestAndMetadata(REQUEST_JSON, METADATA);
         GrpcResponse resp = clientCaller.call("1");
         clientCaller.shutdownNettyChannel();
         Assert.assertNotNull(resp);
-        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
+        throw resp.getThrowable();
     }
 
-    @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while waiting for rpc")
-    public void testThrowExceptionWithTimeoutRequestServerStream() {
+    @Test(expectedExceptions = StatusRuntimeException.class, expectedExceptionsMessageRegExp = "DEADLINE_EXCEEDED: .*")
+    public void testThrowExceptionWithTimeoutRequestServerStream() throws Throwable {
         GrpcRequestConfig grpcRequestConfig = new GrpcRequestConfig(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(),
                 "bookstore.Bookstore/GetShelfStreamServer", false, false, DEFAULT_CHANNEL_SHUTDOWN_TIME);
         clientCaller = new ClientCaller(grpcRequestConfig);
@@ -289,7 +290,7 @@ public class ClientCallerTest extends BaseTest {
         GrpcResponse resp = clientCaller.callServerStreaming("1");
         clientCaller.shutdownNettyChannel();
         Assert.assertNotNull(resp);
-        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
+        throw resp.getThrowable();
     }
 
     @Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = "Caught exception while waiting for rpc")

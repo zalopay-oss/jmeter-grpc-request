@@ -1,18 +1,23 @@
 package vn.zalopay.benchmark.core.sampler;
 
+import com.google.common.net.HostAndPort;
 import org.apache.jmeter.sampler.DebugSampler;
+import org.apache.jmeter.samplers.SampleResult;
+import org.apache.jmeter.visualizers.RenderAsText;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import vn.zalopay.benchmark.GRPCSampler;
 import vn.zalopay.benchmark.GRPCSamplerGui;
+import vn.zalopay.benchmark.constant.GrpcSamplerConstant;
 import vn.zalopay.benchmark.core.BaseTest;
+import vn.zalopay.benchmark.core.test.dependency.ViewResultsFullVisualizerGui;
 
 import javax.swing.*;
 import java.awt.*;
 import java.lang.reflect.Field;
 
-
 public class GRPCSamplerGuiTest extends BaseTest {
+
     @Test
     public void testCanShowGui() {
         GRPCSamplerGui grpRequestPluginGUI = new GRPCSamplerGui();
@@ -219,4 +224,54 @@ public class GRPCSamplerGuiTest extends BaseTest {
         Assert.assertNotNull(grpRequestPluginGUI);
         frame.dispose();
     }
+
+    @Test
+    public void testExceptionRequestWithListenerResultTree() throws Exception {
+        // init window
+        RenderAsText samplerResultTab = new RenderAsText();
+        ViewResultsFullVisualizerGui viewResultsFullVisualizerGui = new ViewResultsFullVisualizerGui(samplerResultTab);
+        JFrame frame = new JFrame("testExceptionRequestListenerResultTree");
+        frame.setPreferredSize(new Dimension(1024, 768));
+        Container contentPane = frame.getContentPane();
+        contentPane.add(viewResultsFullVisualizerGui, BorderLayout.CENTER);
+        frame.pack();
+        frame.setVisible(true);
+
+        // exec request
+        HostAndPort hostAndPort = HostAndPort.fromString(HOST_PORT);
+        GRPCSampler grpcSampler = new GRPCSampler();
+        grpcSampler.setName("testExceptionRequestListenerResultTree");
+        grpcSampler.setComment("dummyComment");
+        grpcSampler.setProtoFolder(PROTO_PATH_WITH_ERROR_IMPORT_FOLDER.toString());
+        grpcSampler.setLibFolder(LIB_FOLDER.toString());
+        grpcSampler.setMetadata(METADATA);
+        grpcSampler.setHost(hostAndPort.getHost());
+        grpcSampler.setPort(Integer.toString(hostAndPort.getPort()));
+        grpcSampler.setFullMethod(FULL_METHOD_INVALID);
+        grpcSampler.setDeadline("2000");
+        grpcSampler.setTls(false);
+        grpcSampler.setTlsDisableVerification(false);
+        grpcSampler.setChannelShutdownAwaitTime("5000");
+        grpcSampler.setRequestJson(REQUEST_JSON);
+        grpcSampler.threadStarted();
+        SampleResult sampleResult = grpcSampler.sample(null);
+
+        // set result
+        viewResultsFullVisualizerGui.add(sampleResult);
+        Assert.assertEquals(sampleResult.getResponseCode(), " 400");
+        Assert.assertEquals(sampleResult.getResponseMessage(), GrpcSamplerConstant.CLIENT_EXCEPTION_MSG);
+        Assert.assertTrue(new String(sampleResult.getResponseData()).contains("invalid.proto:11:1: File recursively imports itself: invalid.proto -> invalid.proto"));
+
+        // GUI observation: Destruction of the view
+        frame.dispose();
+
+        // GUI observation: Leave the view and wait indefinitely so that the JVM does not exit and the results are verified manually
+//        Object lock = new Object();
+//        while (true) {
+//            synchronized (lock) {
+//                lock.wait();
+//            }
+//        }
+    }
+
 }

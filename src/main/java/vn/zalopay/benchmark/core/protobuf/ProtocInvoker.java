@@ -247,7 +247,7 @@ public class ProtocInvoker {
     /**
      * An error indicating that something went wrong while invoking protoc.
      */
-    public class ProtocInvocationException extends Exception {
+    public class ProtocInvocationException extends RuntimeException {
         private static final long serialVersionUID = 1L;
 
         private ProtocInvocationException(String message) {
@@ -272,10 +272,14 @@ public class ProtocInvoker {
         }
 
         throw new ProtocInvocationException(
-                String.format("Got error exit code [%d] from protoc: protoc command [%s] has " +
-                                "error" +
-                                " [%s]",
+                String.format("\nProtoc error exit code: %d\n\n" +
+                                "Protoc execute command: \n\t%s\n\n" +
+                                "Protoc execute error: \n\t%s\n",
                         status,
-                        String.join("\n", protocInfoLogLines), String.join("\n", protocErrorLogLines)));
+                        String.join("\n\t", protocInfoLogLines),
+                        String.join("\n\t", protocErrorLogLines)
+                )
+        );
     }
+
 }

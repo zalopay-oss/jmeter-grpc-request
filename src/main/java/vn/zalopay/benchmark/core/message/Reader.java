@@ -1,11 +1,11 @@
 package vn.zalopay.benchmark.core.message;
 
 
-import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.util.JsonFormat;
+import org.apache.commons.lang3.StringUtils;
 import vn.zalopay.benchmark.exception.GrpcPluginException;
 
 public class Reader {
@@ -30,7 +30,9 @@ public class Reader {
         try {
             // Parses from JSON into a protobuf message.
             DynamicMessage.Builder nextMessage = DynamicMessage.newBuilder(descriptor);
-            jsonParser.merge(payload, nextMessage);
+            if (StringUtils.isNotBlank(payload)) {
+                jsonParser.merge(payload, nextMessage);
+            }
 
             // Clean up and prepare for next message.
             resultBuilder.add(nextMessage.build());

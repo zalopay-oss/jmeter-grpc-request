@@ -14,14 +14,12 @@
         <java.version>1.8</java.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <lombok.version>1.18.10</lombok.version>
         <jmeter.version>4.0</jmeter.version>
-        <jmeter.test.version>5.4.1</jmeter.test.version>
         <netty.ssl.version>2.0.39.Final</netty.ssl.version>
         <os72.protoc.version>3.11.4</os72.protoc.version>
         <grpc.version>1.38.0</grpc.version>
         <protobuf.version>3.17.1</protobuf.version>
-        <cmn.jmeter.version>0.6</cmn.jmeter.version>
+        <jmeter.cmn.version>0.6</jmeter.cmn.version>
         <emulators.jmeter.version>0.4</emulators.jmeter.version>
         <mockito.version>3.10.0</mockito.version>
         <testng.version>7.4.0</testng.version>
@@ -38,7 +36,7 @@
         <dependency>
             <groupId>kg.apc</groupId>
             <artifactId>jmeter-plugins-cmn-jmeter</artifactId>
-            <version>${cmn.jmeter.version}</version>
+            <version>${jmeter.cmn.version}</version>
         </dependency>
 
         <!-- proto -->
@@ -85,7 +83,7 @@
         <dependency>
             <groupId>org.apache.jmeter</groupId>
             <artifactId>ApacheJMeter_components</artifactId>
-            <version>${jmeter.test.version}</version>
+            <version>${jmeter.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -95,15 +93,16 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-tcnative-boringssl-static</artifactId>
-            <version>${netty.ssl.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <version>${mockito.version}</version>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-tcnative-boringssl-static</artifactId>
+            <version>${netty.ssl.version}</version>
         </dependency>
     </dependencies>
 

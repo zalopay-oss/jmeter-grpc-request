@@ -21,6 +21,8 @@ public class BaseTest {
     protected static final Path JMETER_PROPERTIES_FILE = Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "jmeter.properties");
     protected static final Path PROTO_WITH_EXTERNAL_IMPORT_FOLDER =
             Paths.get(System.getProperty("user.dir"), "dist/benchmark/grpc-server/src/main/resources/protos-v2");
+    protected static final Path PROTO_PATH_WITH_ERROR_IMPORT_FOLDER =
+            Paths.get(System.getProperty("user.dir"), "dist/benchmark/grpc-server/src/main/resources/protos-error");
     protected static final Path PROTO_PATH_WITH_INVALID_FILE_PATH =
             Paths.get(System.getProperty("user.dir"), "dist/benchmark/grpc-server/src/main/resources/protos-v2/shelf.proto1");
     protected static final Path PROTO_FOLDER =
@@ -31,6 +33,7 @@ public class BaseTest {
     protected static String HOST_PORT_TLS = "localhost:8006";
     protected static String REQUEST_JSON = "{\"shelf\":{\"id\":1599156420811,\"theme\":\"Hello server!!\"}}";
     protected static String FULL_METHOD = "bookstore.Bookstore/CreateShelf";
+    protected static String FULL_METHOD_INVALID = "bookstore.Bookstore/Invalid";
     protected static String METADATA = "";
     protected static final GrpcRequestConfig DEFAULT_GRPC_REQUEST_CONFIG =
             new GrpcRequestConfig(HOST_PORT, PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(), LIB_FOLDER.toString(),

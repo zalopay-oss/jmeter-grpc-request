@@ -59,8 +59,7 @@ public class ClientCaller {
             hostAndPort = HostAndPort.fromString(hostPort);
             metadataMap = new LinkedHashMap<>();
             channelFactory = ChannelFactory.create();
-            ProtoMethodName grpcMethodName =
-                    ProtoMethodName.parseFullGrpcMethodName(fullMethod);
+            ProtoMethodName grpcMethodName = ProtoMethodName.parseFullGrpcMethodName(fullMethod);
 
             // Fetch the appropriate file descriptors for the service.
             final DescriptorProtos.FileDescriptorSet fileDescriptorSet;
@@ -69,7 +68,7 @@ public class ClientCaller {
                 fileDescriptorSet = ProtocInvoker.forConfig(testProtoFiles, libFolder).invoke();
             } catch (Exception e) {
                 shutdownNettyChannel();
-                throw new RuntimeException("Unable to resolve service by invoking protoc", e);
+                throw new RuntimeException("Unable to resolve service by invoking protoc: \n" + e.getMessage(), e);
             }
 
             // Set up the dynamic client and make the call.
@@ -154,28 +153,28 @@ public class ClientCaller {
 
     public GrpcResponse call(String deadlineMs) {
         long deadline = parsingDeadlineTime(deadlineMs);
-        GrpcResponse output = new GrpcResponse();
-        StreamObserver<DynamicMessage> streamObserver = ComponentObserver.of(Writer.create(output, registry));
+        GrpcResponse grpcResponse = new GrpcResponse();
+        StreamObserver<DynamicMessage> streamObserver = ComponentObserver.of(Writer.create(grpcResponse, registry));
         try {
             dynamicClient.blockingUnaryCall(requestMessages, streamObserver, callOptions(deadline)).get();
         } catch (Throwable t) {
             shutdownNettyChannel();
-            throw new RuntimeException("Caught exception while waiting for rpc", t);
         }
-        return output;
+
+        return grpcResponse;
     }
 
     public GrpcResponse callServerStreaming(String deadlineMs) {
         long deadline = parsingDeadlineTime(deadlineMs);
-        GrpcResponse output = new GrpcResponse();
-        StreamObserver<DynamicMessage> streamObserver = ComponentObserver.of(Writer.create(output, registry));
+        GrpcResponse grpcResponse = new GrpcResponse();
+        StreamObserver<DynamicMessage> streamObserver = ComponentObserver.of(Writer.create(grpcResponse, registry));
         try {
             dynamicClient.callServerStreaming(requestMessages, streamObserver, callOptions(deadline)).get();
         } catch (Throwable t) {
             shutdownNettyChannel();
-            throw new RuntimeException("Caught exception while waiting for rpc", t);
         }
-        return output;
+
+        return grpcResponse;
     }
 
     public GrpcResponse callClientStreaming(String deadlineMs) {
