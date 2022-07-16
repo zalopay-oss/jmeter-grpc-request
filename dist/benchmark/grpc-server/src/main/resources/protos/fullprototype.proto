@@ -46,6 +46,7 @@ message HelloRequest {
   sint64 number12 = 15;
   fixed64 number13 = 16;
   map<string, string> map = 17;
+  fixed32 number14 = 18;
 
 }
 

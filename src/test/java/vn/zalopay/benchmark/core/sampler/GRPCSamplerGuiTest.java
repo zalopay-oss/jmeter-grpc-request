@@ -412,7 +412,8 @@ public class GRPCSamplerGuiTest extends BaseTest {
                         + "\t\t\t\"key\":\"Hello\",\n"
                         + "\t\t\t\"value\":\"Hello\"\n"
                         + "\t\t}\n"
-                        + "\t]\n"
+                        + "\t],\n"
+                        + "\t\"number14\":1400\n"
                         + "}");
         frame.dispose();
     }
