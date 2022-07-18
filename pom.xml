@@ -15,7 +15,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <lombok.version>1.18.24</lombok.version>
-        <jmeter.version>5.4.3</jmeter.version>
+        <jmeter.version>5.5</jmeter.version>
         <netty.ssl.version>2.0.53.Final</netty.ssl.version>
         <os72.protoc.version>3.11.4</os72.protoc.version>
         <grpc.version>1.38.0</grpc.version>
