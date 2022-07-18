@@ -1,8 +1,5 @@
 package vn.zalopay.benchmark.core;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import com.google.common.net.HostAndPort;
 
 import org.apache.jmeter.config.Arguments;
@@ -22,8 +19,8 @@ import org.apache.jmeter.threads.ThreadGroup;
 import org.apache.jmeter.threads.gui.ThreadGroupGui;
 import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jorphan.collections.HashTree;
-import org.testng.Assert;
 import org.testng.annotations.Test;
+import org.testng.asserts.SoftAssert;
 
 import vn.zalopay.benchmark.GRPCSampler;
 
@@ -35,17 +32,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class IntegrationTest extends BaseTest {
-    private static volatile List<SampleResult> sampleResults = new ArrayList<>();
+    private static volatile List<SampleResult> SAMPLE_RESULTS = new ArrayList<>();
 
-    @Test
+    @Test(timeOut = 60000)
     public void canRunJMeterScript() throws IOException {
         // Initialize properties
-
+        JMeterUtils.helpGC();
         JMeterUtils.setJMeterHome(TEMP_JMETER_HOME.toString());
         JMeterUtils.initLogging();
         JMeterUtils.loadJMeterProperties(JMETER_PROPERTIES_FILE.toString());
         JMeterUtils.initLocale();
         JMeterUtils.setProperty("jmeterengine.force.system.exit", "false");
+        JMeterUtils.setProperty("DEBUG", "true");
         StandardJMeterEngine jmeter = new StandardJMeterEngine();
         // JMeter Test Plan, basically JOrphan HashTree
         HashTree testPlanTree = new HashTree();
@@ -87,14 +85,18 @@ public class IntegrationTest extends BaseTest {
         // Run Test Plan
         jmeter.configure(testPlanTree);
         jmeter.run();
+        jmeter.askThreadsToStop();
+        jmeter.stopTest();
         // Assert
-        Assert.assertEquals(sampleResults.size(), 100);
-        sampleResults.forEach(s -> Assert.assertEquals(s.getResponseCode(), "200"));
-        sampleResults.forEach(
+        SoftAssert softAssert = new SoftAssert();
+        softAssert.assertEquals(SAMPLE_RESULTS.size(), 100);
+        SAMPLE_RESULTS.forEach(s -> softAssert.assertEquals(s.getResponseCode(), "200"));
+        SAMPLE_RESULTS.forEach(
                 s ->
-                        assertThat(
-                                new String(s.getResponseData()),
-                                containsString("\"theme\": \"Hello server")));
+                        softAssert.assertTrue(
+                                new String(s.getResponseData())
+                                        .contains("\"theme\": \"Hello server")));
+        softAssert.assertAll();
     }
 
     private GRPCSampler createGrpcSampler() {
@@ -127,7 +129,7 @@ public class IntegrationTest extends BaseTest {
         @Override
         public synchronized void sampleOccurred(SampleEvent sampleEvent) {
             SampleResult result = sampleEvent.getResult();
-            sampleResults.add(result);
+            SAMPLE_RESULTS.add(result);
         }
 
         @Override

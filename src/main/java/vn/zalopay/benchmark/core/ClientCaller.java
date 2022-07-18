@@ -44,7 +44,7 @@ public class ClientCaller {
     private boolean tls;
     private boolean disableTtlVerification;
     private int awaitTerminationTimeout;
-    private GrpcRequestConfig requestConfig;
+    private final GrpcRequestConfig requestConfig;
     ChannelFactory channelFactory;
 
     public ClientCaller(GrpcRequestConfig requestConfig) {

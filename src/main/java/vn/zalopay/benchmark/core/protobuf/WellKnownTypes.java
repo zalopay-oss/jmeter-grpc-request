@@ -4,6 +4,9 @@ import com.google.common.collect.ImmutableSet;
 
 /** Central place to store information about the protobuf well-known-types. */
 public class WellKnownTypes {
+    private WellKnownTypes() {
+        throw new IllegalStateException("Utility class");
+    }
 
     private static final ImmutableSet<String> FILES =
             ImmutableSet.of(

@@ -22,6 +22,10 @@ public class JMeterVariableUtils {
 
     private static final Logger log = LoggerFactory.getLogger(JMeterVariableUtils.class);
 
+    private JMeterVariableUtils() {
+        throw new IllegalStateException("Utility class");
+    }
+
     /** Gets the value of a private member variable. */
     public static Object getPrivateField(Object instance, String filedName)
             throws NoSuchFieldException, IllegalAccessException {
@@ -69,7 +73,7 @@ public class JMeterVariableUtils {
         try {
             getReplacer().undoReverseReplace(el);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("Value replacer in JMeter has error", e);
         }
     }
 }

@@ -7,17 +7,17 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.jmeter.services.FileServer;
 import org.apache.jmeter.util.JMeterUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import vn.zalopay.benchmark.exception.ProtocInvocationException;
+
 import java.io.*;
 import java.nio.file.*;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -29,10 +29,10 @@ public class ProtocInvoker {
     private static final Logger logger = LoggerFactory.getLogger(ProtocInvoker.class);
     private static final PathMatcher PROTO_MATCHER =
             FileSystems.getDefault().getPathMatcher("glob:**/*.proto");
-
+    private static final List<Path> PROTO_TEMP_FOLDER_PATHS = new ArrayList<>();
+    private static final int LARGE_FOLDER_LIMIT = 100;
     private final ImmutableList<Path> protocIncludePaths;
     private final Path discoveryRoot;
-    private final int largeFolderLimit = 100;
 
     /**
      * Takes an optional path to pass to protoc as --proto_path. Uses the invocation-time proto root
@@ -67,65 +67,118 @@ public class ProtocInvoker {
         return new ProtocInvoker(discoveryRootPath, includePaths.build());
     }
 
+    public static List<String> getTempFolderPathToGenerateProtoFiles() {
+        return PROTO_TEMP_FOLDER_PATHS.stream()
+                .map(path -> path.toAbsolutePath().toString())
+                .collect(Collectors.toList());
+    }
+
+    public static void cleanTempFolderForGeneratingProtoc() {
+        PROTO_TEMP_FOLDER_PATHS.forEach(
+                path -> FileUtils.deleteQuietly(new File(path.toAbsolutePath().toString())));
+    }
+
     /**
      * Executes protoc on all .proto files in the subtree rooted at the supplied path and returns a
      * {@link FileDescriptorSet} which describes all the protos.
      */
     public FileDescriptorSet invoke() throws ProtocInvocationException {
-        Path wellKnownTypesInclude;
-        Path googleTypesInclude;
+        Path wellKnownTypesInclude = generateWellKnownTypesInclude();
+
+        Path descriptorPath = generateDescriptorPath();
+
+        PROTO_TEMP_FOLDER_PATHS.addAll(Arrays.asList(descriptorPath, wellKnownTypesInclude));
+
+        final ImmutableSet<String> protoFilePaths = scanProtoFiles(discoveryRoot);
+
+        ImmutableList<String> protocArgs =
+                generateProtocArgs(protoFilePaths, descriptorPath, wellKnownTypesInclude);
+
+        invokeBinary(protocArgs);
+
+        return generateFileDescriptorSet(descriptorPath);
+    }
+
+    private Path generateWellKnownTypesInclude() {
         try {
-            wellKnownTypesInclude = setupWellKnownTypes();
+            return setupWellKnownTypes();
         } catch (IOException e) {
             throw new ProtocInvocationException("Unable to extract well known types", e);
         }
+    }
 
-        Path descriptorPath;
+    private Path generateDescriptorPath() {
         try {
-            descriptorPath = Files.createTempFile("descriptor", ".pb.bin");
+            File descriptorFile =
+                    new File(
+                            Files.createTempFile("descriptor", ".pb.bin")
+                                    .toAbsolutePath()
+                                    .toString());
+            FileUtils.forceDeleteOnExit(descriptorFile);
+            return descriptorFile.toPath();
         } catch (IOException e) {
             throw new ProtocInvocationException("Unable to create temporary file", e);
         }
+    }
 
-        // Large folder processing, solve CreateProcess error=206
-        final ImmutableSet<String> protoFilePaths = scanProtoFiles(discoveryRoot);
-        ImmutableList<String> protocArgs = null;
+    private ImmutableList<String> generateProtocArgs(
+            ImmutableSet<String> protoFilePaths, Path descriptorPath, Path wellKnownTypesInclude) {
         String protocVersion =
                 JMeterUtils.getPropDefault(
                         "grpc.request.protoc.version", ProtocVersion.PROTOC_VERSION.mVersion);
+        ImmutableList<String> protocArgs = ImmutableList.<String>builder().build();
 
-        if (protoFilePaths.size() > largeFolderLimit) {
-            try {
-                File argumentsFile = createFileWithArguments(protoFilePaths.toArray(new String[0]));
-                protocArgs =
-                        ImmutableList.<String>builder()
-                                .add("@" + argumentsFile.getAbsolutePath())
-                                .addAll(includePathArgs(wellKnownTypesInclude))
-                                .add(
-                                        "--descriptor_set_out="
-                                                + descriptorPath.toAbsolutePath().toString())
-                                .add("--include_imports")
-                                .add("-v" + protocVersion)
-                                .build();
-            } catch (IOException e) {
-                logger.error("Unable to create protoc parameter file", e);
-            }
-        }
-
-        if (protocArgs == null) {
+        // Large folder processing, solve CreateProcess error=206
+        if (protoFilePaths.size() > LARGE_FOLDER_LIMIT) {
             protocArgs =
-                    ImmutableList.<String>builder()
-                            .addAll(protoFilePaths)
-                            .addAll(includePathArgs(wellKnownTypesInclude))
-                            .add(
-                                    "--descriptor_set_out="
-                                            + descriptorPath.toAbsolutePath().toString())
-                            .add("--include_imports")
-                            .add("-v" + protocVersion)
-                            .build();
+                    generateProtocArgsForLargeMultipleFiles(
+                            protoFilePaths, descriptorPath, wellKnownTypesInclude, protocVersion);
         }
 
-        invokeBinary(protocArgs);
+        if (protocArgs.size() == 0) {
+            protocArgs =
+                    generateProtocArgsForMultipleFiles(
+                            protoFilePaths, descriptorPath, wellKnownTypesInclude, protocVersion);
+        }
+        return protocArgs;
+    }
+
+    // Large folder processing, solve CreateProcess error=206
+    private ImmutableList<String> generateProtocArgsForLargeMultipleFiles(
+            ImmutableSet<String> protoFilePaths,
+            Path descriptorPath,
+            Path wellKnownTypesInclude,
+            String protocVersion) {
+        try {
+            File argumentsFile = createFileWithArguments(protoFilePaths.toArray(new String[0]));
+            return ImmutableList.<String>builder()
+                    .add("@" + argumentsFile.getAbsolutePath())
+                    .addAll(includePathArgs(wellKnownTypesInclude))
+                    .add("--descriptor_set_out=" + descriptorPath.toAbsolutePath().toString())
+                    .add("--include_imports")
+                    .add("-v" + protocVersion)
+                    .build();
+        } catch (IOException e) {
+            logger.error("Unable to create protoc parameter file", e);
+            return ImmutableList.<String>builder().build();
+        }
+    }
+
+    private ImmutableList<String> generateProtocArgsForMultipleFiles(
+            ImmutableSet<String> protoFilePaths,
+            Path descriptorPath,
+            Path wellKnownTypesInclude,
+            String protocVersion) {
+        return ImmutableList.<String>builder()
+                .addAll(protoFilePaths)
+                .addAll(includePathArgs(wellKnownTypesInclude))
+                .add("--descriptor_set_out=" + descriptorPath.toAbsolutePath().toString())
+                .add("--include_imports")
+                .add("-v" + protocVersion)
+                .build();
+    }
+
+    private FileDescriptorSet generateFileDescriptorSet(Path descriptorPath) {
         try {
             return FileDescriptorSet.parseFrom(Files.readAllBytes(descriptorPath));
         } catch (IOException e) {
@@ -249,20 +302,11 @@ public class ProtocInvoker {
                     ProtocInvoker.class.getResourceAsStream("/google/protobuf/" + file),
                     Paths.get(protoDir.toString(), file));
         }
+        File wellKnownTypesFiles = new File(tmpdir.toAbsolutePath().toString());
+        File protoFolder = new File(protoDir.toAbsolutePath().toString());
+        FileUtils.forceDeleteOnExit(wellKnownTypesFiles);
+        FileUtils.forceDeleteOnExit(protoFolder);
         return tmpdir;
-    }
-
-    /** An error indicating that something went wrong while invoking protoc. */
-    public class ProtocInvocationException extends RuntimeException {
-        private static final long serialVersionUID = 1L;
-
-        private ProtocInvocationException(String message) {
-            super(message);
-        }
-
-        private ProtocInvocationException(String message, Throwable cause) {
-            super(message, cause);
-        }
     }
 
     private void protocInvokerErrorHandler(

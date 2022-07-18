@@ -9,6 +9,7 @@ import vn.zalopay.benchmark.core.BaseTest;
 import vn.zalopay.benchmark.core.protobuf.ProtoMethodName;
 import vn.zalopay.benchmark.core.protobuf.ProtocInvoker;
 import vn.zalopay.benchmark.core.protobuf.ServiceResolver;
+import vn.zalopay.benchmark.exception.ProtocInvocationException;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -20,7 +21,7 @@ public class DynamicMessageMarshallerTest extends BaseTest {
             expectedExceptions = RuntimeException.class,
             expectedExceptionsMessageRegExp = "Unable to merge from the supplied input stream")
     public void testCanHandleIOExceptionWhenParse()
-            throws FileNotFoundException, ProtocInvoker.ProtocInvocationException {
+            throws FileNotFoundException, ProtocInvocationException {
         InputStream input = new FileInputStream(JMETER_PROPERTIES_FILE.toString());
         ProtoMethodName grpcMethodName = ProtoMethodName.parseFullGrpcMethodName(FULL_METHOD);
         DescriptorProtos.FileDescriptorSet fileDescriptorSet =

@@ -6,6 +6,7 @@ import io.grpc.StatusRuntimeException;
 import org.apache.jmeter.samplers.AbstractSampler;
 import org.apache.jmeter.samplers.Entry;
 import org.apache.jmeter.samplers.SampleResult;
+import org.apache.jmeter.testelement.TestStateListener;
 import org.apache.jmeter.testelement.ThreadListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,12 +14,13 @@ import org.slf4j.LoggerFactory;
 import vn.zalopay.benchmark.constant.GrpcSamplerConstant;
 import vn.zalopay.benchmark.core.ClientCaller;
 import vn.zalopay.benchmark.core.config.GrpcRequestConfig;
+import vn.zalopay.benchmark.core.protobuf.ProtocInvoker;
 import vn.zalopay.benchmark.core.specification.GrpcResponse;
 import vn.zalopay.benchmark.util.ExceptionUtils;
 
 import java.nio.charset.StandardCharsets;
 
-public class GRPCSampler extends AbstractSampler implements ThreadListener {
+public class GRPCSampler extends AbstractSampler implements ThreadListener, TestStateListener {
 
     private static final Logger log = LoggerFactory.getLogger(GRPCSampler.class);
     private static final long serialVersionUID = 232L;
@@ -312,5 +314,27 @@ public class GRPCSampler extends AbstractSampler implements ThreadListener {
 
     private String getHostPort() {
         return getHost() + ":" + getPort();
+    }
+
+    @Override
+    public void testStarted() {
+        log.info("testStarted");
+    }
+
+    @Override
+    public void testStarted(String s) {
+        log.info("testStarted {}", s);
+    }
+
+    @Override
+    public void testEnded() {
+        log.info("testEnded");
+        ProtocInvoker.cleanTempFolderForGeneratingProtoc();
+    }
+
+    @Override
+    public void testEnded(String s) {
+        log.info("testEnded {}", s);
+        ProtocInvoker.cleanTempFolderForGeneratingProtoc();
     }
 }

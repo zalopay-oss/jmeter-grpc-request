@@ -145,13 +145,13 @@ public class GrpcSamplerTest extends BaseTest {
 
     @Test
     public void testCanSendSampleRequestWithErrorNullResponse() {
-        MockedStatic<Writer> writerSatic = Mockito.mockStatic(Writer.class);
+        MockedStatic<Writer> writerStatic = Mockito.mockStatic(Writer.class);
         ClientCaller clientCaller = Mockito.mock(ClientCaller.class);
         Writer writer = Mockito.mock(Writer.class);
         Mockito.doNothing().when(writer).onError(Mockito.any(Throwable.class));
         Mockito.doNothing().when(writer).onNext(Mockito.any(com.google.protobuf.Message.class));
         Mockito.when(clientCaller.call("500")).thenThrow(new RuntimeException("Dummy Exception"));
-        writerSatic
+        writerStatic
                 .when(
                         () ->
                                 Writer.create(
@@ -263,8 +263,10 @@ public class GrpcSamplerTest extends BaseTest {
         grpcSampler.setRequestJson(REQUEST_JSON);
         grpcSampler.threadStarted();
         SampleResult sampleResult = grpcSampler.sample(null);
+        grpcSampler.testStarted("Test Start");
+        grpcSampler.threadStarted();
         grpcSampler.threadFinished();
-        grpcSampler.threadFinished();
+        grpcSampler.testEnded("Test End");
         String responseData = new String(sampleResult.getResponseData());
         Assert.assertEquals(sampleResult.getResponseCode(), "200");
         Assert.assertTrue(
@@ -290,7 +292,11 @@ public class GrpcSamplerTest extends BaseTest {
         grpcSampler.setTlsDisableVerification(false);
         grpcSampler.setChannelShutdownAwaitTime("5000");
         grpcSampler.setRequestJson(METADATA_REQUEST_JSON);
+        grpcSampler.testStarted("Test Start");
         grpcSampler.threadStarted();
+        grpcSampler.threadFinished();
+        grpcSampler.testEnded("Test End");
+
         SampleResult sampleResult = grpcSampler.sample(null);
         String responseData = new String(sampleResult.getResponseData());
         Assert.assertEquals(sampleResult.getResponseCode(), "200");

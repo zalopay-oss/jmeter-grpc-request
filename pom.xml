@@ -15,16 +15,16 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <lombok.version>1.18.24</lombok.version>
-        <jmeter.version>4.0</jmeter.version>
+        <jmeter.version>5.4.3</jmeter.version>
         <netty.ssl.version>2.0.53.Final</netty.ssl.version>
         <os72.protoc.version>3.11.4</os72.protoc.version>
         <grpc.version>1.38.0</grpc.version>
         <protobuf.version>3.17.1</protobuf.version>
-        <jmeter.cmn.version>0.6</jmeter.cmn.version>
+        <jmeter.cmn.version>0.7</jmeter.cmn.version>
         <emulators.jmeter.version>0.4</emulators.jmeter.version>
-        <mockito.version>3.10.0</mockito.version>
-        <testng.version>7.6.0</testng.version>
-        <fastjson.version>1.2.83</fastjson.version>
+        <mockito.version>4.6.1</mockito.version>
+        <testng.version>7.6.1</testng.version>
+        <fastjson.version>2.0.9</fastjson.version>
         <com.google.code.gson.version>2.9.0</com.google.code.gson.version>
     </properties>
 
@@ -40,11 +40,25 @@
                     <artifactId>gson</artifactId>
                 </exclusion>
             </exclusions>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.jmeter</groupId>
+            <artifactId>ApacheJMeter_components</artifactId>
+            <version>${jmeter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>kg.apc</groupId>
+            <artifactId>jmeter-plugins-emulators</artifactId>
+            <version>${emulators.jmeter.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>kg.apc</groupId>
             <artifactId>jmeter-plugins-cmn-jmeter</artifactId>
             <version>${jmeter.cmn.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- proto -->
@@ -85,6 +99,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-tcnative-boringssl-static</artifactId>
+            <version>${netty.ssl.version}</version>
+        </dependency>
 
         <!-- json -->
         <dependency>
@@ -111,28 +130,10 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.jmeter</groupId>
-            <artifactId>ApacheJMeter_components</artifactId>
-            <version>${jmeter.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>kg.apc</groupId>
-            <artifactId>jmeter-plugins-emulators</artifactId>
-            <version>${emulators.jmeter.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <version>${mockito.version}</version>
             <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-tcnative-boringssl-static</artifactId>
-            <version>${netty.ssl.version}</version>
         </dependency>
     </dependencies>
 
@@ -150,7 +151,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.0</version>
+                <version>3.10.1</version>
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
@@ -160,7 +161,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.1</version>
+                <version>3.3.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -177,19 +178,9 @@
                                     </excludes>
                                 </filter>
                             </filters>
-                            <artifactSet>
-                                <includes>
-                                    <include>io.grpc</include>
-                                    <include>io.netty</include>
-                                    <include>io.perfmark</include>
-                                    <include>com.google.protobuf</include>
-                                    <include>com.google.guava</include>
-                                    <include>com.google.code.gson</include>
-                                    <include>com.github.os72</include>
-                                    <include>com.alibaba</include>
-                                    <include>kg.apc</include>
-                                </includes>
-                            </artifactSet>
+                            <minimizeJar>true</minimizeJar>
+                            <keepDependenciesWithProvidedScope>false</keepDependenciesWithProvidedScope>
+                            <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
                         </configuration>
                     </execution>
                 </executions>
@@ -197,7 +188,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.7</version>
+                <version>0.8.8</version>
                 <executions>
                     <execution>
                         <goals>
