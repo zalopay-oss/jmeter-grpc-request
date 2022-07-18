@@ -378,30 +378,27 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
                             grpcSampler.getProtoFolder(), grpcSampler.getLibFolder());
             Descriptors.MethodDescriptor methodDescriptor =
                     serviceResolver.resolveServiceMethod(grpcMethodName);
-            if (methodDescriptor != null) {
-                Descriptors.Descriptor inputType = methodDescriptor.getInputType();
-                List<Descriptors.FieldDescriptor> fields = inputType.getFields();
-                JSONObject requestBody = new JSONObject(true);
-                for (Descriptors.FieldDescriptor field : fields) {
-                    String name = field.getName();
-                    Object defaultValue = getMockValue(field);
-                    requestBody.put(name, defaultValue);
-                }
-
-                String text = "";
-                if (inputType.getFullName().startsWith(GOOGLE_PROTOBUF_PACKAGE_PREFIX)) {
-                    text = requestBody.getString(GOOGLE_PROTOBUF_DEFAULT_KEY);
-                } else {
-                    text =
-                            requestBody.toString(
-                                    SerializerFeature.PrettyFormat, // Formatting Json String
-                                    SerializerFeature.WriteMapNullValue, // Outputs Null values
-                                    SerializerFeature.WriteNullListAsEmpty // Null List output is []
-                                    );
-                }
-
-                requestJsonArea.setText(text);
+            Descriptors.Descriptor inputType = methodDescriptor.getInputType();
+            List<Descriptors.FieldDescriptor> fields = inputType.getFields();
+            JSONObject requestBody = new JSONObject(true);
+            for (Descriptors.FieldDescriptor field : fields) {
+                String name = field.getName();
+                Object defaultValue = getMockValue(field);
+                requestBody.put(name, defaultValue);
             }
+
+            String text = "";
+            if (inputType.getFullName().startsWith(GOOGLE_PROTOBUF_PACKAGE_PREFIX)) {
+                text = requestBody.getString(GOOGLE_PROTOBUF_DEFAULT_KEY);
+            } else {
+                text =
+                        requestBody.toString(
+                                SerializerFeature.PrettyFormat, // Formatting Json String
+                                SerializerFeature.WriteMapNullValue, // Outputs Null values
+                                SerializerFeature.WriteNullListAsEmpty // Null List output is []
+                                );
+            }
+            requestJsonArea.setText(text);
         } catch (Exception ex) {
             log.error("request mock error", ex);
         }
@@ -536,8 +533,8 @@ public class GRPCSamplerGui extends AbstractSamplerGui {
                             return;
                         }
 
-                        String[] protoMethods = getProtoMethods(true);
                         try {
+                            String[] protoMethods = getProtoMethods(true);
                             for (String protoMethod : protoMethods) {
                                 boolean startsWith = protoMethod.startsWith(fullMethod);
                                 if (startsWith) {

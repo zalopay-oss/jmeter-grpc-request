@@ -7,6 +7,9 @@ package vn.zalopay.benchmark.constant;
  * @since 2022/7/11
  */
 public class GrpcSamplerConstant {
+    private GrpcSamplerConstant() {
+        throw new IllegalStateException("Constant class");
+    }
 
     /** Client exception message - http 400 */
     public static final String CLIENT_EXCEPTION_MSG =

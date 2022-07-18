@@ -263,8 +263,10 @@ public class GrpcSamplerTest extends BaseTest {
         grpcSampler.setRequestJson(REQUEST_JSON);
         grpcSampler.threadStarted();
         SampleResult sampleResult = grpcSampler.sample(null);
+        grpcSampler.testStarted("Test Start");
+        grpcSampler.threadStarted();
         grpcSampler.threadFinished();
-        grpcSampler.threadFinished();
+        grpcSampler.testEnded("Test End");
         String responseData = new String(sampleResult.getResponseData());
         Assert.assertEquals(sampleResult.getResponseCode(), "200");
         Assert.assertTrue(
@@ -290,7 +292,11 @@ public class GrpcSamplerTest extends BaseTest {
         grpcSampler.setTlsDisableVerification(false);
         grpcSampler.setChannelShutdownAwaitTime("5000");
         grpcSampler.setRequestJson(METADATA_REQUEST_JSON);
+        grpcSampler.testStarted("Test Start");
         grpcSampler.threadStarted();
+        grpcSampler.threadFinished();
+        grpcSampler.testEnded("Test End");
+
         SampleResult sampleResult = grpcSampler.sample(null);
         String responseData = new String(sampleResult.getResponseData());
         Assert.assertEquals(sampleResult.getResponseCode(), "200");

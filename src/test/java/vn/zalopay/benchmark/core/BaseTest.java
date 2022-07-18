@@ -102,7 +102,7 @@ public class BaseTest {
     }
 
     @AfterSuite
-    public void shutdownDummyServer() throws InterruptedException {
+    public void shutdownDummyServer() {
         bookStoreServer.destroy();
         if (bookStoreServer.isAlive()) bookStoreServer.destroyForcibly();
         helloWorldServer.destroy();

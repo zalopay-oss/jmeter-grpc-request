@@ -8,15 +8,18 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import org.testng.asserts.SoftAssert;
 
 import vn.zalopay.benchmark.core.BaseTest;
 import vn.zalopay.benchmark.core.protobuf.ProtocInvoker;
+import vn.zalopay.benchmark.exception.ProtocInvocationException;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.stream.IntStream;
 
 public class ProtocInvokerTest extends BaseTest {
@@ -41,7 +44,7 @@ public class ProtocInvokerTest extends BaseTest {
                     + "}";
 
     @Test
-    public void canGenerateFileDescriptorSet() throws ProtocInvoker.ProtocInvocationException {
+    public void canGenerateFileDescriptorSet() throws ProtocInvocationException {
         ProtocInvoker protocInvoker =
                 ProtocInvoker.forConfig(
                         PROTO_FOLDER.toAbsolutePath().toString(),
@@ -51,9 +54,9 @@ public class ProtocInvokerTest extends BaseTest {
     }
 
     @Test(
-            expectedExceptions = ProtocInvoker.ProtocInvocationException.class,
+            expectedExceptions = ProtocInvocationException.class,
             expectedExceptionsMessageRegExp = ".*[Missing input file].*")
-    public void cannotGenerateFileDescriptorSet() throws ProtocInvoker.ProtocInvocationException {
+    public void cannotGenerateFileDescriptorSet() throws ProtocInvocationException {
         ProtocInvoker protocInvoker =
                 ProtocInvoker.forConfig(JMETER_PROPERTIES_FILE.toAbsolutePath().toString(), "");
         protocInvoker.invoke();
@@ -120,5 +123,64 @@ public class ProtocInvokerTest extends BaseTest {
                                 Assert.fail();
                             }
                         });
+    }
+
+    @Test(
+            expectedExceptions = ProtocInvocationException.class,
+            expectedExceptionsMessageRegExp = ".*" + "Unable to extract well known types.*")
+    public void testThrowExceptionWhenGenerateWellKnownType() {
+        MockedStatic<FileUtils> fileUtilsMockedStatic = Mockito.mockStatic(FileUtils.class);
+        fileUtilsMockedStatic
+                .when(() -> FileUtils.forceDeleteOnExit(Mockito.any(File.class)))
+                .thenThrow(IOException.class);
+        ProtocInvoker protocInvoker =
+                ProtocInvoker.forConfig(PROTO_FOLDER.toAbsolutePath().toString(), "");
+        protocInvoker.invoke();
+    }
+
+    @Test
+    public void testCanGetListOfTempFolderToGenProtoc() {
+        ProtocInvoker protocInvoker =
+                ProtocInvoker.forConfig(PROTO_FOLDER.toAbsolutePath().toString(), "");
+        protocInvoker.invoke();
+        List<String> listTempPath = ProtocInvoker.getTempFolderPathToGenerateProtoFiles();
+        Assert.assertTrue(listTempPath.size() >= 2);
+    }
+
+    @Test
+    public void testCanCleanTampFolder() {
+        ProtocInvoker protocInvoker =
+                ProtocInvoker.forConfig(PROTO_FOLDER.toAbsolutePath().toString(), "");
+        protocInvoker.invoke();
+        ProtocInvoker.cleanTempFolderForGeneratingProtoc();
+        SoftAssert softAssert = new SoftAssert();
+        ProtocInvoker.getTempFolderPathToGenerateProtoFiles()
+                .forEach(
+                        path -> {
+                            File tempFolder = new File(path);
+                            softAssert.assertFalse(tempFolder.exists());
+                        });
+        softAssert.assertAll();
+    }
+
+    @Test(
+            expectedExceptions = ProtocInvocationException.class,
+            expectedExceptionsMessageRegExp = ".*Unable to execute" + " protoc binary.*")
+    public void canGenerateDefaultBuilderWithProtoFolderHasMoreThan100FilesWhenIOException()
+            throws IOException {
+        File folder = new File(PROTO_WITH_MORE_THAN_100_PROTO_FILES.toAbsolutePath().toString());
+        try {
+            createDummyProtoFiles();
+            MockedStatic<File> fileMockedStatic = Mockito.mockStatic(File.class);
+            fileMockedStatic
+                    .when(() -> File.createTempFile(Mockito.any(), Mockito.any(), Mockito.any()))
+                    .thenThrow(IOException.class);
+            ProtocInvoker protocInvoker =
+                    ProtocInvoker.forConfig(
+                            PROTO_WITH_MORE_THAN_100_PROTO_FILES.toAbsolutePath().toString(), "");
+            DescriptorProtos.FileDescriptorSet fileDescriptorSet = protocInvoker.invoke();
+        } finally {
+            FileUtils.deleteDirectory(folder);
+        }
     }
 }

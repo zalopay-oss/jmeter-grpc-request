@@ -6,6 +6,9 @@ import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+
 public class ProtoMethodNameTest {
 
     @Test
@@ -25,5 +28,16 @@ public class ProtoMethodNameTest {
                 .when(() -> io.grpc.MethodDescriptor.extractFullServiceName(Mockito.anyString()))
                 .thenReturn("abc..\\/");
         ProtoMethodName.parseFullGrpcMethodName("dummyyyyyyyyy");
+    }
+
+    @Test(expectedExceptions = InvocationTargetException.class)
+    public void testCantInstanceNewObject()
+            throws InvocationTargetException, InstantiationException, IllegalAccessException {
+        Constructor<?>[] ctors = WellKnownTypes.class.getDeclaredConstructors();
+        Assert.assertEquals(1, ctors.length, "Utility class should only have one constructor");
+        Constructor<?> ctor = ctors[0];
+        ctor.setAccessible(true);
+        ctor.newInstance();
+        Assert.fail("Utility class constructor should be private");
     }
 }
