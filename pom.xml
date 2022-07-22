@@ -19,7 +19,7 @@
         <netty.ssl.version>2.0.53.Final</netty.ssl.version>
         <os72.protoc.version>3.11.4</os72.protoc.version>
         <grpc.version>1.38.0</grpc.version>
-        <protobuf.version>3.17.1</protobuf.version>
+        <protobuf.version>3.21.3</protobuf.version>
         <jmeter.cmn.version>0.7</jmeter.cmn.version>
         <emulators.jmeter.version>0.4</emulators.jmeter.version>
         <mockito.version>4.6.1</mockito.version>
