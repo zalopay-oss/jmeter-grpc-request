@@ -17,7 +17,7 @@
         <lombok.version>1.18.24</lombok.version>
         <jmeter.version>5.4.3</jmeter.version>
         <netty.ssl.version>2.0.53.Final</netty.ssl.version>
-        <os72.protoc.version>3.11.4</os72.protoc.version>
+        <minhhoang.protoc.version>3.21.4</minhhoang.protoc.version>
         <grpc.version>1.38.0</grpc.version>
         <protobuf.version>3.17.1</protobuf.version>
         <jmeter.cmn.version>0.7</jmeter.cmn.version>
@@ -63,9 +63,9 @@
 
         <!-- proto -->
         <dependency>
-            <groupId>com.github.os72</groupId>
+            <groupId>io.github.minhhoangvn</groupId>
             <artifactId>protoc-jar</artifactId>
-            <version>${os72.protoc.version}</version>
+            <version>${minhhoang.protoc.version}</version>
         </dependency>
         <dependency>
             <groupId>io.grpc</groupId>
@@ -171,7 +171,7 @@
                         <configuration>
                             <filters>
                                 <filter>
-                                    <artifact>com.github.os72:protoc-jar</artifact>
+                                    <artifact>io.github.minhhoangvn:protoc-jar</artifact>
                                     <excludes>
                                         <exclude>bin/2.4.1/**</exclude>
                                         <exclude>bin/2.5.0/**</exclude>
