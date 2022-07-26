@@ -971,8 +971,11 @@ public class GRPCSamplerGuiTest extends BaseTest {
         libFolder.setText(LIB_FOLDER.toString());
         fullMethodButton.doClick();
         fullMethodComboBox.requestFocus();
+        requestJsonArea.setText("");
         fullMethodButton.doClick();
+        requestJsonArea.setText("");
         fullMethodComboBox.setSelectedItem("helloworld.Greeter/SayHelloWithJsonMetadata");
+        requestJsonArea.setText("");
         fullMethodComboBox.actionPerformed(
                 new ActionEvent(
                         fullMethodComboBox, ActionEvent.ACTION_PERFORMED, "comboBoxEdited"));
@@ -981,15 +984,7 @@ public class GRPCSamplerGuiTest extends BaseTest {
                 fullMethodComboBox.getSelectedItem(),
                 "helloworld.Greeter/SayHelloWithJsonMetadata");
         Assert.assertNotNull(grpcSampler);
-        Assert.assertEquals(
-                requestJsonArea.getText(),
-                "{\n"
-                        + "\t\"id\":\"abc\",\n"
-                        + "\t\"segment\":10,\n"
-                        + "\t\"mac\":\"Hello\",\n"
-                        + "\t\"client\":10,\n"
-                        + "\t\"reqdate\":20\n"
-                        + "}");
+        Assert.assertEquals(requestJsonArea.getText(), "{\n" + "\t\"name\":\"Hello\"\n" + "}");
         Assert.assertFalse(fullMethodComboBox.isPopupVisible());
         frame.dispose();
     }
