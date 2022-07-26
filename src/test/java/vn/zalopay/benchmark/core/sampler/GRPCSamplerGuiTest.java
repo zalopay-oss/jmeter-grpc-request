@@ -763,15 +763,9 @@ public class GRPCSamplerGuiTest extends BaseTest {
         protoFolder.setText(PROTO_FOLDER.toString());
         libFolder.setText(LIB_FOLDER.toString());
         fullMethodButton.doClick();
-        fullMethodButton.updateUI();
-        fullMethodComboBox.updateUI();
         fullMethodComboBox.setSelectedItem("data_services_seg.SegmentServices/checkSeg");
-        fullMethodComboBox.updateUI();
         fullMethodButton.doClick();
         fullMethodComboBox.firePopupMenuCanceled();
-        fullMethodButton.updateUI();
-        fullMethodComboBox.updateUI();
-        requestJsonArea.updateUI();
         Assert.assertEquals(
                 fullMethodComboBox.getSelectedItem(), "data_services_seg.SegmentServices/checkSeg");
         Assert.assertNotNull(grpcSampler);
@@ -977,10 +971,8 @@ public class GRPCSamplerGuiTest extends BaseTest {
         libFolder.setText(LIB_FOLDER.toString());
         fullMethodButton.doClick();
         fullMethodComboBox.requestFocus();
-        fullMethodComboBox.updateUI();
         fullMethodButton.doClick();
         fullMethodComboBox.setSelectedItem("helloworld.Greeter/SayHelloWithJsonMetadata");
-        fullMethodComboBox.updateUI();
         fullMethodComboBox.actionPerformed(
                 new ActionEvent(
                         fullMethodComboBox, ActionEvent.ACTION_PERFORMED, "comboBoxEdited"));
@@ -1278,8 +1270,6 @@ public class GRPCSamplerGuiTest extends BaseTest {
         fullMethodButton.doClick();
         fullMethodComboBox.requestFocus();
         fullMethodComboBox.hidePopup();
-        fullMethodButton.updateUI();
-        fullMethodComboBox.updateUI();
         fullMethodButton.doClick();
         grpcSampler.setProtoFolder("");
         fullMethodComboBox.setSelectedItem("data_services_s");
