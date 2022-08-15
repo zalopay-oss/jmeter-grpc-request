@@ -22,7 +22,7 @@
         <protobuf.version>3.17.1</protobuf.version>
         <jmeter.cmn.version>0.7</jmeter.cmn.version>
         <emulators.jmeter.version>0.4</emulators.jmeter.version>
-        <mockito.version>4.6.1</mockito.version>
+        <mockito.version>4.7.0</mockito.version>
         <testng.version>7.6.1</testng.version>
         <fastjson.version>2.0.9</fastjson.version>
         <com.google.code.gson.version>2.9.0</com.google.code.gson.version>
