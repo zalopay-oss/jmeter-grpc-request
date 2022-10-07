@@ -29,7 +29,7 @@ public class ProtoMethodName {
 
         // Extract the leading package from the service name.
         int index = fullServiceName.lastIndexOf('.');
-        String packageName = index == -1 ? null :  fullServiceName.substring(0, index);
+        String packageName = index == -1 ? null : fullServiceName.substring(0, index);
 
         // Make sure the index is not at the end of the service name.
         if (index + 1 >= fullServiceName.length()) {

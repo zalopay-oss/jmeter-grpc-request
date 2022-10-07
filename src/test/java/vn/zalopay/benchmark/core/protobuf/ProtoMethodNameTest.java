@@ -32,8 +32,8 @@ public class ProtoMethodNameTest {
 
     @Test
     public void testCanParseGrpcMethodAndServiceNameWithoutPacakge() {
-        ProtoMethodName protoMethodName = ProtoMethodName.parseFullGrpcMethodName(
-                "serviceWithoutPackage/ServiceMethod");
+        ProtoMethodName protoMethodName =
+                ProtoMethodName.parseFullGrpcMethodName("serviceWithoutPackage/ServiceMethod");
 
         Assert.assertEquals("serviceWithoutPackage", protoMethodName.getServiceName());
         Assert.assertEquals("ServiceMethod", protoMethodName.getMethodName());

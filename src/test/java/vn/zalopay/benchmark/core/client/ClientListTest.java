@@ -1,9 +1,7 @@
 package vn.zalopay.benchmark.core.client;
 
 import static org.mockito.Mockito.any;
-import static org.testng.AssertJUnit.assertNotNull;
 
-import com.google.protobuf.Descriptors.MethodDescriptor;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import org.mockito.MockedStatic;
@@ -21,8 +19,6 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import vn.zalopay.benchmark.core.protobuf.ProtoMethodName;
-import vn.zalopay.benchmark.core.protobuf.ServiceResolver;
 
 public class ClientListTest extends BaseTest {
 
