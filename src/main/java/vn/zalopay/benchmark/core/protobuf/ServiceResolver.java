@@ -76,7 +76,7 @@ public class ServiceResolver {
     private ServiceDescriptor findService(String serviceName, String packageName) {
         // TODO(dino): Consider creating an index.
         for (FileDescriptor fileDescriptor : fileDescriptors) {
-            if (!fileDescriptor.getPackage().equals(packageName)) {
+            if (packageName != null && !fileDescriptor.getPackage().equals(packageName)) {
                 // Package does not match this file, ignore.
                 continue;
             }

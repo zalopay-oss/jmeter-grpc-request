@@ -515,28 +515,6 @@ public class ClientCallerTest extends BaseTest {
 
     @Test(
             expectedExceptions = IllegalArgumentException.class,
-            expectedExceptionsMessageRegExp =
-                    "Could not extract package name from bookstoreBookstore")
-    public void testThrowExceptionWithPackageAndServiceMethodName() {
-        GrpcRequestConfig grpcRequestConfig =
-                new GrpcRequestConfig(
-                        HOST_PORT,
-                        PROTO_WITH_EXTERNAL_IMPORT_FOLDER.toString(),
-                        LIB_FOLDER.toString(),
-                        "bookstoreBookstore/CreateShelf",
-                        false,
-                        false,
-                        DEFAULT_CHANNEL_SHUTDOWN_TIME);
-        clientCaller = new ClientCaller(grpcRequestConfig);
-        clientCaller.buildRequestAndMetadata(REQUEST_JSON, METADATA);
-        GrpcResponse resp = clientCaller.call("10");
-        clientCaller.shutdownNettyChannel();
-        Assert.assertNotNull(resp);
-        Assert.assertTrue(resp.getGrpcMessageString().contains("\"theme\": \"Hello server"));
-    }
-
-    @Test(
-            expectedExceptions = IllegalArgumentException.class,
             expectedExceptionsMessageRegExp = "Could not extract service from bookstoreBookstore.")
     public void testThrowExceptionWithInvalidPackagedName() {
         GrpcRequestConfig grpcRequestConfig =

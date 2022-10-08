@@ -30,6 +30,16 @@ public class ProtoMethodNameTest {
         ProtoMethodName.parseFullGrpcMethodName("dummyyyyyyyyy");
     }
 
+    @Test
+    public void testCanParseGrpcMethodAndServiceNameWithoutPacakge() {
+        ProtoMethodName protoMethodName =
+                ProtoMethodName.parseFullGrpcMethodName("serviceWithoutPackage/ServiceMethod");
+
+        Assert.assertEquals("serviceWithoutPackage", protoMethodName.getServiceName());
+        Assert.assertEquals("ServiceMethod", protoMethodName.getMethodName());
+        Assert.assertNull(protoMethodName.getPackageName());
+    }
+
     @Test(expectedExceptions = InvocationTargetException.class)
     public void testCantInstanceNewObject()
             throws InvocationTargetException, InstantiationException, IllegalAccessException {

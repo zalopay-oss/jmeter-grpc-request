@@ -98,7 +98,7 @@ public class ProtocInvokerTest extends BaseTest {
                         });
         ProtocInvoker protocInvoker = ProtocInvoker.forConfig(PROTO_WITH_RELATIVE_PATH, "");
         DescriptorProtos.FileDescriptorSet fileDescriptorSet = protocInvoker.invoke();
-        Assert.assertEquals(fileDescriptorSet.getFileCount(), 3);
+        Assert.assertEquals(fileDescriptorSet.getFileCount(), 4);
     }
 
     private void createDummyProtoFiles() throws IOException {
