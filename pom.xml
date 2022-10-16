@@ -15,10 +15,12 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <lombok.version>1.18.24</lombok.version>
-        <jmeter.version>5.4.3</jmeter.version>
+        <commons.lang3.version>3.12.0</commons.lang3.version>
+        <org.apache.commons.io.version>2.11.0</org.apache.commons.io.version>
+        <jmeter.version>5.5</jmeter.version>
         <netty.ssl.version>2.0.54.Final</netty.ssl.version>
         <minhhoang.protoc.version>3.21.4</minhhoang.protoc.version>
-        <grpc.version>1.49.0</grpc.version>
+        <grpc.version>1.38.0</grpc.version>
         <protobuf.version>3.17.1</protobuf.version>
         <jmeter.cmn.version>0.7</jmeter.cmn.version>
         <emulators.jmeter.version>0.4</emulators.jmeter.version>
@@ -58,7 +60,6 @@
             <groupId>kg.apc</groupId>
             <artifactId>jmeter-plugins-cmn-jmeter</artifactId>
             <version>${jmeter.cmn.version}</version>
-            <scope>provided</scope>
         </dependency>
 
         <!-- proto -->
@@ -103,6 +104,16 @@
             <groupId>io.netty</groupId>
             <artifactId>netty-tcnative-boringssl-static</artifactId>
             <version>${netty.ssl.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons.lang3.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${org.apache.commons.io.version}</version>
         </dependency>
 
         <!-- json -->
