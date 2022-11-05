@@ -31,6 +31,7 @@ public class ProtocInvoker {
             FileSystems.getDefault().getPathMatcher("glob:**/*.proto");
     private static final List<Path> PROTO_TEMP_FOLDER_PATHS = new ArrayList<>();
     private static final int LARGE_FOLDER_LIMIT = 100;
+    public static final String DESCRIPTOR_EXTENSION = ".bin";
     private final ImmutableList<Path> protocIncludePaths;
     private final Path discoveryRoot;
 
@@ -45,7 +46,13 @@ public class ProtocInvoker {
 
     /** Creates a new {@link ProtocInvoker} with the supplied configuration. */
     public static ProtocInvoker forConfig(String protoDiscoveryRoot, String libFolder) {
+
         Path discoveryRootPath = Paths.get(protoDiscoveryRoot);
+
+        if (isBinDescriptor(discoveryRootPath)) { // no other config needed
+            return new ProtocInvoker(discoveryRootPath, ImmutableList.of());
+        }
+
         if (!discoveryRootPath.isAbsolute()) {
             discoveryRootPath =
                     Paths.get(FileServer.getFileServer().getBaseDir(), protoDiscoveryRoot);
@@ -67,6 +74,10 @@ public class ProtocInvoker {
         return new ProtocInvoker(discoveryRootPath, includePaths.build());
     }
 
+    private static boolean isBinDescriptor(Path path) {
+        return path.toString().endsWith(DESCRIPTOR_EXTENSION);
+    }
+
     public static List<String> getTempFolderPathToGenerateProtoFiles() {
         return PROTO_TEMP_FOLDER_PATHS.stream()
                 .map(path -> path.toAbsolutePath().toString())
@@ -83,6 +94,15 @@ public class ProtocInvoker {
      * {@link FileDescriptorSet} which describes all the protos.
      */
     public FileDescriptorSet invoke() throws ProtocInvocationException {
+
+        if (isBinDescriptor(discoveryRoot)) {
+            try {
+                return FileDescriptorSet.parseFrom(Files.readAllBytes(discoveryRoot));
+            } catch (IOException e) {
+                throw new ProtocInvocationException("Unable to parse the provided descriptor", e);
+            }
+        }
+
         Path wellKnownTypesInclude = generateWellKnownTypesInclude();
 
         Path descriptorPath = generateDescriptorPath();
