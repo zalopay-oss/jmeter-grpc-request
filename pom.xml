@@ -21,7 +21,7 @@
         <netty.ssl.version>2.0.54.Final</netty.ssl.version>
         <minhhoang.protoc.version>3.21.4</minhhoang.protoc.version>
         <grpc.version>1.38.0</grpc.version>
-        <protobuf.version>3.17.1</protobuf.version>
+        <protobuf.version>3.21.11</protobuf.version>
         <jmeter.cmn.version>0.7</jmeter.cmn.version>
         <emulators.jmeter.version>0.4</emulators.jmeter.version>
         <mockito.version>4.7.0</mockito.version>
