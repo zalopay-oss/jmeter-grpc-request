@@ -167,7 +167,7 @@ public class GrpcSamplerTest extends BaseTest {
         grpcSampler.setHost(hostAndPort.getHost());
         grpcSampler.setPort(Integer.toString(hostAndPort.getPort()));
         grpcSampler.setFullMethod(FULL_METHOD);
-        grpcSampler.setDeadline("1");
+        grpcSampler.setDeadline("500");
         grpcSampler.setTls(false);
         grpcSampler.setTlsDisableVerification(false);
         grpcSampler.setRequestJson(REQUEST_JSON);

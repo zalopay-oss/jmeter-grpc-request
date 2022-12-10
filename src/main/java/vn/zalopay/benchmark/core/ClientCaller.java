@@ -30,6 +30,7 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -197,6 +198,14 @@ public class ClientCaller {
                     .blockingUnaryCall(requestMessages, streamObserver, callOptions(deadline))
                     .get();
         } catch (Exception e) {
+            grpcResponse.setSuccess(false);
+            Throwable ex;
+            if (e instanceof ExecutionException) {
+                ex = e.getCause();
+            } else {
+                ex = e;
+            }
+            grpcResponse.setThrowable(ex);
             shutdownNettyChannel();
         }
 
