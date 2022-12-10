@@ -1,8 +1,8 @@
-# Benchmark: jmter-grpc-request
+# Benchmark: jmeter-grpc-request
 
 ## 1. Purpose
 
-Verify that *jmeter-grpc-request* is really stable when performing load testing for the gRPC system. To do this, create a simple gRPC server then use JMeter with *jmter-grpc-request* sampler to load test with multiple test cases.
+Verify that *jmeter-grpc-request* is really stable when performing load testing for the gRPC system. To do this, create a simple gRPC server then use JMeter with *jmeter-grpc-request* sampler to load test with multiple test cases.
 
 ## 2. Prepare materials
 
@@ -130,7 +130,7 @@ Deploy information:
 
 <img src="../asset/benchmark-testscript-grpc.jpg" width="720px" style="padding-bottom: 20px"/>
 
-Execute JMeter in non-GUI mode and combine with *jmter-grpc-request* sampler. With test script here [BookService_element_gui.jmx](./BookService_element_gui.jmx).
+Execute JMeter in non-GUI mode and combine with *jmeter-grpc-request* sampler. With test script here [BookService_element_gui.jmx](./BookService_element_gui.jmx).
 
 ## 4. Reports
 
