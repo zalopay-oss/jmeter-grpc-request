@@ -47,6 +47,7 @@ public class Writer<T extends Message> implements StreamObserver<T> {
             grpcResponse.storeGrpcMessage(jsonPrinter.print(message));
         } catch (InvalidProtocolBufferException e) {
             LOGGER.warn(e.getMessage());
+            grpcResponse.storeGrpcMessage(message.toString());
         }
     }
 }
