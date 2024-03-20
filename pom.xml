@@ -14,7 +14,7 @@
         <java.version>1.8</java.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <lombok.version>1.18.24</lombok.version>
+        <lombok.version>1.18.32</lombok.version>
         <commons.lang3.version>3.12.0</commons.lang3.version>
         <org.apache.commons.io.version>2.11.0</org.apache.commons.io.version>
         <jmeter.version>5.5</jmeter.version>
